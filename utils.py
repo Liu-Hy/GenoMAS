@@ -477,7 +477,7 @@ def cross_validation(model_constructor, model_params, X, Y, var_names, trait, ge
 def tune_hyperparameters(model_constructor, fixed_params, tune_params, X, Y, var_names, trait, gene_info_path, condition=None, Z=None, k=5):
     best_precision = -np.inf
     best_config = {}
-    performance_history = {}
+    best_performance = {}
 
     # Generate all combinations of parameters to be tuned
     keys, values = zip(*tune_params.items())
@@ -486,18 +486,16 @@ def tune_hyperparameters(model_constructor, fixed_params, tune_params, X, Y, var
         current_params = dict(zip(keys, combination))
         current_params.update(fixed_params)
 
-        # Perform cross-validation with the current set of parameters
         results = cross_validation(model_constructor, current_params, X, Y, var_names, trait, gene_info_path, condition,
                                    Z, k)
         current_precision = results["selection"]["precision"]
 
-        # Update the best configuration if the current one performs better in terms of precision
         if current_precision > best_precision:
             best_precision = current_precision
             best_config = current_params
-            best_performance_metrics = results  # Update the best performance metrics
+            best_performance = results
 
-    return best_config, best_performance_metrics
+    return best_config, best_performance
 
 def get_known_related_genes(file_path, feature):
     """Read a csv file into a dataframe about gene-trait association, and get the gene symbols related to a given
@@ -549,24 +547,28 @@ def normalize_trait(trait):
     return normalized_trait
 
 def interpret_result(model: Any, var_names: List[str], trait: str, condition = None,
-                     threshold: float = 0.05, save_output: bool = True,
-                     output_dir: str = './output') -> None:
+                     threshold: float = 0.05, print_output = False, save_output = False, performance = None,
+                     output_dir: str = './output') -> dict:
     """This function interprets and reports the result of a trained linear regression model, where the regressor
     consists of one variable about some biomedical condition and multiple variables about genetic factors.
-    The function extracts coefficients and p-values from the model, and identifies the significant genes based on
-    p-values or non-zero coefficients, depending on the availability of p-values.
+    The function extracts coefficients and p-values from the model, identifies significant genes based on
+    p-values or non-zero coefficients, depending on the availability of p-values, and optionally prints and saves
+    the output.
 
     Parameters:
-    model (Any): The trained regression Model.
-    var_names (List[str]): List of names of all the variables involved in the regression analysis.
-    trait (str): The target trait of interest.
-    condition (str): The specific condition to examine within the model.
-    threshold (float): Significance level for p-value correction. Defaults to 0.05.
-    save_output (bool): Flag to determine whether to save the output to a file. Defaults to True.
-    output_dir (str): Directory path where output files are saved. Defaults to './output'.
+        model (Any): The trained regression Model.
+        var_names (List[str]): List of names of all the variables involved in the regression analysis.
+        trait (str): The target trait of interest.
+        condition (str): The specific condition to examine within the model.
+        threshold (float): Significance level for p-value correction. Defaults to 0.05.
+        print_output (bool): Flag to determine whether to print the output to the console. Defaults to False.
+        save_output (bool): Flag to determine whether to save the output to a file. Defaults to False.
+        performance (dict, optional): Dictionary containing performance metrics of the model. Defaults to None.
+        output_dir (str): Directory path where output files are saved. Defaults to './output'.
 
     Returns:
-    None: This function does not return anything but prints and optionally saves the output.
+        dict: A dictionary containing the list of significant genes, sorted by their importance, and the corresponding
+        coefficient magnitude or corrected p-value.
     """
     feature_names = [var for var in var_names if var != trait]
 
@@ -591,38 +593,40 @@ def interpret_result(model: Any, var_names: List[str], trait: str, condition = N
 
     if condition is not None:
         condition_effect = regression_df[regression_df['Variable'] == condition].iloc[0]
-
-        # print(f"Effect of the condition on the target variable:")
-        # print(f"Variable: {condition}")
-        # print(f"Coefficient: {condition_effect['Coefficient']:.4f}")
+        if print_output:
+            print(f"Effect of the condition on the target variable:")
+            print(f"Variable: {condition}, Coefficient: {condition_effect['Coefficient']:.4f}")
         gene_regression_df = regression_df[regression_df['Variable'] != condition]
     else:
         gene_regression_df = regression_df
+
     if p_values is None:
         significant_genes_df = gene_regression_df[gene_regression_df['Coefficient'] != 0].copy()
         significant_genes_df['Absolute Coefficient'] = significant_genes_df['Coefficient'].abs()
         significant_genes_df = significant_genes_df.sort_values('Absolute Coefficient', ascending=False)
-        # print(
-        #     f"Found {len(significant_genes_df)} genes with non-zero coefficients associated with the trait '{trait}' "
-        #     f"conditional on the factor '{condition}'. These genes are identified as significant based on the regression model.")
     else:
-        # Apply the Benjamini-Hochberg correction, to get the corrected p-values
         corrected_p_values = multipletests(gene_regression_df['p_value'], alpha=threshold, method='fdr_bh')[1]
         gene_regression_df.loc[:, 'corrected_p_value'] = corrected_p_values
-        significant_genes_df = gene_regression_df.loc[gene_regression_df['corrected_p_value'] < threshold]
+        significant_genes_df = gene_regression_df[gene_regression_df['corrected_p_value'] < threshold]
         significant_genes_df = significant_genes_df.sort_values('corrected_p_value', ascending=True)
-        # print(
-        #     f"Found {len(significant_genes_df)} significant genes associated with the trait '{trait}' conditional on "
-        #     f"the factor '{condition}', with corrected p-value < {threshold}:")
 
-    # print(significant_genes_df["Variable"].tolist())
+    if print_output:
+        print(f"Found {len(significant_genes_df)} significant genes associated with the trait '{trait}', "
+              f"conditional on the factor '{condition}'.")
+
+    # Optionally, save this to a JSON file
+    if save_output:
+        output_path = os.path.join(output_dir, f'significant_genes_condition_{condition}.json')
+        output_data = {
+            'significant_genes': significant_genes_df.to_dict(orient='list')
+        }
+        if performance is not None:
+            output_data['performance'] = performance
+
+        with open(output_path, 'w') as f:
+            json.dump(output_data, f, indent=4)
 
     return significant_genes_df.to_dict(orient="list")
-
-    # # Optionally, save this to a CSV file
-    # if save_output:
-    #     significant_genes_df.to_csv(
-    #         os.path.join(output_dir, f'significant_genes_condition_{condition}.csv'), index=False)
 
 
 def judge_binary_variable_biased(dataframe, col_name, min_proportion=0.1, min_num=5):
@@ -933,15 +937,6 @@ def read_json_to_dataframe(json_file: str) -> pd.DataFrame:
     return pd.DataFrame.from_dict(data, orient='index').reset_index().rename(columns={'index': 'cohort_id'})
 
 
-def read_json_to_dataframe(json_file: str) -> pd.DataFrame:
-    """
-    Reads a JSON file and converts it into a pandas DataFrame.
-    """
-    with open(json_file, 'r') as file:
-        data = json.load(file)
-    return pd.DataFrame.from_dict(data, orient='index').reset_index().rename(columns={'index': 'cohort_id'})
-
-
 def filter_and_rank_cohorts(json_file: str, condition: Union[str, None] = None) -> Tuple[
     Union[str, None], pd.DataFrame]:
     """
@@ -970,22 +965,25 @@ def filter_and_rank_cohorts(json_file: str, condition: Union[str, None] = None) 
 
     return best_cohort_id, ranked_df
 
-def select_and_load_cohort(data_root: str, trait: str, condition=None, is_two_step=True, gene_info_path=None) -> Tuple[Optional[pd.DataFrame], Optional[pd.DataFrame]]:
+def select_and_load_cohort(data_root: str, trait: str, condition=None, is_two_step=True, gene_info_path=None) -> Tuple[Optional[pd.DataFrame], Optional[pd.DataFrame], Optional[List]]:
     """
-    Selects and loads cohort data for specified trait (and optionally condition) from a given data root directory.
-    Supports data selection for both single-step and two-step regression based on the is_two_step flag.
+    Selects and loads cohort data for specified trait (and optionally condition) from a given data root directory,
+    along with gene regressors if in two-step mode. This function supports data selection for both single-step
+    and two-step regression based on the is_two_step flag.
 
     Args:
         data_root (str): The root directory containing cohort data.
         trait (str): The trait of interest.
-        condition (str, optional): The condition of interest.
-        is_two_step (bool, optional): If True, will be used in two-step regression combining data from trait and condition.
-        gene_info_path (str, optional): Path to gene information.
+        condition (str, optional): The condition of interest; required if is_two_step is True.
+        is_two_step (bool, optional): If True, will be used in two-step regression using data from both trait and condition
+                                      along with gene information. Requires condition and gene_info_path to be specified.
+        gene_info_path (str, optional): Path to gene information file; required if is_two_step is True.
 
     Returns:
         tuple: A tuple containing:
                - trait_data (Optional[pd.DataFrame]): Data for the selected trait cohort.
                - condition_data (Optional[pd.DataFrame]): Data for the selected condition cohort if in two-step mode, otherwise None.
+               - gene_regressors (Optional[pd.DataFrame]): Gene regression data if in two-step mode, otherwise None.
 
     """
     trait_dir = os.path.join(data_root, trait)
