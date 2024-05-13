@@ -7,7 +7,7 @@ import re
 import ast
 import tempfile
 import shutil
-
+import itertools
 import seaborn as sns
 import matplotlib.pyplot as plt
 import numpy as np
@@ -425,7 +425,6 @@ def cross_validation(model_constructor, model_params, X, Y, var_names, trait, ge
         else:
             normalized_Z_train = normalized_Z_test = None
 
-        # model = model_constructor(**model_params)
         model = ResidualizationRegressor(model_constructor, model_params)
         model.fit(normalized_X_train, Y_train, normalized_Z_train)
         predictions = model.predict(normalized_X_test, normalized_Z_test)
@@ -433,24 +432,55 @@ def cross_validation(model_constructor, model_params, X, Y, var_names, trait, ge
         if target_type == 'binary':
             predictions = (predictions > 0.5).astype(int)
             Y_test = (Y_test > 0.5).astype(int)
-            performance = {"prediction": {"acc": accuracy_score(Y_test, predictions)}}
+            acc = accuracy_score(Y_test, predictions)
+            performance = {"prediction": {"accuracy": acc}}
         elif target_type == 'continuous':
             nmse = np.sum((Y_test - predictions) ** 2) / np.sum((Y_test - np.mean(Y_test)) ** 2)
             performance = {"prediction": {"nmse": nmse}}
+
         pred_genes = interpret_result(model, var_names, trait, condition)["Variable"]
         ref_genes = get_known_related_genes(gene_info_path, feature=trait)
         performance["selection"] = evaluate_gene_selection(pred_genes, ref_genes)
         performances.append(performance)
 
-    cv_mean = np.mean(performances)  # This line is wrong, needs modified
+    # Calculate average performance across all metrics
+    cv_means = {}
+    for metric in performances[0]:
+        if isinstance(performances[0][metric], dict):
+            # Handle nested dictionary (e.g., 'prediction' and 'selection' metrics)
+            cv_means[metric] = {}
+            for submetric in performances[0][metric]:
+                cv_means[metric][submetric] = np.mean([p[metric][submetric] for p in performances])
+        else:
+            cv_means[metric] = np.mean([p[metric] for p in performances])
 
-    if target_type == 'binary':
-        print(f'The cross-validation accuracy is {(cv_mean * 100):.2f}%')
-    else:
-        print(f'The cross-validation NMSE is {cv_mean:.4f}')
+    print(f'The cross-validation performance: {cv_means}')
 
-    return cv_mean
+    return cv_means
 
+def tune_hyperparameters(model_constructor, fixed_params, tune_params, X, Y, var_names, trait, gene_info_path, condition=None, Z=None, k=5):
+    best_precision = -np.inf
+    best_config = {}
+    performance_history = {}
+
+    # Generate all combinations of parameters to be tuned
+    keys, values = zip(*tune_params.items())
+    for combination in itertools.product(*values):
+        # Combine the fixed parameters with the current combination of tuning parameters
+        current_params = dict(zip(keys, combination))
+        current_params.update(fixed_params)
+
+        # Perform cross-validation with the current set of parameters
+        results = cross_validation(model_constructor, current_params, X, Y, var_names, trait, gene_info_path, condition, Z, k)
+        current_precision = results["selection"]["precision"]
+        performance_history[tuple(zip(keys, combination))] = results
+
+        # Update the best configuration if the current one performs better in terms of precision
+        if current_precision > best_precision:
+            best_precision = current_precision
+            best_config = current_params
+
+    return best_config, performance_history
 
 def get_known_related_genes(file_path, feature):
     """Read a csv file into a dataframe about gene-trait association, and get the gene symbols related to a given
@@ -545,9 +575,9 @@ def interpret_result(model: Any, var_names: List[str], trait: str, condition = N
     if condition is not None:
         condition_effect = regression_df[regression_df['Variable'] == condition].iloc[0]
 
-        print(f"Effect of the condition on the target variable:")
-        print(f"Variable: {condition}")
-        print(f"Coefficient: {condition_effect['Coefficient']:.4f}")
+        # print(f"Effect of the condition on the target variable:")
+        # print(f"Variable: {condition}")
+        # print(f"Coefficient: {condition_effect['Coefficient']:.4f}")
         gene_regression_df = regression_df[regression_df['Variable'] != condition]
     else:
         gene_regression_df = regression_df
@@ -555,20 +585,20 @@ def interpret_result(model: Any, var_names: List[str], trait: str, condition = N
         significant_genes_df = gene_regression_df[gene_regression_df['Coefficient'] != 0].copy()
         significant_genes_df['Absolute Coefficient'] = significant_genes_df['Coefficient'].abs()
         significant_genes_df = significant_genes_df.sort_values('Absolute Coefficient', ascending=False)
-        print(
-            f"Found {len(significant_genes_df)} genes with non-zero coefficients associated with the trait '{trait}' "
-            f"conditional on the factor '{condition}'. These genes are identified as significant based on the regression model.")
+        # print(
+        #     f"Found {len(significant_genes_df)} genes with non-zero coefficients associated with the trait '{trait}' "
+        #     f"conditional on the factor '{condition}'. These genes are identified as significant based on the regression model.")
     else:
         # Apply the Benjamini-Hochberg correction, to get the corrected p-values
         corrected_p_values = multipletests(gene_regression_df['p_value'], alpha=threshold, method='fdr_bh')[1]
         gene_regression_df.loc[:, 'corrected_p_value'] = corrected_p_values
         significant_genes_df = gene_regression_df.loc[gene_regression_df['corrected_p_value'] < threshold]
         significant_genes_df = significant_genes_df.sort_values('corrected_p_value', ascending=True)
-        print(
-            f"Found {len(significant_genes_df)} significant genes associated with the trait '{trait}' conditional on "
-            f"the factor '{condition}', with corrected p-value < {threshold}:")
+        # print(
+        #     f"Found {len(significant_genes_df)} significant genes associated with the trait '{trait}' conditional on "
+        #     f"the factor '{condition}', with corrected p-value < {threshold}:")
 
-    print(significant_genes_df["Variable"].tolist())
+    # print(significant_genes_df["Variable"].tolist())
 
     return significant_genes_df.to_dict(orient="list")
 
