@@ -395,17 +395,16 @@ def cross_validation(X, Y, Z=None, model_constructor=Lasso, model_params=None, k
         performances.append(performance)
 
     cv_mean = np.mean(performances)
-    cv_std = np.std(performances)
 
     if target_type == 'binary':
-        print(f'The cross-validation accuracy is {(cv_mean * 100):.2f}% ± {(cv_std * 100):.2f}%')
+        print(f'The cross-validation accuracy is {(cv_mean * 100):.2f}%')
     else:
-        print(f'The cross-validation NMSE is {cv_mean:.4f} ± {cv_std:.4f}')
+        print(f'The cross-validation NMSE is {cv_mean:.4f}')
 
-    return cv_mean, cv_std
+    return cv_mean
 
 
-def get_known_related_genes(file_path, feature, normalize=True):
+def get_known_related_genes(file_path, feature):
     """Read a csv file into a dataframe about gene-trait association, and get the gene symbols related to a given
     trait"""
     related_gene_df = pd.read_csv(file_path)
@@ -415,8 +414,6 @@ def get_known_related_genes(file_path, feature, normalize=True):
         return None
     feature_related_genes = ast.literal_eval(related_gene_df.loc[feature].tolist()[0])
     # feature_related_genes = [gn.strip() for gn in feature_related_genes if isinstance(gn, str)]
-    if normalize:
-        feature_related_genes = normalize_gene_symbols(feature_related_genes)
 
     return feature_related_genes
 
@@ -466,7 +463,7 @@ def interpret_result(model: Any, var_names: List[str], trait: str, condition = N
 
     Parameters:
     model (Any): The trained regression Model.
-    var_names (List[str]): List of variable names involved in the regression analysis.
+    var_names (List[str]): List of names of all the variables involved in the regression analysis.
     trait (str): The target trait of interest.
     condition (str): The specific condition to examine within the model.
     threshold (float): Significance level for p-value correction. Defaults to 0.05.
@@ -876,23 +873,42 @@ def filter_and_rank_cohorts(json_file: str, condition: Union[str, None] = None) 
 
     return best_cohort_id, ranked_df
 
-def select_and_load_cohort(data_root: str, trait: str, condition=None, is_two_step=True, gene_info_path=None):
+def select_and_load_cohort(data_root: str, trait: str, condition=None, is_two_step=True, gene_info_path=None) -> Tuple[Optional[pd.DataFrame], Optional[pd.DataFrame]]:
+    """
+    Selects and loads cohort data for specified trait (and optionally condition) from a given data root directory.
+    Supports data selection for both single-step and two-step regression based on the is_two_step flag.
+
+    Args:
+        data_root (str): The root directory containing cohort data.
+        trait (str): The trait of interest.
+        condition (str, optional): The condition of interest.
+        is_two_step (bool, optional): If True, will be used in two-step regression combining data from trait and condition.
+        gene_info_path (str, optional): Path to gene information.
+
+    Returns:
+        tuple: A tuple containing:
+               - trait_data (Optional[pd.DataFrame]): Data for the selected trait cohort.
+               - condition_data (Optional[pd.DataFrame]): Data for the selected condition cohort if in two-step mode, otherwise None.
+
+    """
     trait_dir = os.path.join(data_root, trait)
     if not is_two_step:
-        trait_cohort_id, trait_df = filter_and_rank_cohorts(os.path.join(trait_dir, 'cohort_info.json'), condition)
+        trait_cohort_id, trait_info_df = filter_and_rank_cohorts(os.path.join(trait_dir, 'cohort_info.json'), condition)
         if trait_cohort_id is None:
-            return None, None
+            return None, None, None
         else:
             trait_data = pd.read_csv(os.path.join(trait_dir, trait_cohort_id + '.csv')).astype('float')
-            return trait_data, None
+            return trait_data, None, None
     else:
         assert condition is not None, "A condition must be specified for two-step regression"
+        assert gene_info_path is not None, "A path to gene information file must be specified for two-step regression"
         condition_dir = os.path.join(data_root, condition)
-        trait_cohort_id, trait_df = filter_and_rank_cohorts(os.path.join(trait_dir, 'cohort_info.json'), None)
-        condition_cohort_id, condition_df = filter_and_rank_cohorts(os.path.join(condition_dir, 'cohort_info.json'), None)
+        trait_cohort_id, trait_info_df = filter_and_rank_cohorts(os.path.join(trait_dir, 'cohort_info.json'), None)
+        condition_cohort_id, condition_info_df = filter_and_rank_cohorts(os.path.join(condition_dir, 'cohort_info.json'), None)
         if trait_cohort_id is None or condition_cohort_id is None:
-            return None, None
-        merged_df = pd.merge(trait_df.assign(key=1), condition_df.assign(key=1), on='key').drop('key', 1)
+            print(f"No available data for either the trait or the condition, best cohorts being '{trait_cohort_id}' and '{condition_cohort_id}'")
+            return None, None, None
+        merged_df = pd.merge(trait_info_df.assign(key=1), condition_info_df.assign(key=1), on='key').drop(columns='key')
         merged_df['sample_product'] = merged_df['sample_size_x'] * merged_df['sample_size_y']
         merged_df = merged_df.sort_values(by='sample_product', ascending=False)
         for index, row in merged_df.iterrows():
@@ -900,10 +916,11 @@ def select_and_load_cohort(data_root: str, trait: str, condition=None, is_two_st
             condition_data_path = os.path.join(condition_dir, row['cohort_id_y'] + '.csv')
             trait_data = pd.read_csv(trait_data_path).astype('float')
             condition_data = pd.read_csv(condition_data_path).astype('float')
-            gene_regressors = get_gene_regressors(trait, condition, trait_df, condition_df, gene_info_path)
+            gene_regressors = get_gene_regressors(trait, condition, trait_data, condition_data, gene_info_path)
             if gene_regressors:
-                return trait_data, condition_data
-        return None, None
+                return trait_data, condition_data, gene_regressors
+        print(f"No available cohorts with common regressors for the trait '{trait}' and the condition '{condition}'")
+        return None, None, None
 
 def preview_df(df, n=5):
     return df.head(n).to_dict(orient='list')
