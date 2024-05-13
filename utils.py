@@ -377,7 +377,7 @@ def jaccard2(pred, ref):
     return iou
 
 def recall(pred, ref):
-    if len(pred):
+    if len(ref):
         recall = sum([p in pred for p in ref]) / len(ref)
     else:
         recall = 0
@@ -415,8 +415,6 @@ def evaluate_gene_selection(pred, ref):
         'jaccard': jaccard(pred, ref),
         'jaccard2': jaccard2(pred, ref)
     }
-def evaluate_gene_selection(pred, ref):
-    return {'precision': precision(pred, ref), 'precision_at_50': precision_at_50(pred, ref), 'recall': recall(pred, ref), 'jaccard': jaccard(pred, ref), 'jaccard2': jaccard2(pred, ref)}
 
 def cross_validation(model_constructor, model_params, X, Y, var_names, trait, gene_info_path, condition=None, Z=None, k=5):
     indices = np.arange(X.shape[0])
@@ -456,6 +454,8 @@ def cross_validation(model_constructor, model_params, X, Y, var_names, trait, ge
 
         pred_genes = interpret_result(model, var_names, trait, condition)["Variable"]
         ref_genes = get_known_related_genes(gene_info_path, feature=trait)
+        var_genes = [v for v in var_names if v not in [trait, condition]]
+        ref_genes = [r for r in ref_genes if r in var_genes]
         performance["selection"] = evaluate_gene_selection(pred_genes, ref_genes)
         performances.append(performance)
 
