@@ -356,8 +356,6 @@ class ResidualizationRegressor:
     def get_p_values(self):
         return self.p_values
 
-
-
 def cross_validation(X, Y, Z=None, model_constructor=Lasso, model_params=None, k=5, target_type='binary'):
     assert target_type in ['binary', 'continuous'], "The target type must be chosen from 'binary' or 'continuous'"
     indices = np.arange(X.shape[0])
@@ -391,7 +389,8 @@ def cross_validation(X, Y, Z=None, model_constructor=Lasso, model_params=None, k
             Y_test = (Y_test > 0.5).astype(int)
             performance = accuracy_score(Y_test, predictions)
         elif target_type == 'continuous':
-            performance = mean_squared_error(Y_test, predictions)
+            nmse = np.sum((Y_test - predictions) ** 2) / np.sum((Y_test - np.mean(Y_test)) ** 2)
+            performance = nmse  # Lower is better
 
         performances.append(performance)
 
@@ -401,7 +400,7 @@ def cross_validation(X, Y, Z=None, model_constructor=Lasso, model_params=None, k
     if target_type == 'binary':
         print(f'The cross-validation accuracy is {(cv_mean * 100):.2f}% ± {(cv_std * 100):.2f}%')
     else:
-        print(f'The cross-validation MSE is {(cv_mean * 100):.2f} ± {(cv_std * 100):.2f}')
+        print(f'The cross-validation NMSE is {cv_mean:.4f} ± {cv_std:.4f}')
 
     return cv_mean, cv_std
 
@@ -877,6 +876,34 @@ def filter_and_rank_cohorts(json_file: str, condition: Union[str, None] = None) 
 
     return best_cohort_id, ranked_df
 
+def select_and_load_cohort(data_root: str, trait: str, condition=None, is_two_step=True, gene_info_path=None):
+    trait_dir = os.path.join(data_root, trait)
+    if not is_two_step:
+        trait_cohort_id, trait_df = filter_and_rank_cohorts(os.path.join(trait_dir, 'cohort_info.json'), condition)
+        if trait_cohort_id is None:
+            return None, None
+        else:
+            trait_data = pd.read_csv(os.path.join(trait_dir, trait_cohort_id + '.csv')).astype('float')
+            return trait_data, None
+    else:
+        assert condition is not None, "A condition must be specified for two-step regression"
+        condition_dir = os.path.join(data_root, condition)
+        trait_cohort_id, trait_df = filter_and_rank_cohorts(os.path.join(trait_dir, 'cohort_info.json'), None)
+        condition_cohort_id, condition_df = filter_and_rank_cohorts(os.path.join(condition_dir, 'cohort_info.json'), None)
+        if trait_cohort_id is None or condition_cohort_id is None:
+            return None, None
+        merged_df = pd.merge(trait_df.assign(key=1), condition_df.assign(key=1), on='key').drop('key', 1)
+        merged_df['sample_product'] = merged_df['sample_size_x'] * merged_df['sample_size_y']
+        merged_df = merged_df.sort_values(by='sample_product', ascending=False)
+        for index, row in merged_df.iterrows():
+            trait_data_path = os.path.join(trait_dir, row['cohort_id_x'] + '.csv')
+            condition_data_path = os.path.join(condition_dir, row['cohort_id_y'] + '.csv')
+            trait_data = pd.read_csv(trait_data_path).astype('float')
+            condition_data = pd.read_csv(condition_data_path).astype('float')
+            gene_regressors = get_gene_regressors(trait, condition, trait_df, condition_df, gene_info_path)
+            if gene_regressors:
+                return trait_data, condition_data
+        return None, None
 
 def preview_df(df, n=5):
     return df.head(n).to_dict(orient='list')
