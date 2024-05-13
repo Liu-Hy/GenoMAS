@@ -377,20 +377,19 @@ def jaccard2(pred, ref):
     return iou
 
 def recall(pred, ref):
-    ref = ref[:50]
     if len(pred):
         recall = sum([p in pred for p in ref]) / len(ref)
     else:
         recall = 0
     return recall
 
-def pre_at_50(pred, ref):
-    pred_top = pred.copy()[:50]
-    if len(pred):
-        recall = sum([p in ref for p in pred_top]) / len(pred_top)
+def precision_at_50(pred, ref):
+    pred_top = pred[:50]
+    if len(pred_top) > 0:
+        precision = sum([p in ref for p in pred_top]) / len(pred_top)
     else:
-        recall = 0
-    return recall
+        precision = 0
+    return precision
 
 def precision(pred, ref):
     if len(pred):
@@ -399,8 +398,25 @@ def precision(pred, ref):
         precision = 0
     return precision
 
+def f1_score(pred, ref):
+    prec = precision(pred, ref)
+    rec = recall(pred, ref)
+    if prec + rec == 0:  # Prevent division by zero
+        return 0
+    f1 = 2 * (prec * rec) / (prec + rec)
+    return f1
+
 def evaluate_gene_selection(pred, ref):
-    return {'precision': precision(pred, ref), 'precision_at_50': pre_at_50(pred, ref), 'recall': recall(pred, ref), 'jaccard': jaccard(pred, ref), 'jaccard2': jaccard2(pred, ref)}
+    return {
+        'precision': precision(pred, ref),
+        'precision_at_50': precision_at_50(pred, ref),
+        'recall': recall(pred, ref),
+        'f1_score': f1_score(pred, ref),  # Adding F1 score here
+        'jaccard': jaccard(pred, ref),
+        'jaccard2': jaccard2(pred, ref)
+    }
+def evaluate_gene_selection(pred, ref):
+    return {'precision': precision(pred, ref), 'precision_at_50': precision_at_50(pred, ref), 'recall': recall(pred, ref), 'jaccard': jaccard(pred, ref), 'jaccard2': jaccard2(pred, ref)}
 
 def cross_validation(model_constructor, model_params, X, Y, var_names, trait, gene_info_path, condition=None, Z=None, k=5):
     indices = np.arange(X.shape[0])
@@ -471,16 +487,17 @@ def tune_hyperparameters(model_constructor, fixed_params, tune_params, X, Y, var
         current_params.update(fixed_params)
 
         # Perform cross-validation with the current set of parameters
-        results = cross_validation(model_constructor, current_params, X, Y, var_names, trait, gene_info_path, condition, Z, k)
+        results = cross_validation(model_constructor, current_params, X, Y, var_names, trait, gene_info_path, condition,
+                                   Z, k)
         current_precision = results["selection"]["precision"]
-        performance_history[tuple(zip(keys, combination))] = results
 
         # Update the best configuration if the current one performs better in terms of precision
         if current_precision > best_precision:
             best_precision = current_precision
             best_config = current_params
+            best_performance_metrics = results  # Update the best performance metrics
 
-    return best_config, performance_history
+    return best_config, best_performance_metrics
 
 def get_known_related_genes(file_path, feature):
     """Read a csv file into a dataframe about gene-trait association, and get the gene symbols related to a given

@@ -1,1001 +1,1001 @@
-,Trait,Condition,IoU
-0,Lung Cancer,Age,0.3487964989059081
-2,Pancreatic Cancer,Endometriosis,0.2907248636009353
-3,Endometriosis,Pancreatic Cancer,0.2907248636009353
-4,Breast Cancer,Endometriosis,0.28771384136858474
-5,Endometriosis,Breast Cancer,0.28771384136858474
-6,Inflammatory Disorders,Lung Cancer,0.2868525896414343
-7,Lung Cancer,Inflammatory Disorders,0.2868525896414343
-8,Breast Cancer,Inflammatory Disorders,0.2868525896414343
-9,Inflammatory Disorders,Breast Cancer,0.2868525896414343
-10,Lung Cancer,Endometriosis,0.2857142857142857
-11,Endometriosis,Lung Cancer,0.2857142857142857
-12,Prostate Cancer,Inflammatory Disorders,0.28429423459244535
-13,Inflammatory Disorders,Prostate Cancer,0.28429423459244535
-14,Hepatitis,Breast Cancer,0.28408163265306124
-15,Breast Cancer,Hepatitis,0.28408163265306124
-16,Breast Cancer,Age,0.2837435758723289
-17,Lung Cancer,Hepatitis,0.2814968814968815
-18,Hepatitis,Lung Cancer,0.2814968814968815
-19,Cardiovascular Disease,Atherosclerosis,0.27601809954751133
-20,Atherosclerosis,Cardiovascular Disease,0.27601809954751133
-21,Hypertension,Cardiovascular Disease,0.2717023675310034
-22,Cardiovascular Disease,Hypertension,0.2717023675310034
-23,Inflammatory Disorders,Pancreatic Cancer,0.27081967213114755
-24,Pancreatic Cancer,Inflammatory Disorders,0.27081967213114755
-25,Susceptibility to Infections,Hepatitis,0.2689450222882615
-26,Hepatitis,Susceptibility to Infections,0.2689450222882615
-27,Inflammatory Disorders,Hepatitis,0.26666666666666666
-28,Hepatitis,Inflammatory Disorders,0.26666666666666666
-29,Hypertension,Age,0.26572403705509506
-30,Atherosclerosis,Inflammatory Disorders,0.2650130548302872
-31,Inflammatory Disorders,Atherosclerosis,0.2650130548302872
-32,Bladder Cancer,Endometriosis,0.2631578947368421
-33,Endometriosis,Bladder Cancer,0.2631578947368421
-34,COVID-19,Susceptibility to Infections,0.25773195876288657
-35,Susceptibility to Infections,COVID-19,0.25773195876288657
-36,Hypertension,Inflammatory Disorders,0.25762491888384165
-37,Inflammatory Disorders,Hypertension,0.25762491888384165
-38,Prostate Cancer,Hepatitis,0.2553870710295291
-39,Hepatitis,Prostate Cancer,0.2553870710295291
-40,Inflammatory Disorders,Obesity,0.25193798449612403
-41,Obesity,Inflammatory Disorders,0.25193798449612403
-42,Poor Metabolizer of Drugs,Multiple Chemical Sensitivity,0.25
-43,Multiple Chemical Sensitivity,Poor Metabolizer of Drugs,0.25
-44,Breast Cancer,Hypertension,0.24807692307692308
-45,Hypertension,Breast Cancer,0.24807692307692308
-46,Susceptibility to Infections,Inflammatory Disorders,0.24489795918367346
-47,Inflammatory Disorders,Susceptibility to Infections,0.24489795918367346
-48,Endometriosis,Hepatitis,0.24324324324324326
-49,Hepatitis,Endometriosis,0.24324324324324326
-50,Lung Cancer,Hypertension,0.24210526315789474
-51,Hypertension,Lung Cancer,0.24210526315789474
-52,Atherosclerosis,Obstructive sleep apnea,0.24096385542168675
-53,Obstructive sleep apnea,Atherosclerosis,0.24096385542168675
-54,Chronic obstructive pulmonary disease (COPD),COVID-19,0.24050632911392406
-55,COVID-19,Chronic obstructive pulmonary disease (COPD),0.24050632911392406
-56,Breast Cancer,Atherosclerosis,0.23949367088607595
-57,Atherosclerosis,Breast Cancer,0.23949367088607595
-58,Susceptibility to Infections,Multiple sclerosis,0.23768115942028986
-59,Multiple sclerosis,Susceptibility to Infections,0.23768115942028986
-61,Hypertension,Atherosclerosis,0.23573952549217567
-62,Atherosclerosis,Hypertension,0.23573952549217567
-63,Prostate Cancer,Age,0.23561572507159595
+Unnamed: 0,Trait,Condition,IoU
+0,Lung_Cancer,Age,0.3487964989059081
+2,Pancreatic_Cancer,Endometriosis,0.2907248636009353
+3,Endometriosis,Pancreatic_Cancer,0.2907248636009353
+4,Breast_Cancer,Endometriosis,0.2877138413685847
+5,Endometriosis,Breast_Cancer,0.2877138413685847
+6,Inflammatory_Disorders,Lung_Cancer,0.2868525896414343
+7,Lung_Cancer,Inflammatory_Disorders,0.2868525896414343
+8,Breast_Cancer,Inflammatory_Disorders,0.2868525896414343
+9,Inflammatory_Disorders,Breast_Cancer,0.2868525896414343
+10,Lung_Cancer,Endometriosis,0.2857142857142857
+11,Endometriosis,Lung_Cancer,0.2857142857142857
+12,Prostate_Cancer,Inflammatory_Disorders,0.2842942345924453
+13,Inflammatory_Disorders,Prostate_Cancer,0.2842942345924453
+14,Hepatitis,Breast_Cancer,0.2840816326530612
+15,Breast_Cancer,Hepatitis,0.2840816326530612
+16,Breast_Cancer,Age,0.2837435758723289
+17,Lung_Cancer,Hepatitis,0.2814968814968815
+18,Hepatitis,Lung_Cancer,0.2814968814968815
+19,Cardiovascular_Disease,Atherosclerosis,0.2760180995475113
+20,Atherosclerosis,Cardiovascular_Disease,0.2760180995475113
+21,Hypertension,Cardiovascular_Disease,0.2717023675310034
+22,Cardiovascular_Disease,Hypertension,0.2717023675310034
+23,Inflammatory_Disorders,Pancreatic_Cancer,0.2708196721311475
+24,Pancreatic_Cancer,Inflammatory_Disorders,0.2708196721311475
+25,Susceptibility_to_Infections,Hepatitis,0.2689450222882615
+26,Hepatitis,Susceptibility_to_Infections,0.2689450222882615
+27,Inflammatory_Disorders,Hepatitis,0.2666666666666666
+28,Hepatitis,Inflammatory_Disorders,0.2666666666666666
+29,Hypertension,Age,0.265724037055095
+30,Atherosclerosis,Inflammatory_Disorders,0.2650130548302872
+31,Inflammatory_Disorders,Atherosclerosis,0.2650130548302872
+32,Bladder_Cancer,Endometriosis,0.2631578947368421
+33,Endometriosis,Bladder_Cancer,0.2631578947368421
+34,COVID-19,Susceptibility_to_Infections,0.2577319587628865
+35,Susceptibility_to_Infections,COVID-19,0.2577319587628865
+36,Hypertension,Inflammatory_Disorders,0.2576249188838416
+37,Inflammatory_Disorders,Hypertension,0.2576249188838416
+38,Prostate_Cancer,Hepatitis,0.2553870710295291
+39,Hepatitis,Prostate_Cancer,0.2553870710295291
+40,Inflammatory_Disorders,Obesity,0.251937984496124
+41,Obesity,Inflammatory_Disorders,0.251937984496124
+42,Poor_Metabolizer_of_Drugs,Multiple_Chemical_Sensitivity,0.25
+43,Multiple_Chemical_Sensitivity,Poor_Metabolizer_of_Drugs,0.25
+44,Breast_Cancer,Hypertension,0.248076923076923
+45,Hypertension,Breast_Cancer,0.248076923076923
+46,Susceptibility_to_Infections,Inflammatory_Disorders,0.2448979591836734
+47,Inflammatory_Disorders,Susceptibility_to_Infections,0.2448979591836734
+48,Endometriosis,Hepatitis,0.2432432432432432
+49,Hepatitis,Endometriosis,0.2432432432432432
+50,Lung_Cancer,Hypertension,0.2421052631578947
+51,Hypertension,Lung_Cancer,0.2421052631578947
+52,Atherosclerosis,Obstructive_sleep_apnea,0.2409638554216867
+53,Obstructive_sleep_apnea,Atherosclerosis,0.2409638554216867
+54,Chronic_obstructive_pulmonary_disease_(COPD),COVID-19,0.240506329113924
+55,COVID-19,Chronic_obstructive_pulmonary_disease_(COPD),0.240506329113924
+56,Breast_Cancer,Atherosclerosis,0.2394936708860759
+57,Atherosclerosis,Breast_Cancer,0.2394936708860759
+58,Susceptibility_to_Infections,Multiple_sclerosis,0.2376811594202898
+59,Multiple_sclerosis,Susceptibility_to_Infections,0.2376811594202898
+61,Hypertension,Atherosclerosis,0.2357395254921756
+62,Atherosclerosis,Hypertension,0.2357395254921756
+63,Prostate_Cancer,Age,0.2356157250715959
 64,Hypertension,Gender,0.2345415778251599
-65,Lung Cancer,Atherosclerosis,0.2344931921331316
-66,Atherosclerosis,Lung Cancer,0.2344931921331316
-67,Inflammatory Disorders,Chronic obstructive pulmonary disease (COPD),0.23425692695214106
-68,Chronic obstructive pulmonary disease (COPD),Inflammatory Disorders,0.23425692695214106
-69,Atherosclerosis,Age,0.23387096774193547
-70,Hepatitis,Pancreatic Cancer,0.2332418659349275
-71,Pancreatic Cancer,Hepatitis,0.2332418659349275
-72,Atherosclerosis,Chronic obstructive pulmonary disease (COPD),0.23115577889447236
-73,Chronic obstructive pulmonary disease (COPD),Atherosclerosis,0.23115577889447236
-74,Underweight,Obesity,0.23076923076923078
-75,Obesity,Underweight,0.23076923076923078
-77,Ankylosing Spondylitis,Psoriatic Arthritis,0.23
-78,Psoriatic Arthritis,Ankylosing Spondylitis,0.23
-80,Inflammatory Disorders,Cardiovascular Disease,0.22875816993464052
-81,Cardiovascular Disease,Inflammatory Disorders,0.22875816993464052
-82,Hypertension,Prostate Cancer,0.2285849503076195
-83,Prostate Cancer,Hypertension,0.2285849503076195
-84,Atherosclerosis,Gender,0.22799575821845175
-85,Obesity,Hypertension,0.22510618216139688
-86,Hypertension,Obesity,0.22510618216139688
-87,Inflammatory Disorders,Endometriosis,0.22485207100591717
-88,Endometriosis,Inflammatory Disorders,0.22485207100591717
-89,Cardiovascular Disease,Obesity,0.2247557003257329
-90,Obesity,Cardiovascular Disease,0.2247557003257329
-91,Atherosclerosis,Pancreatic Cancer,0.22461230615307654
-92,Pancreatic Cancer,Atherosclerosis,0.22461230615307654
-93,Inflammatory Disorders,Multiple sclerosis,0.2242577384712571
-94,Multiple sclerosis,Inflammatory Disorders,0.2242577384712571
-95,Cardiovascular Disease,Chronic obstructive pulmonary disease (COPD),0.22194513715710723
-96,Chronic obstructive pulmonary disease (COPD),Cardiovascular Disease,0.22194513715710723
-97,Chronic obstructive pulmonary disease (COPD),Hypertension,0.22194513715710723
-98,Hypertension,Chronic obstructive pulmonary disease (COPD),0.22194513715710723
-99,Endometriosis,Atherosclerosis,0.22123893805309736
-100,Atherosclerosis,Endometriosis,0.22123893805309736
-101,COVID-19,Multiple sclerosis,0.22086570477247502
-102,COVID-19,Inflammatory Disorders,0.22086570477247502
-103,Multiple sclerosis,COVID-19,0.22086570477247502
-104,Inflammatory Disorders,COVID-19,0.22086570477247502
-105,Atherosclerosis,Prostate Cancer,0.22033898305084745
-106,Prostate Cancer,Atherosclerosis,0.22033898305084745
+65,Lung_Cancer,Atherosclerosis,0.2344931921331316
+66,Atherosclerosis,Lung_Cancer,0.2344931921331316
+67,Inflammatory_Disorders,Chronic_obstructive_pulmonary_disease_(COPD),0.234256926952141
+68,Chronic_obstructive_pulmonary_disease_(COPD),Inflammatory_Disorders,0.234256926952141
+69,Atherosclerosis,Age,0.2338709677419354
+70,Hepatitis,Pancreatic_Cancer,0.2332418659349275
+71,Pancreatic_Cancer,Hepatitis,0.2332418659349275
+72,Atherosclerosis,Chronic_obstructive_pulmonary_disease_(COPD),0.2311557788944723
+73,Chronic_obstructive_pulmonary_disease_(COPD),Atherosclerosis,0.2311557788944723
+74,Underweight,Obesity,0.2307692307692307
+75,Obesity,Underweight,0.2307692307692307
+77,Ankylosing_Spondylitis,Psoriatic_Arthritis,0.23
+78,Psoriatic_Arthritis,Ankylosing_Spondylitis,0.23
+80,Inflammatory_Disorders,Cardiovascular_Disease,0.2287581699346405
+81,Cardiovascular_Disease,Inflammatory_Disorders,0.2287581699346405
+82,Hypertension,Prostate_Cancer,0.2285849503076195
+83,Prostate_Cancer,Hypertension,0.2285849503076195
+84,Atherosclerosis,Gender,0.2279957582184517
+85,Obesity,Hypertension,0.2251061821613968
+86,Hypertension,Obesity,0.2251061821613968
+87,Inflammatory_Disorders,Endometriosis,0.2248520710059171
+88,Endometriosis,Inflammatory_Disorders,0.2248520710059171
+89,Cardiovascular_Disease,Obesity,0.2247557003257329
+90,Obesity,Cardiovascular_Disease,0.2247557003257329
+91,Atherosclerosis,Pancreatic_Cancer,0.2246123061530765
+92,Pancreatic_Cancer,Atherosclerosis,0.2246123061530765
+93,Inflammatory_Disorders,Multiple_sclerosis,0.2242577384712571
+94,Multiple_sclerosis,Inflammatory_Disorders,0.2242577384712571
+95,Cardiovascular_Disease,Chronic_obstructive_pulmonary_disease_(COPD),0.2219451371571072
+96,Chronic_obstructive_pulmonary_disease_(COPD),Cardiovascular_Disease,0.2219451371571072
+97,Chronic_obstructive_pulmonary_disease_(COPD),Hypertension,0.2219451371571072
+98,Hypertension,Chronic_obstructive_pulmonary_disease_(COPD),0.2219451371571072
+99,Endometriosis,Atherosclerosis,0.2212389380530973
+100,Atherosclerosis,Endometriosis,0.2212389380530973
+101,COVID-19,Multiple_sclerosis,0.220865704772475
+102,COVID-19,Inflammatory_Disorders,0.220865704772475
+103,Multiple_sclerosis,COVID-19,0.220865704772475
+104,Inflammatory_Disorders,COVID-19,0.220865704772475
+105,Atherosclerosis,Prostate_Cancer,0.2203389830508474
+106,Prostate_Cancer,Atherosclerosis,0.2203389830508474
 107,Obesity,Gender,0.220231822971549
-108,Inflammatory Disorders,Bladder Cancer,0.2196349905601007
-109,Bladder Cancer,Inflammatory Disorders,0.2196349905601007
-110,Hypertension,Endometriosis,0.21944035346097202
-111,Endometriosis,Hypertension,0.21944035346097202
-112,Obstructive sleep apnea,Hypertension,0.21893491124260356
-113,Cardiovascular Disease,Obstructive sleep apnea,0.21893491124260356
-114,Hypertension,Obstructive sleep apnea,0.21893491124260356
-115,Obstructive sleep apnea,Cardiovascular Disease,0.21893491124260356
-116,Hepatitis,Glucocorticoid Sensitivity,0.21792260692464357
-117,Glucocorticoid Sensitivity,Hepatitis,0.21792260692464357
-118,Lung Cancer,Gender,0.21766561514195584
-119,Atherosclerosis,Hepatitis,0.21730482347090999
-120,Hepatitis,Atherosclerosis,0.21730482347090999
-121,Lung Cancer,Obesity,0.21721958925750395
-122,Obesity,Lung Cancer,0.21721958925750395
-123,Endometriosis,Chronic obstructive pulmonary disease (COPD),0.21588089330024815
-124,Chronic obstructive pulmonary disease (COPD),Endometriosis,0.21588089330024815
+108,Inflammatory_Disorders,Bladder_Cancer,0.2196349905601007
+109,Bladder_Cancer,Inflammatory_Disorders,0.2196349905601007
+110,Hypertension,Endometriosis,0.219440353460972
+111,Endometriosis,Hypertension,0.219440353460972
+112,Obstructive_sleep_apnea,Hypertension,0.2189349112426035
+113,Cardiovascular_Disease,Obstructive_sleep_apnea,0.2189349112426035
+114,Hypertension,Obstructive_sleep_apnea,0.2189349112426035
+115,Obstructive_sleep_apnea,Cardiovascular_Disease,0.2189349112426035
+116,Hepatitis,Glucocorticoid_Sensitivity,0.2179226069246435
+117,Glucocorticoid_Sensitivity,Hepatitis,0.2179226069246435
+118,Lung_Cancer,Gender,0.2176656151419558
+119,Atherosclerosis,Hepatitis,0.2173048234709099
+120,Hepatitis,Atherosclerosis,0.2173048234709099
+121,Lung_Cancer,Obesity,0.2172195892575039
+122,Obesity,Lung_Cancer,0.2172195892575039
+123,Endometriosis,Chronic_obstructive_pulmonary_disease_(COPD),0.2158808933002481
+124,Chronic_obstructive_pulmonary_disease_(COPD),Endometriosis,0.2158808933002481
 125,Atherosclerosis,COVID-19,0.2141280353200883
 126,COVID-19,Atherosclerosis,0.2141280353200883
-127,Pancreatic Cancer,Hypertension,0.2136512388966807
-128,Hypertension,Pancreatic Cancer,0.2136512388966807
-129,Multiple sclerosis,Hepatitis,0.21325301204819277
-130,Hepatitis,Multiple sclerosis,0.21325301204819277
-131,Susceptibility to Infections,Atherosclerosis,0.21134751773049645
-132,Atherosclerosis,Susceptibility to Infections,0.21134751773049645
-133,Inflammatory Disorders,Glucocorticoid Sensitivity,0.21052631578947367
-134,Glucocorticoid Sensitivity,Inflammatory Disorders,0.21052631578947367
+127,Pancreatic_Cancer,Hypertension,0.2136512388966807
+128,Hypertension,Pancreatic_Cancer,0.2136512388966807
+129,Multiple_sclerosis,Hepatitis,0.2132530120481927
+130,Hepatitis,Multiple_sclerosis,0.2132530120481927
+131,Susceptibility_to_Infections,Atherosclerosis,0.2113475177304964
+132,Atherosclerosis,Susceptibility_to_Infections,0.2113475177304964
+133,Inflammatory_Disorders,Glucocorticoid_Sensitivity,0.2105263157894736
+134,Glucocorticoid_Sensitivity,Inflammatory_Disorders,0.2105263157894736
 136,Hepatitis,COVID-19,0.2087912087912088
 137,COVID-19,Hepatitis,0.2087912087912088
-138,Obesity,Age,0.20855614973262032
-139,Inflammatory Disorders,Obstructive sleep apnea,0.20821114369501467
-140,Obstructive sleep apnea,Inflammatory Disorders,0.20821114369501467
-141,Multiple sclerosis,Age,0.20743405275779375
-142,Hepatitis,Chronic obstructive pulmonary disease (COPD),0.20689655172413793
-143,Chronic obstructive pulmonary disease (COPD),Hepatitis,0.20689655172413793
-144,Atherosclerosis,Obesity,0.20591133004926107
-145,Obesity,Atherosclerosis,0.20591133004926107
-147,Hepatitis,Kidney Papillary Cell Carcinoma,0.20485584218512898
-148,Endometriosis,Kidney Papillary Cell Carcinoma,0.20485584218512898
-149,Kidney Papillary Cell Carcinoma,Endometriosis,0.20485584218512898
-150,Kidney Papillary Cell Carcinoma,Hepatitis,0.20485584218512898
-151,Liver Cancer,Hepatitis,0.2041392285983067
-152,Hepatitis,Liver Cancer,0.2041392285983067
-153,Bladder Cancer,Glucocorticoid Sensitivity,0.20321931589537223
-154,Glucocorticoid Sensitivity,Bladder Cancer,0.20321931589537223
-155,COVID-19,Obstructive sleep apnea,0.20116618075801748
-157,Obstructive sleep apnea,COVID-19,0.20116618075801748
-158,Chronic obstructive pulmonary disease (COPD),Multiple sclerosis,0.20098039215686275
-159,Multiple sclerosis,Chronic obstructive pulmonary disease (COPD),0.20098039215686275
-160,Glucocorticoid Sensitivity,Pancreatic Cancer,0.20080321285140562
-161,Pancreatic Cancer,Glucocorticoid Sensitivity,0.20080321285140562
-162,Hepatitis,Bladder Cancer,0.20076335877862594
-163,Bladder Cancer,Hepatitis,0.20076335877862594
-164,Crohn's Disease,Susceptibility to Infections,0.199438202247191
-165,Susceptibility to Infections,Crohn's Disease,0.199438202247191
-166,Inflammatory Disorders,Sjögren's Syndrome,0.1991701244813278
-167,Sjögren's Syndrome,Inflammatory Disorders,0.1991701244813278
-168,Pancreatic Cancer,Gender,0.19875776397515527
-169,Susceptibility to Infections,Endometriosis,0.19775596072931276
-170,Endometriosis,Susceptibility to Infections,0.19775596072931276
-171,Breast Cancer,Obesity,0.1967670011148272
-172,Obesity,Breast Cancer,0.1967670011148272
-173,Glucocorticoid Sensitivity,Endometriosis,0.196
-174,Endometriosis,Glucocorticoid Sensitivity,0.196
-175,Hypertension,Vitamin D Levels,0.19543973941368079
-176,Susceptibility to Infections,Chronic obstructive pulmonary disease (COPD),0.1951219512195122
-177,Chronic obstructive pulmonary disease (COPD),Susceptibility to Infections,0.1951219512195122
-178,Sjögren's Syndrome,Susceptibility to Infections,0.19421487603305784
-179,Susceptibility to Infections,Sjögren's Syndrome,0.19421487603305784
-180,Inflammatory Disorders,Vitamin D Levels,0.19349593495934958
-181,Atherosclerosis,Multiple sclerosis,0.19312796208530805
-182,Multiple sclerosis,Atherosclerosis,0.19312796208530805
-183,Atherosclerosis,Bladder Cancer,0.19240136385776913
-184,Bladder Cancer,Atherosclerosis,0.19240136385776913
-185,Lung Cancer,Chronic obstructive pulmonary disease (COPD),0.1922141119221411
-186,Chronic obstructive pulmonary disease (COPD),Lung Cancer,0.1922141119221411
-187,Pancreatic Cancer,Age,0.192
+138,Obesity,Age,0.2085561497326203
+139,Inflammatory_Disorders,Obstructive_sleep_apnea,0.2082111436950146
+140,Obstructive_sleep_apnea,Inflammatory_Disorders,0.2082111436950146
+141,Multiple_sclerosis,Age,0.2074340527577937
+142,Hepatitis,Chronic_obstructive_pulmonary_disease_(COPD),0.2068965517241379
+143,Chronic_obstructive_pulmonary_disease_(COPD),Hepatitis,0.2068965517241379
+144,Atherosclerosis,Obesity,0.205911330049261
+145,Obesity,Atherosclerosis,0.205911330049261
+147,Hepatitis,Kidney_Papillary_Cell_Carcinoma,0.2048558421851289
+148,Endometriosis,Kidney_Papillary_Cell_Carcinoma,0.2048558421851289
+149,Kidney_Papillary_Cell_Carcinoma,Endometriosis,0.2048558421851289
+150,Kidney_Papillary_Cell_Carcinoma,Hepatitis,0.2048558421851289
+151,Liver_Cancer,Hepatitis,0.2041392285983067
+152,Hepatitis,Liver_Cancer,0.2041392285983067
+153,Bladder_Cancer,Glucocorticoid_Sensitivity,0.2032193158953722
+154,Glucocorticoid_Sensitivity,Bladder_Cancer,0.2032193158953722
+155,COVID-19,Obstructive_sleep_apnea,0.2011661807580174
+157,Obstructive_sleep_apnea,COVID-19,0.2011661807580174
+158,Chronic_obstructive_pulmonary_disease_(COPD),Multiple_sclerosis,0.2009803921568627
+159,Multiple_sclerosis,Chronic_obstructive_pulmonary_disease_(COPD),0.2009803921568627
+160,Glucocorticoid_Sensitivity,Pancreatic_Cancer,0.2008032128514056
+161,Pancreatic_Cancer,Glucocorticoid_Sensitivity,0.2008032128514056
+162,Hepatitis,Bladder_Cancer,0.2007633587786259
+163,Bladder_Cancer,Hepatitis,0.2007633587786259
+164,Crohns_Disease,Susceptibility_to_Infections,0.199438202247191
+165,Susceptibility_to_Infections,Crohns_Disease,0.199438202247191
+166,Inflammatory_Disorders,Sjögrens_Syndrome,0.1991701244813278
+167,Sjögrens_Syndrome,Inflammatory_Disorders,0.1991701244813278
+168,Pancreatic_Cancer,Gender,0.1987577639751552
+169,Susceptibility_to_Infections,Endometriosis,0.1977559607293127
+170,Endometriosis,Susceptibility_to_Infections,0.1977559607293127
+171,Breast_Cancer,Obesity,0.1967670011148272
+172,Obesity,Breast_Cancer,0.1967670011148272
+173,Glucocorticoid_Sensitivity,Endometriosis,0.196
+174,Endometriosis,Glucocorticoid_Sensitivity,0.196
+175,Hypertension,Vitamin_D_Levels,0.1954397394136807
+176,Susceptibility_to_Infections,Chronic_obstructive_pulmonary_disease_(COPD),0.1951219512195122
+177,Chronic_obstructive_pulmonary_disease_(COPD),Susceptibility_to_Infections,0.1951219512195122
+178,Sjögrens_Syndrome,Susceptibility_to_Infections,0.1942148760330578
+179,Susceptibility_to_Infections,Sjögrens_Syndrome,0.1942148760330578
+180,Inflammatory_Disorders,Vitamin_D_Levels,0.1934959349593495
+181,Atherosclerosis,Multiple_sclerosis,0.193127962085308
+182,Multiple_sclerosis,Atherosclerosis,0.193127962085308
+183,Atherosclerosis,Bladder_Cancer,0.1924013638577691
+184,Bladder_Cancer,Atherosclerosis,0.1924013638577691
+185,Lung_Cancer,Chronic_obstructive_pulmonary_disease_(COPD),0.1922141119221411
+186,Chronic_obstructive_pulmonary_disease_(COPD),Lung_Cancer,0.1922141119221411
+187,Pancreatic_Cancer,Age,0.192
 188,Hypertension,Hepatitis,0.1919191919191919
 189,Hepatitis,Hypertension,0.1919191919191919
-190,Atherosclerosis,Vitamin D Levels,0.19155844155844157
-191,Crohn's Disease,Hepatitis,0.1905165114309907
-192,Hepatitis,Crohn's Disease,0.1905165114309907
-193,Inflammatory Disorders,Kidney Papillary Cell Carcinoma,0.1904047976011994
-194,Kidney Papillary Cell Carcinoma,Inflammatory Disorders,0.1904047976011994
-196,Endometriosis,Vitamin D Levels,0.18962722852512157
-197,Pancreatic Cancer,Vitamin D Levels,0.18962722852512157
-198,Lung Cancer,Multiple sclerosis,0.18960425280567042
-199,Breast Cancer,Multiple sclerosis,0.18960425280567042
-200,Multiple sclerosis,Breast Cancer,0.18960425280567042
-201,Multiple sclerosis,Lung Cancer,0.18960425280567042
-202,Crohn's Disease,Inflammatory Disorders,0.1895093062605753
-203,Inflammatory Disorders,Crohn's Disease,0.1895093062605753
-204,Susceptibility to Infections,Age,0.1894150417827298
-205,Chronic obstructive pulmonary disease (COPD),Pancreatic Cancer,0.18932038834951456
-206,Pancreatic Cancer,Chronic obstructive pulmonary disease (COPD),0.18932038834951456
-207,Pancreatic Cancer,Multiple sclerosis,0.18890200708382526
-208,Multiple sclerosis,Pancreatic Cancer,0.18890200708382526
-209,Hypertension,Glucocorticoid Sensitivity,0.18886679920477137
-210,Glucocorticoid Sensitivity,Hypertension,0.18886679920477137
-211,Obesity,Endometriosis,0.18794835007173602
-212,Endometriosis,Obesity,0.18794835007173602
-213,Susceptibility to Infections,Pancreatic Cancer,0.18776077885952713
-214,Pancreatic Cancer,Susceptibility to Infections,0.18776077885952713
-215,Hepatitis,Vitamin D Levels,0.18770226537216828
-216,Bladder Cancer,Gender,0.18769230769230769
-217,Multiple sclerosis,Crohn's Disease,0.1875
-218,Crohn's Disease,Multiple sclerosis,0.1875
-219,Multiple sclerosis,Obstructive sleep apnea,0.1873198847262248
-220,Obstructive sleep apnea,Multiple sclerosis,0.1873198847262248
-221,Kidney Papillary Cell Carcinoma,Age,0.18684603886397608
-222,Chronic obstructive pulmonary disease (COPD),Crohn's Disease,0.1864406779661017
-223,Crohn's Disease,Chronic obstructive pulmonary disease (COPD),0.1864406779661017
-224,Ankylosing Spondylitis,COVID-19,0.18558558558558558
-225,COVID-19,Ankylosing Spondylitis,0.18558558558558558
-226,Endometriosis,Head and Neck Cancer,0.18545454545454546
-227,Head and Neck Cancer,Endometriosis,0.18545454545454546
-228,Cardiovascular Disease,Hepatitis,0.18487394957983194
-229,Hepatitis,Cardiovascular Disease,0.18487394957983194
-230,Endometriosis,Thyroid Cancer,0.18454935622317598
-231,Thyroid Cancer,Endometriosis,0.18454935622317598
-232,Bladder Cancer,Age,0.18449931412894377
-233,Glucocorticoid Sensitivity,Lung Cancer,0.18415841584158416
-234,Lung Cancer,Glucocorticoid Sensitivity,0.18415841584158416
-235,Obstructive sleep apnea,Vitamin D Levels,0.1839080459770115
-236,Chronic obstructive pulmonary disease (COPD),Prostate Cancer,0.18357487922705315
-237,Prostate Cancer,Chronic obstructive pulmonary disease (COPD),0.18357487922705315
-238,Ankylosing Spondylitis,Crohn's Disease,0.18345323741007194
-239,Crohn's Disease,Ankylosing Spondylitis,0.18345323741007194
-240,Prostate Cancer,Multiple sclerosis,0.18331374853113983
-241,Multiple sclerosis,Prostate Cancer,0.18331374853113983
-242,Susceptibility to Infections,Lung Cancer,0.18282548476454294
-243,Lung Cancer,Susceptibility to Infections,0.18282548476454294
-244,Liver Cancer,Endometriosis,0.1819021237303786
-245,Endometriosis,Liver Cancer,0.1819021237303786
-246,Glucocorticoid Sensitivity,Atherosclerosis,0.18181818181818182
-247,Atherosclerosis,Glucocorticoid Sensitivity,0.18181818181818182
-248,Glucocorticoid Sensitivity,Breast Cancer,0.18181818181818182
-249,Breast Cancer,Glucocorticoid Sensitivity,0.18181818181818182
-250,Multiple sclerosis,Gender,0.1816326530612245
-251,COVID-19,Hypertension,0.18152524167561762
-252,Hypertension,COVID-19,0.18152524167561762
-253,Multiple sclerosis,Hypertension,0.1812316715542522
-254,Hypertension,Multiple sclerosis,0.1812316715542522
-255,Atherosclerosis,Longevity and Aging,0.18120805369127516
-256,Cardiovascular Disease,Longevity and Aging,0.18120805369127516
-257,Hypertension,Longevity and Aging,0.18120805369127516
-258,Multiple sclerosis,Endometriosis,0.181169757489301
-259,Endometriosis,Multiple sclerosis,0.181169757489301
-261,Bladder Cancer,Chronic obstructive pulmonary disease (COPD),0.18072289156626506
-263,Thyroid Cancer,Chronic obstructive pulmonary disease (COPD),0.18072289156626506
-264,Chronic obstructive pulmonary disease (COPD),Bladder Cancer,0.18072289156626506
-265,Chronic obstructive pulmonary disease (COPD),Thyroid Cancer,0.18072289156626506
-266,Obstructive sleep apnea,Obesity,0.18051575931232092
-267,Obesity,Obstructive sleep apnea,0.18051575931232092
-268,Breast Cancer,Vitamin D Levels,0.18006430868167203
+190,Atherosclerosis,Vitamin_D_Levels,0.1915584415584415
+191,Crohns_Disease,Hepatitis,0.1905165114309907
+192,Hepatitis,Crohns_Disease,0.1905165114309907
+193,Inflammatory_Disorders,Kidney_Papillary_Cell_Carcinoma,0.1904047976011994
+194,Kidney_Papillary_Cell_Carcinoma,Inflammatory_Disorders,0.1904047976011994
+196,Endometriosis,Vitamin_D_Levels,0.1896272285251215
+197,Pancreatic_Cancer,Vitamin_D_Levels,0.1896272285251215
+198,Lung_Cancer,Multiple_sclerosis,0.1896042528056704
+199,Breast_Cancer,Multiple_sclerosis,0.1896042528056704
+200,Multiple_sclerosis,Breast_Cancer,0.1896042528056704
+201,Multiple_sclerosis,Lung_Cancer,0.1896042528056704
+202,Crohns_Disease,Inflammatory_Disorders,0.1895093062605753
+203,Inflammatory_Disorders,Crohns_Disease,0.1895093062605753
+204,Susceptibility_to_Infections,Age,0.1894150417827298
+205,Chronic_obstructive_pulmonary_disease_(COPD),Pancreatic_Cancer,0.1893203883495145
+206,Pancreatic_Cancer,Chronic_obstructive_pulmonary_disease_(COPD),0.1893203883495145
+207,Pancreatic_Cancer,Multiple_sclerosis,0.1889020070838252
+208,Multiple_sclerosis,Pancreatic_Cancer,0.1889020070838252
+209,Hypertension,Glucocorticoid_Sensitivity,0.1888667992047713
+210,Glucocorticoid_Sensitivity,Hypertension,0.1888667992047713
+211,Obesity,Endometriosis,0.187948350071736
+212,Endometriosis,Obesity,0.187948350071736
+213,Susceptibility_to_Infections,Pancreatic_Cancer,0.1877607788595271
+214,Pancreatic_Cancer,Susceptibility_to_Infections,0.1877607788595271
+215,Hepatitis,Vitamin_D_Levels,0.1877022653721682
+216,Bladder_Cancer,Gender,0.1876923076923076
+217,Multiple_sclerosis,Crohns_Disease,0.1875
+218,Crohns_Disease,Multiple_sclerosis,0.1875
+219,Multiple_sclerosis,Obstructive_sleep_apnea,0.1873198847262248
+220,Obstructive_sleep_apnea,Multiple_sclerosis,0.1873198847262248
+221,Kidney_Papillary_Cell_Carcinoma,Age,0.186846038863976
+222,Chronic_obstructive_pulmonary_disease_(COPD),Crohns_Disease,0.1864406779661017
+223,Crohns_Disease,Chronic_obstructive_pulmonary_disease_(COPD),0.1864406779661017
+224,Ankylosing_Spondylitis,COVID-19,0.1855855855855855
+225,COVID-19,Ankylosing_Spondylitis,0.1855855855855855
+226,Endometriosis,Head_and_Neck_Cancer,0.1854545454545454
+227,Head_and_Neck_Cancer,Endometriosis,0.1854545454545454
+228,Cardiovascular_Disease,Hepatitis,0.1848739495798319
+229,Hepatitis,Cardiovascular_Disease,0.1848739495798319
+230,Endometriosis,Thyroid_Cancer,0.1845493562231759
+231,Thyroid_Cancer,Endometriosis,0.1845493562231759
+232,Bladder_Cancer,Age,0.1844993141289437
+233,Glucocorticoid_Sensitivity,Lung_Cancer,0.1841584158415841
+234,Lung_Cancer,Glucocorticoid_Sensitivity,0.1841584158415841
+235,Obstructive_sleep_apnea,Vitamin_D_Levels,0.1839080459770115
+236,Chronic_obstructive_pulmonary_disease_(COPD),Prostate_Cancer,0.1835748792270531
+237,Prostate_Cancer,Chronic_obstructive_pulmonary_disease_(COPD),0.1835748792270531
+238,Ankylosing_Spondylitis,Crohns_Disease,0.1834532374100719
+239,Crohns_Disease,Ankylosing_Spondylitis,0.1834532374100719
+240,Prostate_Cancer,Multiple_sclerosis,0.1833137485311398
+241,Multiple_sclerosis,Prostate_Cancer,0.1833137485311398
+242,Susceptibility_to_Infections,Lung_Cancer,0.1828254847645429
+243,Lung_Cancer,Susceptibility_to_Infections,0.1828254847645429
+244,Liver_Cancer,Endometriosis,0.1819021237303786
+245,Endometriosis,Liver_Cancer,0.1819021237303786
+246,Glucocorticoid_Sensitivity,Atherosclerosis,0.1818181818181818
+247,Atherosclerosis,Glucocorticoid_Sensitivity,0.1818181818181818
+248,Glucocorticoid_Sensitivity,Breast_Cancer,0.1818181818181818
+249,Breast_Cancer,Glucocorticoid_Sensitivity,0.1818181818181818
+250,Multiple_sclerosis,Gender,0.1816326530612245
+251,COVID-19,Hypertension,0.1815252416756176
+252,Hypertension,COVID-19,0.1815252416756176
+253,Multiple_sclerosis,Hypertension,0.1812316715542522
+254,Hypertension,Multiple_sclerosis,0.1812316715542522
+255,Atherosclerosis,Longevity_and_Aging,0.1812080536912751
+256,Cardiovascular_Disease,Longevity_and_Aging,0.1812080536912751
+257,Hypertension,Longevity_and_Aging,0.1812080536912751
+258,Multiple_sclerosis,Endometriosis,0.181169757489301
+259,Endometriosis,Multiple_sclerosis,0.181169757489301
+261,Bladder_Cancer,Chronic_obstructive_pulmonary_disease_(COPD),0.180722891566265
+263,Thyroid_Cancer,Chronic_obstructive_pulmonary_disease_(COPD),0.180722891566265
+264,Chronic_obstructive_pulmonary_disease_(COPD),Bladder_Cancer,0.180722891566265
+265,Chronic_obstructive_pulmonary_disease_(COPD),Thyroid_Cancer,0.180722891566265
+266,Obstructive_sleep_apnea,Obesity,0.1805157593123209
+267,Obesity,Obstructive_sleep_apnea,0.1805157593123209
+268,Breast_Cancer,Vitamin_D_Levels,0.180064308681672
 269,Obesity,Hepatitis,0.1800450112528132
 270,Hepatitis,Obesity,0.1800450112528132
-271,Osteoporosis,Bone Density,0.18
-272,Multiple sclerosis,Sjögren's Syndrome,0.17959183673469387
-273,COVID-19,Sjögren's Syndrome,0.17959183673469387
-274,Sjögren's Syndrome,Multiple sclerosis,0.17959183673469387
-275,Sjögren's Syndrome,COVID-19,0.17959183673469387
-276,Hypertension,Susceptibility to Infections,0.17955801104972377
-277,Susceptibility to Infections,Hypertension,0.17955801104972377
-278,Bladder Cancer,Hypertension,0.17946388005452069
-279,Hypertension,Bladder Cancer,0.17946388005452069
-280,Multiple sclerosis,Ankylosing Spondylitis,0.17921146953405018
-281,Ankylosing Spondylitis,Multiple sclerosis,0.17921146953405018
-282,Head and Neck Cancer,Hepatitis,0.17902350813743217
-283,Hepatitis,Head and Neck Cancer,0.17902350813743217
+271,Osteoporosis,Bone_Density,0.18
+272,Multiple_sclerosis,Sjögrens_Syndrome,0.1795918367346938
+273,COVID-19,Sjögrens_Syndrome,0.1795918367346938
+274,Sjögrens_Syndrome,Multiple_sclerosis,0.1795918367346938
+275,Sjögrens_Syndrome,COVID-19,0.1795918367346938
+276,Hypertension,Susceptibility_to_Infections,0.1795580110497237
+277,Susceptibility_to_Infections,Hypertension,0.1795580110497237
+278,Bladder_Cancer,Hypertension,0.1794638800545206
+279,Hypertension,Bladder_Cancer,0.1794638800545206
+280,Multiple_sclerosis,Ankylosing_Spondylitis,0.1792114695340501
+281,Ankylosing_Spondylitis,Multiple_sclerosis,0.1792114695340501
+282,Head_and_Neck_Cancer,Hepatitis,0.1790235081374321
+283,Hepatitis,Head_and_Neck_Cancer,0.1790235081374321
 284,COVID-19,Endometriosis,0.1789924973204716
 285,Endometriosis,COVID-19,0.1789924973204716
-286,Hepatitis,Thyroid Cancer,0.17863720073664824
-287,Thyroid Cancer,Hepatitis,0.17863720073664824
-288,Esophageal Cancer,Hepatitis,0.1784841075794621
-289,Hepatitis,Esophageal Cancer,0.1784841075794621
-290,Inflammatory Disorders,Ankylosing Spondylitis,0.1771019677996422
-291,Hepatitis,Ankylosing Spondylitis,0.1771019677996422
-292,Ankylosing Spondylitis,Inflammatory Disorders,0.1771019677996422
-293,Ankylosing Spondylitis,Hepatitis,0.1771019677996422
-294,COVID-19,Age,0.17647058823529413
-295,Colon and Rectal Cancer,Endometriosis,0.1761786600496278
-296,Endometriosis,Colon and Rectal Cancer,0.1761786600496278
-298,Lung Cancer,Vitamin D Levels,0.1744
-299,Bladder Cancer,Vitamin D Levels,0.1744
-300,Obesity,Prostate Cancer,0.17418649165983047
-301,Prostate Cancer,Obesity,0.17418649165983047
-302,Pancreatic Cancer,Longevity and Aging,0.17333333333333334
-303,Obesity,Longevity and Aging,0.17333333333333334
-304,Breast Cancer,Susceptibility to Infections,0.17307692307692307
-305,Susceptibility to Infections,Breast Cancer,0.17307692307692307
-306,Crohn's Disease,Atherosclerosis,0.17166666666666666
-307,Atherosclerosis,Crohn's Disease,0.17166666666666666
-308,Bladder Cancer,Susceptibility to Infections,0.17146776406035666
-309,Susceptibility to Infections,Bladder Cancer,0.17146776406035666
-310,Ankylosing Spondylitis,Susceptibility to Infections,0.1708185053380783
-311,Susceptibility to Infections,Ankylosing Spondylitis,0.1708185053380783
-312,Obstructive sleep apnea,Hepatitis,0.17045454545454544
-313,Hepatitis,Obstructive sleep apnea,0.17045454545454544
-314,Pancreatic Cancer,Crohn's Disease,0.16971713810316139
-315,Crohn's Disease,Pancreatic Cancer,0.16971713810316139
-316,Multiple sclerosis,Obesity,0.16957026713124274
-317,Obesity,Multiple sclerosis,0.16957026713124274
-318,Prostate Cancer,Glucocorticoid Sensitivity,0.16796875
-319,Glucocorticoid Sensitivity,Prostate Cancer,0.16796875
-320,Breast Cancer,Crohn's Disease,0.16777408637873753
-321,Crohn's Disease,Breast Cancer,0.16777408637873753
-322,COVID-19,Pancreatic Cancer,0.16772823779193205
-323,Pancreatic Cancer,COVID-19,0.16772823779193205
-324,Atherosclerosis,LDL Cholesterol Levels,0.1676300578034682
-325,Cardiovascular Disease,LDL Cholesterol Levels,0.1676300578034682
-326,Endometriosis,Esophageal Cancer,0.16707021791767554
-327,Esophageal Cancer,Endometriosis,0.16707021791767554
-328,Multiple sclerosis,Vitamin D Levels,0.1669316375198728
-329,Hypertension,Kidney Papillary Cell Carcinoma,0.16678912564290962
-330,Kidney Papillary Cell Carcinoma,Hypertension,0.16678912564290962
-331,Obesity,Chronic obstructive pulmonary disease (COPD),0.16666666666666666
-332,Chronic obstructive pulmonary disease (COPD),Obesity,0.16666666666666666
-333,Cardiovascular Disease,Breast Cancer,0.16649431230610134
-334,Breast Cancer,Cardiovascular Disease,0.16649431230610134
-335,Lung Cancer,Osteoporosis,0.1657010428736964
-336,Osteoporosis,Lung Cancer,0.1657010428736964
-338,Multiple sclerosis,Longevity and Aging,0.16556291390728478
-339,Osteoporosis,Longevity and Aging,0.16556291390728478
-340,Endometriosis,Longevity and Aging,0.16556291390728478
-341,Endometriosis,Cardiovascular Disease,0.1652892561983471
-342,Cardiovascular Disease,Endometriosis,0.1652892561983471
-343,Cardiovascular Disease,Lung Cancer,0.1652892561983471
-344,Lung Cancer,Cardiovascular Disease,0.1652892561983471
-345,Prostate Cancer,Vitamin D Levels,0.16507936507936508
-346,Osteoporosis,Vitamin D Levels,0.16507936507936508
-347,Atherosclerosis,Kidney Papillary Cell Carcinoma,0.16507703595011006
-348,Kidney Papillary Cell Carcinoma,Atherosclerosis,0.16507703595011006
-349,Susceptibility to Infections,Gender,0.165075034106412
-350,Crohn's Disease,Lung Cancer,0.16487158243579123
-351,Lung Cancer,Crohn's Disease,0.16487158243579123
-352,Chronic obstructive pulmonary disease (COPD),Peptic ulcer disease,0.16455696202531644
-353,Peptic ulcer disease,Chronic obstructive pulmonary disease (COPD),0.16455696202531644
-354,Inflammatory Disorders,Osteoporosis,0.16435185185185186
-355,Osteoporosis,Inflammatory Disorders,0.16435185185185186
-356,Hypertension,Osteoporosis,0.16435185185185186
-357,Osteoporosis,Hypertension,0.16435185185185186
-358,COVID-19,Cardiovascular Disease,0.164021164021164
-359,Cardiovascular Disease,COVID-19,0.164021164021164
-360,Obstructive sleep apnea,Endometriosis,0.1638418079096045
-361,Endometriosis,Obstructive sleep apnea,0.1638418079096045
-362,Thyroid Cancer,Glucocorticoid Sensitivity,0.16342412451361868
-363,Glucocorticoid Sensitivity,Kidney Papillary Cell Carcinoma,0.16342412451361868
-364,Kidney Papillary Cell Carcinoma,Glucocorticoid Sensitivity,0.16342412451361868
-365,Glucocorticoid Sensitivity,Thyroid Cancer,0.16342412451361868
+286,Hepatitis,Thyroid_Cancer,0.1786372007366482
+287,Thyroid_Cancer,Hepatitis,0.1786372007366482
+288,Esophageal_Cancer,Hepatitis,0.1784841075794621
+289,Hepatitis,Esophageal_Cancer,0.1784841075794621
+290,Inflammatory_Disorders,Ankylosing_Spondylitis,0.1771019677996422
+291,Hepatitis,Ankylosing_Spondylitis,0.1771019677996422
+292,Ankylosing_Spondylitis,Inflammatory_Disorders,0.1771019677996422
+293,Ankylosing_Spondylitis,Hepatitis,0.1771019677996422
+294,COVID-19,Age,0.1764705882352941
+295,Colon_and_Rectal_Cancer,Endometriosis,0.1761786600496278
+296,Endometriosis,Colon_and_Rectal_Cancer,0.1761786600496278
+298,Lung_Cancer,Vitamin_D_Levels,0.1744
+299,Bladder_Cancer,Vitamin_D_Levels,0.1744
+300,Obesity,Prostate_Cancer,0.1741864916598304
+301,Prostate_Cancer,Obesity,0.1741864916598304
+302,Pancreatic_Cancer,Longevity_and_Aging,0.1733333333333333
+303,Obesity,Longevity_and_Aging,0.1733333333333333
+304,Breast_Cancer,Susceptibility_to_Infections,0.173076923076923
+305,Susceptibility_to_Infections,Breast_Cancer,0.173076923076923
+306,Crohns_Disease,Atherosclerosis,0.1716666666666666
+307,Atherosclerosis,Crohns_Disease,0.1716666666666666
+308,Bladder_Cancer,Susceptibility_to_Infections,0.1714677640603566
+309,Susceptibility_to_Infections,Bladder_Cancer,0.1714677640603566
+310,Ankylosing_Spondylitis,Susceptibility_to_Infections,0.1708185053380783
+311,Susceptibility_to_Infections,Ankylosing_Spondylitis,0.1708185053380783
+312,Obstructive_sleep_apnea,Hepatitis,0.1704545454545454
+313,Hepatitis,Obstructive_sleep_apnea,0.1704545454545454
+314,Pancreatic_Cancer,Crohns_Disease,0.1697171381031613
+315,Crohns_Disease,Pancreatic_Cancer,0.1697171381031613
+316,Multiple_sclerosis,Obesity,0.1695702671312427
+317,Obesity,Multiple_sclerosis,0.1695702671312427
+318,Prostate_Cancer,Glucocorticoid_Sensitivity,0.16796875
+319,Glucocorticoid_Sensitivity,Prostate_Cancer,0.16796875
+320,Breast_Cancer,Crohns_Disease,0.1677740863787375
+321,Crohns_Disease,Breast_Cancer,0.1677740863787375
+322,COVID-19,Pancreatic_Cancer,0.167728237791932
+323,Pancreatic_Cancer,COVID-19,0.167728237791932
+324,Atherosclerosis,LDL_Cholesterol_Levels,0.1676300578034682
+325,Cardiovascular_Disease,LDL_Cholesterol_Levels,0.1676300578034682
+326,Endometriosis,Esophageal_Cancer,0.1670702179176755
+327,Esophageal_Cancer,Endometriosis,0.1670702179176755
+328,Multiple_sclerosis,Vitamin_D_Levels,0.1669316375198728
+329,Hypertension,Kidney_Papillary_Cell_Carcinoma,0.1667891256429096
+330,Kidney_Papillary_Cell_Carcinoma,Hypertension,0.1667891256429096
+331,Obesity,Chronic_obstructive_pulmonary_disease_(COPD),0.1666666666666666
+332,Chronic_obstructive_pulmonary_disease_(COPD),Obesity,0.1666666666666666
+333,Cardiovascular_Disease,Breast_Cancer,0.1664943123061013
+334,Breast_Cancer,Cardiovascular_Disease,0.1664943123061013
+335,Lung_Cancer,Osteoporosis,0.1657010428736964
+336,Osteoporosis,Lung_Cancer,0.1657010428736964
+338,Multiple_sclerosis,Longevity_and_Aging,0.1655629139072847
+339,Osteoporosis,Longevity_and_Aging,0.1655629139072847
+340,Endometriosis,Longevity_and_Aging,0.1655629139072847
+341,Endometriosis,Cardiovascular_Disease,0.1652892561983471
+342,Cardiovascular_Disease,Endometriosis,0.1652892561983471
+343,Cardiovascular_Disease,Lung_Cancer,0.1652892561983471
+344,Lung_Cancer,Cardiovascular_Disease,0.1652892561983471
+345,Prostate_Cancer,Vitamin_D_Levels,0.165079365079365
+346,Osteoporosis,Vitamin_D_Levels,0.165079365079365
+347,Atherosclerosis,Kidney_Papillary_Cell_Carcinoma,0.16507703595011
+348,Kidney_Papillary_Cell_Carcinoma,Atherosclerosis,0.16507703595011
+349,Susceptibility_to_Infections,Gender,0.165075034106412
+350,Crohns_Disease,Lung_Cancer,0.1648715824357912
+351,Lung_Cancer,Crohns_Disease,0.1648715824357912
+352,Chronic_obstructive_pulmonary_disease_(COPD),Peptic_ulcer_disease,0.1645569620253164
+353,Peptic_ulcer_disease,Chronic_obstructive_pulmonary_disease_(COPD),0.1645569620253164
+354,Inflammatory_Disorders,Osteoporosis,0.1643518518518518
+355,Osteoporosis,Inflammatory_Disorders,0.1643518518518518
+356,Hypertension,Osteoporosis,0.1643518518518518
+357,Osteoporosis,Hypertension,0.1643518518518518
+358,COVID-19,Cardiovascular_Disease,0.164021164021164
+359,Cardiovascular_Disease,COVID-19,0.164021164021164
+360,Obstructive_sleep_apnea,Endometriosis,0.1638418079096045
+361,Endometriosis,Obstructive_sleep_apnea,0.1638418079096045
+362,Thyroid_Cancer,Glucocorticoid_Sensitivity,0.1634241245136186
+363,Glucocorticoid_Sensitivity,Kidney_Papillary_Cell_Carcinoma,0.1634241245136186
+364,Kidney_Papillary_Cell_Carcinoma,Glucocorticoid_Sensitivity,0.1634241245136186
+365,Glucocorticoid_Sensitivity,Thyroid_Cancer,0.1634241245136186
 366,Atherosclerosis,Osteoporosis,0.1630057803468208
 367,Osteoporosis,Atherosclerosis,0.1630057803468208
-368,COVID-19,Crohn's Disease,0.16279069767441862
-369,COVID-19,Lung Cancer,0.16279069767441862
-370,Lung Cancer,COVID-19,0.16279069767441862
-371,Crohn's Disease,COVID-19,0.16279069767441862
-372,Celiac Disease,Inflammatory Disorders,0.16170212765957448
-373,Inflammatory Disorders,Celiac Disease,0.16170212765957448
-374,Osteoporosis,Endometriosis,0.16166281755196305
-375,Endometriosis,Osteoporosis,0.16166281755196305
-376,Liver Cancer,Age,0.16152450090744103
-377,Cardiovascular Disease,Glucocorticoid Sensitivity,0.16116504854368932
-378,Glucocorticoid Sensitivity,Cardiovascular Disease,0.16116504854368932
-379,Chronic obstructive pulmonary disease (COPD),Vitamin D Levels,0.16113744075829384
-380,Ankylosing Spondylitis,Obstructive sleep apnea,0.16056338028169015
-381,Obstructive sleep apnea,Chronic obstructive pulmonary disease (COPD),0.16056338028169015
-382,Obstructive sleep apnea,Ankylosing Spondylitis,0.16056338028169015
-383,Chronic obstructive pulmonary disease (COPD),Obstructive sleep apnea,0.16056338028169015
-384,COVID-19,Psoriatic Arthritis,0.16037735849056603
-385,Psoriatic Arthritis,COVID-19,0.16037735849056603
-386,Obesity,Vitamin D Levels,0.15955766192733017
-387,Thyroid Cancer,Age,0.15942028985507245
-388,Multiple sclerosis,Cardiovascular Disease,0.1593011305241521
-389,Cardiovascular Disease,Multiple sclerosis,0.1593011305241521
-390,COVID-19,Breast Cancer,0.15911485774499473
-391,Breast Cancer,COVID-19,0.15911485774499473
-392,Crohn's Disease,Bladder Cancer,0.15910964550700743
-393,Bladder Cancer,Crohn's Disease,0.15910964550700743
-394,Glucocorticoid Sensitivity,Obesity,0.15891472868217055
-395,Obesity,Glucocorticoid Sensitivity,0.15891472868217055
-396,Susceptibility to Infections,Prostate Cancer,0.1587516960651289
-397,Prostate Cancer,Susceptibility to Infections,0.1587516960651289
-398,Ankylosing Spondylitis,Atherosclerosis,0.15845070422535212
-399,Atherosclerosis,Ankylosing Spondylitis,0.15845070422535212
-400,Liver Cancer,Atherosclerosis,0.1583710407239819
-401,Atherosclerosis,Liver Cancer,0.1583710407239819
-402,Crohn's Disease,Age,0.15815485996705106
-403,Multiple sclerosis,Bladder Cancer,0.15813686026451984
-404,Bladder Cancer,Multiple sclerosis,0.15813686026451984
-405,Lung Cancer,Longevity and Aging,0.15789473684210525
-406,Inflammatory Disorders,Longevity and Aging,0.15789473684210525
-407,Thyroid Cancer,Longevity and Aging,0.15789473684210525
-408,Prostate Cancer,Longevity and Aging,0.15789473684210525
-409,Liver Cancer,Longevity and Aging,0.15789473684210525
-410,Huntington's Disease,Longevity and Aging,0.15789473684210525
-411,Hepatitis,Longevity and Aging,0.15789473684210525
-412,COVID-19,Longevity and Aging,0.15789473684210525
-413,Head and Neck Cancer,Longevity and Aging,0.15789473684210525
-414,Glucocorticoid Sensitivity,Longevity and Aging,0.15789473684210525
-415,Cardiovascular Disease,Vitamin D Levels,0.15772870662460567
-416,Osteoporosis,Breast Cancer,0.15765247410817032
-417,Breast Cancer,Osteoporosis,0.15765247410817032
-418,Inflammatory Disorders,Liver Cancer,0.15732368896925858
-419,Liver Cancer,Hypertension,0.15732368896925858
-420,Liver Cancer,Inflammatory Disorders,0.15732368896925858
-421,Hypertension,Liver Cancer,0.15732368896925858
-422,Pancreatic Cancer,Cardiovascular Disease,0.15692307692307692
-423,Cardiovascular Disease,Pancreatic Cancer,0.15692307692307692
-424,Prostate Cancer,Osteoporosis,0.15632183908045977
-425,Osteoporosis,Prostate Cancer,0.15632183908045977
-426,Osteoporosis,Bladder Cancer,0.15632183908045977
-427,Bladder Cancer,Osteoporosis,0.15632183908045977
-428,Hepatitis,Sjögren's Syndrome,0.156
-429,Sjögren's Syndrome,Hepatitis,0.156
-430,Breast Cancer,Chronic obstructive pulmonary disease (COPD),0.15566037735849056
-431,Chronic obstructive pulmonary disease (COPD),Breast Cancer,0.15566037735849056
-432,Ankylosing Spondylitis,Chronic obstructive pulmonary disease (COPD),0.15566037735849056
-433,Chronic obstructive pulmonary disease (COPD),Ankylosing Spondylitis,0.15566037735849056
-434,Chronic obstructive pulmonary disease (COPD),Osteoporosis,0.15566037735849056
-435,Osteoporosis,Chronic obstructive pulmonary disease (COPD),0.15566037735849056
-436,Psoriatic Arthritis,Sjögren's Syndrome,0.15492957746478872
-437,Sjögren's Syndrome,Psoriatic Arthritis,0.15492957746478872
-438,Glucocorticoid Sensitivity,Vitamin D Levels,0.15444015444015444
-439,Inflammatory Disorders,Head and Neck Cancer,0.15398230088495576
-440,Head and Neck Cancer,Inflammatory Disorders,0.15398230088495576
-441,Atherosclerosis,Thyroid Cancer,0.15315315315315314
-442,Thyroid Cancer,Atherosclerosis,0.15315315315315314
+368,COVID-19,Crohns_Disease,0.1627906976744186
+369,COVID-19,Lung_Cancer,0.1627906976744186
+370,Lung_Cancer,COVID-19,0.1627906976744186
+371,Crohns_Disease,COVID-19,0.1627906976744186
+372,Celiac_Disease,Inflammatory_Disorders,0.1617021276595744
+373,Inflammatory_Disorders,Celiac_Disease,0.1617021276595744
+374,Osteoporosis,Endometriosis,0.161662817551963
+375,Endometriosis,Osteoporosis,0.161662817551963
+376,Liver_Cancer,Age,0.161524500907441
+377,Cardiovascular_Disease,Glucocorticoid_Sensitivity,0.1611650485436893
+378,Glucocorticoid_Sensitivity,Cardiovascular_Disease,0.1611650485436893
+379,Chronic_obstructive_pulmonary_disease_(COPD),Vitamin_D_Levels,0.1611374407582938
+380,Ankylosing_Spondylitis,Obstructive_sleep_apnea,0.1605633802816901
+381,Obstructive_sleep_apnea,Chronic_obstructive_pulmonary_disease_(COPD),0.1605633802816901
+382,Obstructive_sleep_apnea,Ankylosing_Spondylitis,0.1605633802816901
+383,Chronic_obstructive_pulmonary_disease_(COPD),Obstructive_sleep_apnea,0.1605633802816901
+384,COVID-19,Psoriatic_Arthritis,0.160377358490566
+385,Psoriatic_Arthritis,COVID-19,0.160377358490566
+386,Obesity,Vitamin_D_Levels,0.1595576619273301
+387,Thyroid_Cancer,Age,0.1594202898550724
+388,Multiple_sclerosis,Cardiovascular_Disease,0.1593011305241521
+389,Cardiovascular_Disease,Multiple_sclerosis,0.1593011305241521
+390,COVID-19,Breast_Cancer,0.1591148577449947
+391,Breast_Cancer,COVID-19,0.1591148577449947
+392,Crohns_Disease,Bladder_Cancer,0.1591096455070074
+393,Bladder_Cancer,Crohns_Disease,0.1591096455070074
+394,Glucocorticoid_Sensitivity,Obesity,0.1589147286821705
+395,Obesity,Glucocorticoid_Sensitivity,0.1589147286821705
+396,Susceptibility_to_Infections,Prostate_Cancer,0.1587516960651289
+397,Prostate_Cancer,Susceptibility_to_Infections,0.1587516960651289
+398,Ankylosing_Spondylitis,Atherosclerosis,0.1584507042253521
+399,Atherosclerosis,Ankylosing_Spondylitis,0.1584507042253521
+400,Liver_Cancer,Atherosclerosis,0.1583710407239819
+401,Atherosclerosis,Liver_Cancer,0.1583710407239819
+402,Crohns_Disease,Age,0.158154859967051
+403,Multiple_sclerosis,Bladder_Cancer,0.1581368602645198
+404,Bladder_Cancer,Multiple_sclerosis,0.1581368602645198
+405,Lung_Cancer,Longevity_and_Aging,0.1578947368421052
+406,Inflammatory_Disorders,Longevity_and_Aging,0.1578947368421052
+407,Thyroid_Cancer,Longevity_and_Aging,0.1578947368421052
+408,Prostate_Cancer,Longevity_and_Aging,0.1578947368421052
+409,Liver_Cancer,Longevity_and_Aging,0.1578947368421052
+410,Huntingtons_Disease,Longevity_and_Aging,0.1578947368421052
+411,Hepatitis,Longevity_and_Aging,0.1578947368421052
+412,COVID-19,Longevity_and_Aging,0.1578947368421052
+413,Head_and_Neck_Cancer,Longevity_and_Aging,0.1578947368421052
+414,Glucocorticoid_Sensitivity,Longevity_and_Aging,0.1578947368421052
+415,Cardiovascular_Disease,Vitamin_D_Levels,0.1577287066246056
+416,Osteoporosis,Breast_Cancer,0.1576524741081703
+417,Breast_Cancer,Osteoporosis,0.1576524741081703
+418,Inflammatory_Disorders,Liver_Cancer,0.1573236889692585
+419,Liver_Cancer,Hypertension,0.1573236889692585
+420,Liver_Cancer,Inflammatory_Disorders,0.1573236889692585
+421,Hypertension,Liver_Cancer,0.1573236889692585
+422,Pancreatic_Cancer,Cardiovascular_Disease,0.1569230769230769
+423,Cardiovascular_Disease,Pancreatic_Cancer,0.1569230769230769
+424,Prostate_Cancer,Osteoporosis,0.1563218390804597
+425,Osteoporosis,Prostate_Cancer,0.1563218390804597
+426,Osteoporosis,Bladder_Cancer,0.1563218390804597
+427,Bladder_Cancer,Osteoporosis,0.1563218390804597
+428,Hepatitis,Sjögrens_Syndrome,0.156
+429,Sjögrens_Syndrome,Hepatitis,0.156
+430,Breast_Cancer,Chronic_obstructive_pulmonary_disease_(COPD),0.1556603773584905
+431,Chronic_obstructive_pulmonary_disease_(COPD),Breast_Cancer,0.1556603773584905
+432,Ankylosing_Spondylitis,Chronic_obstructive_pulmonary_disease_(COPD),0.1556603773584905
+433,Chronic_obstructive_pulmonary_disease_(COPD),Ankylosing_Spondylitis,0.1556603773584905
+434,Chronic_obstructive_pulmonary_disease_(COPD),Osteoporosis,0.1556603773584905
+435,Osteoporosis,Chronic_obstructive_pulmonary_disease_(COPD),0.1556603773584905
+436,Psoriatic_Arthritis,Sjögrens_Syndrome,0.1549295774647887
+437,Sjögrens_Syndrome,Psoriatic_Arthritis,0.1549295774647887
+438,Glucocorticoid_Sensitivity,Vitamin_D_Levels,0.1544401544401544
+439,Inflammatory_Disorders,Head_and_Neck_Cancer,0.1539823008849557
+440,Head_and_Neck_Cancer,Inflammatory_Disorders,0.1539823008849557
+441,Atherosclerosis,Thyroid_Cancer,0.1531531531531531
+442,Thyroid_Cancer,Atherosclerosis,0.1531531531531531
 443,COVID-19,Gender,0.1530398322851153
-444,Chronic obstructive pulmonary disease (COPD),Sjögren's Syndrome,0.15294117647058825
-445,Sjögren's Syndrome,Chronic obstructive pulmonary disease (COPD),0.15294117647058825
-446,Endometriosis,Ankylosing Spondylitis,0.15236427320490367
-447,Ankylosing Spondylitis,Endometriosis,0.15236427320490367
-448,Pancreatic Cancer,Osteoporosis,0.15234822451317298
-449,Osteoporosis,Age,0.15234822451317298
-450,Osteoporosis,Pancreatic Cancer,0.15234822451317298
-451,Crohn's Disease,Glucocorticoid Sensitivity,0.15221579961464354
-452,Glucocorticoid Sensitivity,Multiple sclerosis,0.15221579961464354
-453,Multiple sclerosis,Glucocorticoid Sensitivity,0.15221579961464354
-454,Glucocorticoid Sensitivity,Crohn's Disease,0.15221579961464354
-455,Prostate Cancer,Cardiovascular Disease,0.15219611848825332
-456,Cardiovascular Disease,Prostate Cancer,0.15219611848825332
-457,Endometriosis,Endometrioid Cancer,0.15217391304347827
-458,Endometrioid Cancer,Endometriosis,0.15217391304347827
+444,Chronic_obstructive_pulmonary_disease_(COPD),Sjögrens_Syndrome,0.1529411764705882
+445,Sjögrens_Syndrome,Chronic_obstructive_pulmonary_disease_(COPD),0.1529411764705882
+446,Endometriosis,Ankylosing_Spondylitis,0.1523642732049036
+447,Ankylosing_Spondylitis,Endometriosis,0.1523642732049036
+448,Pancreatic_Cancer,Osteoporosis,0.1523482245131729
+449,Osteoporosis,Age,0.1523482245131729
+450,Osteoporosis,Pancreatic_Cancer,0.1523482245131729
+451,Crohns_Disease,Glucocorticoid_Sensitivity,0.1522157996146435
+452,Glucocorticoid_Sensitivity,Multiple_sclerosis,0.1522157996146435
+453,Multiple_sclerosis,Glucocorticoid_Sensitivity,0.1522157996146435
+454,Glucocorticoid_Sensitivity,Crohns_Disease,0.1522157996146435
+455,Prostate_Cancer,Cardiovascular_Disease,0.1521961184882533
+456,Cardiovascular_Disease,Prostate_Cancer,0.1521961184882533
+457,Endometriosis,Endometrioid_Cancer,0.1521739130434782
+458,Endometrioid_Cancer,Endometriosis,0.1521739130434782
 459,Obesity,COVID-19,0.1518324607329843
 460,COVID-19,Obesity,0.1518324607329843
-461,Obsessive-Compulsive Disorder,Anxiety disorder,0.15151515151515152
-462,Crohn's Disease,Prostate Cancer,0.15151515151515152
-463,Anxiety disorder,Obsessive-Compulsive Disorder,0.15151515151515152
-464,Anxiety disorder,Anorexia Nervosa,0.15151515151515152
-465,Anorexia Nervosa,Anxiety disorder,0.15151515151515152
-466,Prostate Cancer,Crohn's Disease,0.15151515151515152
-467,Susceptibility to Infections,Obesity,0.1509433962264151
-468,Obesity,Susceptibility to Infections,0.1509433962264151
-469,Prostate Cancer,COVID-19,0.1506276150627615
-470,COVID-19,Prostate Cancer,0.1506276150627615
-471,Crohn's Disease,Endometriosis,0.15057283142389524
-472,Endometriosis,Crohn's Disease,0.15057283142389524
-473,Thyroid Cancer,Vitamin D Levels,0.15047021943573669
-474,Esophageal Cancer,Longevity and Aging,0.1503267973856209
-475,Obstructive sleep apnea,Longevity and Aging,0.1503267973856209
-476,Bladder Cancer,Longevity and Aging,0.1503267973856209
-477,Glucocorticoid Sensitivity,Liver Cancer,0.15
-478,Osteoporosis,Glucocorticoid Sensitivity,0.15
-479,Glucocorticoid Sensitivity,Osteoporosis,0.15
-480,Liver Cancer,Glucocorticoid Sensitivity,0.15
-481,Peptic ulcer disease,Gender,0.15
-482,Psoriatic Arthritis,Crohn's Disease,0.14953271028037382
-483,Crohn's Disease,Psoriatic Arthritis,0.14953271028037382
-484,Atherosclerosis,Sjögren's Syndrome,0.14910536779324055
-485,Sjögren's Syndrome,Atherosclerosis,0.14910536779324055
-486,Head and Neck Cancer,Age,0.14788732394366197
-487,Esophageal Cancer,Glucocorticoid Sensitivity,0.14779270633397312
-488,Glucocorticoid Sensitivity,Esophageal Cancer,0.14779270633397312
-489,Hepatitis,Colon and Rectal Cancer,0.14769975786924938
-490,Colon and Rectal Cancer,Hepatitis,0.14769975786924938
-491,Obstructive sleep apnea,Prostate Cancer,0.14763231197771587
-492,Prostate Cancer,Obstructive sleep apnea,0.14763231197771587
-493,Obstructive sleep apnea,Bladder Cancer,0.14763231197771587
-494,Bladder Cancer,Obstructive sleep apnea,0.14763231197771587
-495,Chronic obstructive pulmonary disease (COPD),Glucocorticoid Sensitivity,0.14754098360655737
-496,Chronic obstructive pulmonary disease (COPD),Head and Neck Cancer,0.14754098360655737
-497,Glucocorticoid Sensitivity,Chronic obstructive pulmonary disease (COPD),0.14754098360655737
-498,Head and Neck Cancer,Chronic obstructive pulmonary disease (COPD),0.14754098360655737
-499,Bladder Cancer,COVID-19,0.1470281543274244
-500,COVID-19,Bladder Cancer,0.1470281543274244
-501,Liver Cancer,Vitamin D Levels,0.146875
-502,Sjögren's Syndrome,Endometriosis,0.14682539682539683
-503,Endometriosis,Sjögren's Syndrome,0.14682539682539683
-504,Esophageal Cancer,Age,0.14670896114195084
-505,Cardiovascular Disease,Bladder Cancer,0.14634146341463414
-506,Bladder Cancer,Cardiovascular Disease,0.14634146341463414
-507,Cardiovascular Disease,Susceptibility to Infections,0.14630872483221477
-508,Susceptibility to Infections,Cardiovascular Disease,0.14630872483221477
-509,Crohn's Disease,Obesity,0.1458842705786471
-510,Obesity,Crohn's Disease,0.1458842705786471
-511,Osteoporosis,Gender,0.14578587699316628
-512,Anorexia Nervosa,Bone Density,0.14563106796116504
-513,Susceptibility to Infections,Vitamin D Levels,0.14508580343213728
-514,Colon and Rectal Cancer,Gender,0.14492753623188406
-515,Chronic obstructive pulmonary disease (COPD),Kidney Papillary Cell Carcinoma,0.14485981308411214
-516,Kidney Papillary Cell Carcinoma,Chronic obstructive pulmonary disease (COPD),0.14485981308411214
-517,Obesity,Pancreatic Cancer,0.14476139696081045
-518,Pancreatic Cancer,Obesity,0.14476139696081045
-519,Crohn's Disease,Celiac Disease,0.14465408805031446
-520,Celiac Disease,Crohn's Disease,0.14465408805031446
-521,Crohn's Disease,Sjögren's Syndrome,0.14455445544554454
-522,Sjögren's Syndrome,Crohn's Disease,0.14455445544554454
-523,Obstructive sleep apnea,Osteoporosis,0.14444444444444443
-524,Osteoporosis,Obstructive sleep apnea,0.14444444444444443
-525,Ankylosing Spondylitis,Hypertension,0.1443478260869565
-526,Hypertension,Ankylosing Spondylitis,0.1443478260869565
-527,Thyroid Cancer,Gender,0.1442687747035573
-528,Alopecia,Psoriatic Arthritis,0.14418604651162792
-529,Psoriatic Arthritis,Alopecia,0.14418604651162792
-530,Atherosclerosis,Esophageal Cancer,0.1439873417721519
-531,Esophageal Cancer,Atherosclerosis,0.1439873417721519
-532,Hypertension,Head and Neck Cancer,0.14385964912280702
-533,Head and Neck Cancer,Hypertension,0.14385964912280702
-534,COVID-19,Vitamin D Levels,0.14330218068535824
-535,Kidney Papillary Cell Carcinoma,Vitamin D Levels,0.14330218068535824
-536,Chronic obstructive pulmonary disease (COPD),Longevity and Aging,0.14285714285714285
-537,Autoinflammatory Disorders,Psoriatic Arthritis,0.14285714285714285
-538,Anorexia Nervosa,Underweight,0.14285714285714285
-539,Underweight,Anorexia Nervosa,0.14285714285714285
-540,Bipolar disorder,Longevity and Aging,0.14285714285714285
-541,Psoriatic Arthritis,Autoinflammatory Disorders,0.14285714285714285
-542,Obesity,Kidney Papillary Cell Carcinoma,0.14244604316546763
-543,Kidney Papillary Cell Carcinoma,Obesity,0.14244604316546763
-544,Celiac Disease,Multiple sclerosis,0.14225941422594143
-545,Multiple sclerosis,Celiac Disease,0.14225941422594143
-546,Inflammatory Disorders,Thyroid Cancer,0.1421772754312909
-547,Thyroid Cancer,Inflammatory Disorders,0.1421772754312909
-548,Hepatitis,Osteoporosis,0.14188422247446084
-549,Osteoporosis,Hepatitis,0.14188422247446084
-550,Bladder Cancer,Obesity,0.14144084600132187
-551,Obesity,Bladder Cancer,0.14144084600132187
-552,Obstructive sleep apnea,Age,0.14127423822714683
-553,Breast Cancer,Obstructive sleep apnea,0.14127423822714683
-554,Lung Cancer,Obstructive sleep apnea,0.14127423822714683
-555,Obstructive sleep apnea,Breast Cancer,0.14127423822714683
-556,Obstructive sleep apnea,Lung Cancer,0.14127423822714683
-557,Obstructive sleep apnea,LDL Cholesterol Levels,0.14124293785310735
-558,Osteoporosis,Obesity,0.14058956916099774
-559,Obesity,Osteoporosis,0.14058956916099774
-560,Ankylosing Spondylitis,Osteoporosis,0.14038128249566725
-561,Osteoporosis,Ankylosing Spondylitis,0.14038128249566725
-562,Susceptibility to Infections,Thyroid Cancer,0.14018691588785046
-563,Thyroid Cancer,Susceptibility to Infections,0.14018691588785046
-564,Celiac Disease,Susceptibility to Infections,0.13987473903966596
-565,Susceptibility to Infections,Celiac Disease,0.13987473903966596
-566,Head and Neck Cancer,Gender,0.13986013986013987
-567,Epilepsy,Chronic obstructive pulmonary disease (COPD),0.13953488372093023
-568,Chronic obstructive pulmonary disease (COPD),Epilepsy,0.13953488372093023
-569,Susceptibility to Infections,Psoriatic Arthritis,0.1388888888888889
-570,Psoriatic Arthritis,Susceptibility to Infections,0.1388888888888889
-571,Esophageal Cancer,Hypertension,0.13858267716535433
-572,Hypertension,Esophageal Cancer,0.13858267716535433
-573,Inflammatory Disorders,Alopecia,0.13812154696132597
-574,Pancreatic Cancer,Obstructive sleep apnea,0.13812154696132597
-575,Multiple sclerosis,Alopecia,0.13812154696132597
-576,Alopecia,Hepatitis,0.13812154696132597
-577,Alopecia,Multiple sclerosis,0.13812154696132597
-578,Endometriosis,Alopecia,0.13812154696132597
-579,Alopecia,Inflammatory Disorders,0.13812154696132597
-580,Alopecia,Endometriosis,0.13812154696132597
-581,Obstructive sleep apnea,Pancreatic Cancer,0.13812154696132597
-582,Hepatitis,Alopecia,0.13812154696132597
-583,Susceptibility to Infections,Alopecia,0.13812154696132597
-584,Alopecia,Susceptibility to Infections,0.13812154696132597
-585,Crohn's Disease,Vitamin D Levels,0.13798449612403102
-586,Head and Neck Cancer,Atherosclerosis,0.13787085514834205
-587,Atherosclerosis,Head and Neck Cancer,0.13787085514834205
-588,Chronic obstructive pulmonary disease (COPD),Esophageal Cancer,0.1368909512761021
-589,Esophageal Cancer,Chronic obstructive pulmonary disease (COPD),0.1368909512761021
-590,Crohn's Disease,Hypertension,0.13662085691188358
-591,Hypertension,Crohn's Disease,0.13662085691188358
-593,Sjögren's Syndrome,Peptic ulcer disease,0.13580246913580246
-594,Endometriosis,Peptic ulcer disease,0.13580246913580246
-595,Peptic ulcer disease,Psoriatic Arthritis,0.13580246913580246
-596,Peptic ulcer disease,Inflammatory Disorders,0.13580246913580246
-597,Inflammatory Disorders,Peptic ulcer disease,0.13580246913580246
-598,Psoriatic Arthritis,Peptic ulcer disease,0.13580246913580246
-599,Peptic ulcer disease,Sjögren's Syndrome,0.13580246913580246
-600,Peptic ulcer disease,Endometriosis,0.13580246913580246
-601,Ankylosing Spondylitis,Sjögren's Syndrome,0.13555992141453832
-602,Sjögren's Syndrome,Ankylosing Spondylitis,0.13555992141453832
-603,Thyroid Cancer,COVID-19,0.13519091847265222
-604,COVID-19,Thyroid Cancer,0.13519091847265222
-605,Celiac Disease,Sjögren's Syndrome,0.13513513513513514
-606,Sjögren's Syndrome,Celiac Disease,0.13513513513513514
-607,Sjögren's Syndrome,Obstructive sleep apnea,0.1349862258953168
-608,Susceptibility to Infections,Obstructive sleep apnea,0.1349862258953168
-609,Obstructive sleep apnea,Susceptibility to Infections,0.1349862258953168
-610,Obstructive sleep apnea,Sjögren's Syndrome,0.1349862258953168
-611,Breast Cancer,Ankylosing Spondylitis,0.13448275862068965
-612,Pancreatic Cancer,Ankylosing Spondylitis,0.13448275862068965
-613,Ankylosing Spondylitis,Breast Cancer,0.13448275862068965
-614,Ankylosing Spondylitis,Bladder Cancer,0.13448275862068965
-615,Bladder Cancer,Ankylosing Spondylitis,0.13448275862068965
-616,Ankylosing Spondylitis,Pancreatic Cancer,0.13448275862068965
-617,Osteoporosis,Multiple sclerosis,0.13416009019165728
-618,Multiple sclerosis,Osteoporosis,0.13416009019165728
-619,Inflammatory Disorders,Esophageal Cancer,0.13411764705882354
-620,Esophageal Cancer,Inflammatory Disorders,0.13411764705882354
-621,Colon and Rectal Cancer,Age,0.1339712918660287
-622,COVID-19,Head and Neck Cancer,0.13391304347826086
-623,Head and Neck Cancer,COVID-19,0.13391304347826086
-624,Epilepsy,Age,0.13378378378378378
-625,Psoriatic Arthritis,Celiac Disease,0.1336405529953917
-626,Celiac Disease,Psoriatic Arthritis,0.1336405529953917
-627,Kidney Papillary Cell Carcinoma,Gender,0.13307240704500978
-628,Ankylosing Spondylitis,Cardiovascular Disease,0.13253012048192772
-629,Cardiovascular Disease,Ankylosing Spondylitis,0.13253012048192772
-630,Alopecia,Crohn's Disease,0.13186813186813187
-631,Crohn's Disease,Alopecia,0.13186813186813187
-632,Thyroid Cancer,Obstructive sleep apnea,0.13186813186813187
-633,Obstructive sleep apnea,Thyroid Cancer,0.13186813186813187
-634,Kidney Papillary Cell Carcinoma,Multiple sclerosis,0.13186029935851745
-635,Multiple sclerosis,Kidney Papillary Cell Carcinoma,0.13186029935851745
-636,Chronic obstructive pulmonary disease (COPD),Liver Cancer,0.13163972286374134
-637,Liver Cancer,Chronic obstructive pulmonary disease (COPD),0.13163972286374134
-638,Sickle Cell Anemia,Obstructive sleep apnea,0.13142857142857142
-639,Obstructive sleep apnea,Sickle Cell Anemia,0.13142857142857142
-640,Inflammatory Disorders,Colon and Rectal Cancer,0.13126491646778043
-641,Colon and Rectal Cancer,Inflammatory Disorders,0.13126491646778043
-642,Kidney Papillary Cell Carcinoma,Susceptibility to Infections,0.13112582781456952
-643,Susceptibility to Infections,Kidney Papillary Cell Carcinoma,0.13112582781456952
-644,Esophageal Cancer,Ankylosing Spondylitis,0.13058419243986255
-645,Ankylosing Spondylitis,Esophageal Cancer,0.13058419243986255
-646,COVID-19,Glucocorticoid Sensitivity,0.13043478260869565
-647,Glucocorticoid Sensitivity,COVID-19,0.13043478260869565
-648,Osteoporosis,Thyroid Cancer,0.1303370786516854
-649,Thyroid Cancer,Osteoporosis,0.1303370786516854
-650,Crohn's Disease,Cardiovascular Disease,0.13026052104208416
-651,Cardiovascular Disease,Crohn's Disease,0.13026052104208416
-652,Crohn's Disease,Gender,0.12975609756097561
-653,Obesity,Thyroid Cancer,0.12941176470588237
-654,Thyroid Cancer,Obesity,0.12941176470588237
-655,Osteoporosis,Cardiovascular Disease,0.12906846240179573
-656,Cardiovascular Disease,Osteoporosis,0.12906846240179573
-657,Obstructive sleep apnea,Glucocorticoid Sensitivity,0.12876712328767123
-658,Glucocorticoid Sensitivity,Obstructive sleep apnea,0.12876712328767123
-659,Hypertension,Thyroid Cancer,0.12874779541446207
-660,Thyroid Cancer,Hypertension,0.12874779541446207
-661,Psoriatic Arthritis,Chronic obstructive pulmonary disease (COPD),0.12844036697247707
-662,Psoriatic Arthritis,Inflammatory Disorders,0.12844036697247707
-663,Inflammatory Disorders,Psoriatic Arthritis,0.12844036697247707
-664,Chronic obstructive pulmonary disease (COPD),Psoriatic Arthritis,0.12844036697247707
-665,Crohn's Disease,Longevity and Aging,0.1282051282051282
-666,Breast Cancer,Longevity and Aging,0.1282051282051282
-667,Inflammatory Disorders,Epilepsy,0.12768817204301075
-668,Epilepsy,Inflammatory Disorders,0.12768817204301075
-669,Obesity,Anorexia Nervosa,0.1276595744680851
-670,Anorexia Nervosa,Obesity,0.1276595744680851
-671,Esophageal Cancer,Vitamin D Levels,0.12749615975422426
-672,Sjögren's Syndrome,Pancreatic Cancer,0.1267056530214425
-673,Pancreatic Cancer,Sjögren's Syndrome,0.1267056530214425
-674,Crohn's Disease,Obstructive sleep apnea,0.12568306010928962
-675,Obstructive sleep apnea,Crohn's Disease,0.12568306010928962
-676,Liver Cancer,Multiple sclerosis,0.12478031634446397
-677,Multiple sclerosis,Liver Cancer,0.12478031634446397
-678,Hepatitis,Celiac Disease,0.12345679012345678
-679,Celiac Disease,Hepatitis,0.12345679012345678
-680,Psoriatic Arthritis,Hepatitis,0.1232876712328767
-681,Hepatitis,Psoriatic Arthritis,0.1232876712328767
-682,Osteoporosis,Psoriatic Arthritis,0.1232876712328767
-683,Psoriatic Arthritis,Osteoporosis,0.1232876712328767
-684,Kidney Papillary Cell Carcinoma,Crohn's Disease,0.12300319488817892
-685,Crohn's Disease,Kidney Papillary Cell Carcinoma,0.12300319488817892
-686,Crohn's Disease,Thyroid Cancer,0.12300319488817892
-687,Thyroid Cancer,Crohn's Disease,0.12300319488817892
-688,Liver Cancer,Obesity,0.12280701754385964
-689,Obesity,Liver Cancer,0.12280701754385964
-690,Liver Cancer,Susceptibility to Infections,0.12220762155059132
-691,Susceptibility to Infections,Liver Cancer,0.12220762155059132
-692,Crohn's Disease,Head and Neck Cancer,0.12220309810671257
-693,Head and Neck Cancer,Crohn's Disease,0.12220309810671257
-694,Head and Neck Cancer,Obesity,0.12220309810671257
-695,Obesity,Head and Neck Cancer,0.12220309810671257
-696,Susceptibility to Infections,Peptic ulcer disease,0.12195121951219512
-697,Peptic ulcer disease,Cardiovascular Disease,0.12195121951219512
-698,Obstructive sleep apnea,Peptic ulcer disease,0.12195121951219512
-699,Atherosclerosis,Peptic ulcer disease,0.12195121951219512
-700,Peptic ulcer disease,Atherosclerosis,0.12195121951219512
-701,Peptic ulcer disease,Ankylosing Spondylitis,0.12195121951219512
-702,Peptic ulcer disease,Osteoporosis,0.12195121951219512
-703,Peptic ulcer disease,Susceptibility to Infections,0.12195121951219512
-704,Ankylosing Spondylitis,Peptic ulcer disease,0.12195121951219512
-705,Osteoporosis,Peptic ulcer disease,0.12195121951219512
-706,Peptic ulcer disease,Obstructive sleep apnea,0.12195121951219512
-707,Cardiovascular Disease,Peptic ulcer disease,0.12195121951219512
-708,Ankylosing Spondylitis,Longevity and Aging,0.12101910828025478
-709,Ankylosing Spondylitis,Lung Cancer,0.12095400340715502
-710,Lung Cancer,Ankylosing Spondylitis,0.12095400340715502
-711,Stomach Cancer,Endometriosis,0.1206896551724138
-712,Endometriosis,Stomach Cancer,0.1206896551724138
-713,Colon and Rectal Cancer,Hypertension,0.12056737588652482
-714,Hypertension,Colon and Rectal Cancer,0.12056737588652482
-715,Endometrioid Cancer,Age,0.12050739957716702
-716,Head and Neck Cancer,Osteoporosis,0.12027491408934708
-717,Head and Neck Cancer,Vitamin D Levels,0.12027491408934708
-718,Osteoporosis,Head and Neck Cancer,0.12027491408934708
-719,Autoinflammatory Disorders,Multiple sclerosis,0.12
-720,Autoinflammatory Disorders,Ankylosing Spondylitis,0.12
-721,Endometriosis,Autoinflammatory Disorders,0.12
-722,Autoinflammatory Disorders,Endometriosis,0.12
-723,Multiple sclerosis,Autoinflammatory Disorders,0.12
-724,Ankylosing Spondylitis,Autoinflammatory Disorders,0.12
-725,Ankylosing Spondylitis,Alopecia,0.11956521739130435
-726,Alopecia,Ankylosing Spondylitis,0.11956521739130435
-727,Ankylosing Spondylitis,Vitamin D Levels,0.11904761904761904
-728,Esophageal Cancer,Osteoporosis,0.11902113459399333
-729,Osteoporosis,Esophageal Cancer,0.11902113459399333
-730,Celiac Disease,Ankylosing Spondylitis,0.11885245901639344
-731,Celiac Disease,COVID-19,0.11885245901639344
-732,Ankylosing Spondylitis,Celiac Disease,0.11885245901639344
-733,COVID-19,Celiac Disease,0.11885245901639344
-734,Epilepsy,Gender,0.11884057971014493
-735,Anorexia Nervosa,Obsessive-Compulsive Disorder,0.11811023622047244
-736,Obsessive-Compulsive Disorder,Anorexia Nervosa,0.11811023622047244
-737,Osteoporosis,Colon and Rectal Cancer,0.1179245283018868
-738,Colon and Rectal Cancer,Osteoporosis,0.1179245283018868
-739,Epilepsy,Hypertension,0.11792138574283811
-740,Hypertension,Epilepsy,0.11792138574283811
-741,Susceptibility to Infections,Glucocorticoid Sensitivity,0.11775700934579439
-742,Glucocorticoid Sensitivity,Susceptibility to Infections,0.11775700934579439
-743,Obstructive sleep apnea,Anxiety disorder,0.11764705882352941
-744,Autism spectrum disorder (ASD),Anxiety disorder,0.11764705882352941
-745,Anxiety disorder,Autism spectrum disorder (ASD),0.11764705882352941
-746,Anxiety disorder,Obstructive sleep apnea,0.11764705882352941
-747,Osteoporosis,Crohn's Disease,0.11653718091009989
-748,Crohn's Disease,Osteoporosis,0.11653718091009989
-750,Obstructive sleep apnea,Liver Cancer,0.11653116531165311
-751,Liver Cancer,Obstructive sleep apnea,0.11653116531165311
-752,Head and Neck Cancer,Multiple sclerosis,0.11643835616438356
-753,Multiple sclerosis,Head and Neck Cancer,0.11643835616438356
-754,Esophageal Cancer,Susceptibility to Infections,0.11633986928104575
-755,Susceptibility to Infections,Esophageal Cancer,0.11633986928104575
-756,Thyroid Cancer,Sjögren's Syndrome,0.11583011583011583
-757,Sjögren's Syndrome,Hypertension,0.11583011583011583
-758,Sjögren's Syndrome,Thyroid Cancer,0.11583011583011583
-759,Hypertension,Sjögren's Syndrome,0.11583011583011583
-760,Obesity,Epilepsy,0.11569148936170212
-761,Epilepsy,Obesity,0.11569148936170212
-762,COVID-19,Kidney Papillary Cell Carcinoma,0.11561866125760649
-763,Kidney Papillary Cell Carcinoma,COVID-19,0.11561866125760649
-764,Colon and Rectal Cancer,Glucocorticoid Sensitivity,0.11529411764705882
-765,Glucocorticoid Sensitivity,Colon and Rectal Cancer,0.11529411764705882
-766,Ankylosing Spondylitis,Prostate Cancer,0.1152542372881356
-767,Prostate Cancer,Ankylosing Spondylitis,0.1152542372881356
-768,Multiple sclerosis,Thyroid Cancer,0.114335461404527
-769,Thyroid Cancer,Multiple sclerosis,0.114335461404527
-770,Endometriosis,Celiac Disease,0.11428571428571428
-771,Celiac Disease,Endometriosis,0.11428571428571428
-772,Colon and Rectal Cancer,Longevity and Aging,0.11392405063291139
-773,Celiac Disease,Longevity and Aging,0.11392405063291139
-774,Sjögren's Syndrome,Vitamin D Levels,0.11368015414258188
-775,Sjögren's Syndrome,Breast Cancer,0.11368015414258188
-776,Breast Cancer,Sjögren's Syndrome,0.11368015414258188
-777,Alopecia,Bladder Cancer,0.11351351351351352
-778,Obstructive sleep apnea,Kidney Papillary Cell Carcinoma,0.11351351351351352
-779,Kidney Papillary Cell Carcinoma,Obstructive sleep apnea,0.11351351351351352
-780,Bladder Cancer,Alopecia,0.11351351351351352
-782,Thyroid Cancer,Ankylosing Spondylitis,0.11336717428087986
-783,Ankylosing Spondylitis,Thyroid Cancer,0.11336717428087986
-784,Psoriatic Arthritis,Multiple sclerosis,0.11312217194570136
-785,Psoriatic Arthritis,Obstructive sleep apnea,0.11312217194570136
-796,Celiac Disease,Gender,0.1120162932790224
-802,Ankylosing Spondylitis,Obesity,0.11148648648648649
-809,Congenital Adrenal Hyperplasia,Hypertension,0.1111111111111111
-829,Esophageal Cancer,Gender,0.10919540229885058
-837,Peptic ulcer disease,Obesity,0.10843373493975904
-839,Peptic ulcer disease,Hypertension,0.10843373493975904
-855,Esophageal Cancer,Obesity,0.10804597701149425
-862,Colon and Rectal Cancer,Obesity,0.10747663551401869
-871,Stomach Cancer,Gender,0.10638297872340426
-884,Sjögren's Syndrome,Age,0.10516252390057361
-889,Autism spectrum disorder (ASD),Gender,0.10429447852760736
-895,Anorexia Nervosa,Hypertension,0.10416666666666667
-897,Anorexia Nervosa,Gender,0.10416666666666667
-920,Sjögren's Syndrome,Obesity,0.10305343511450382
-927,Liver Cancer,Gender,0.10180780209324453
-939,Inflammatory Disorders,Bipolar disorder,0.10157367668097282
-944,Epilepsy,Bipolar disorder,0.1
-959,Amyotrophic Lateral Sclerosis,Age,0.09948717948717949
-960,Glucocorticoid Sensitivity,Bipolar disorder,0.09926470588235294
-969,Alopecia,Obesity,0.09866666666666667
-977,Psoriatic Arthritis,Gender,0.09821428571428571
-993,Endometrioid Cancer,Gender,0.09730848861283643
-996,Stomach Cancer,Age,0.0970464135021097
-1001,Obstructive sleep apnea,Bipolar disorder,0.09574468085106383
-1002,Alopecia,Hypertension,0.09574468085106383
-1031,Sickle Cell Anemia,Obesity,0.09392265193370165
-1048,Obsessive-Compulsive Disorder,Gender,0.09230769230769231
-1055,Celiac Disease,Obesity,0.092
-1056,Celiac Disease,Hypertension,0.092
-1062,Bipolar disorder,Obesity,0.09142452161587526
-1063,Obesity,Bipolar disorder,0.09142452161587526
-1068,Endometrioid Cancer,Hypertension,0.09053497942386832
-1074,Multiple sclerosis,Bipolar disorder,0.08987968860580325
-1081,Chronic obstructive pulmonary disease (COPD),Bipolar disorder,0.08888888888888889
-1084,Breast Cancer,Bipolar disorder,0.08833922261484099
-1085,Hypertension,Bipolar disorder,0.08833922261484099
-1086,Bipolar disorder,Hypertension,0.08833922261484099
-1097,Sickle Cell Anemia,Bipolar disorder,0.08791208791208792
-1102,Sickle Cell Anemia,Hypertension,0.08791208791208792
-1117,Anorexia Nervosa,Bipolar disorder,0.08717948717948718
-1131,Polycystic Kidney Disease,Gender,0.08661417322834646
-1133,Susceptibility to Infections,Bipolar disorder,0.08651399491094147
-1144,Glucocorticoid Sensitivity,Anxiety disorder,0.08571428571428572
-1147,Celiac Disease,Age,0.08548707753479125
-1172,Obsessive-Compulsive Disorder,Bipolar disorder,0.08396946564885496
-1175,Amyotrophic Lateral Sclerosis,Hypertension,0.0839231547017189
-1180,Endometrioid Cancer,Obesity,0.08384458077709611
-1186,Psoriatic Arthritis,Age,0.08370044052863436
-1194,Atherosclerosis,Bipolar disorder,0.0829817158931083
-1197,Amyotrophic Lateral Sclerosis,Obesity,0.08282828282828283
-1216,Ankylosing Spondylitis,Bipolar disorder,0.08223684210526316
-1231,Huntington's Disease,Age,0.08158508158508158
-1233,Huntington's Disease,Bipolar disorder,0.08158508158508158
-1234,Lung Cancer,Bipolar disorder,0.08146067415730338
-1249,Pancreatic Cancer,Bipolar disorder,0.08070175438596491
-1251,Osteoporosis,Bipolar disorder,0.08055853920515575
-1266,Psoriatic Arthritis,Hypertension,0.07894736842105263
-1271,Cardiovascular Disease,Bipolar disorder,0.07839388145315487
-1273,Autism spectrum disorder (ASD),Hypertension,0.07784431137724551
-1280,Autism spectrum disorder (ASD),Bipolar disorder,0.07784431137724551
-1296,Hepatitis,Bipolar disorder,0.07692307692307693
-1302,Autoinflammatory Disorders,Bipolar disorder,0.07692307692307693
-1315,Autoinflammatory Disorders,Hypertension,0.07692307692307693
-1320,Prostate Cancer,Bipolar disorder,0.07692307692307693
-1332,COVID-19,Bipolar disorder,0.07632093933463796
-1358,Stomach Cancer,Hypertension,0.0743801652892562
-1369,Huntington's Disease,Obesity,0.07407407407407407
-1380,Polycystic Kidney Disease,Hypertension,0.07392996108949416
-1407,Hypertrophic Cardiomyopathy,Gender,0.07120743034055728
-1429,Celiac Disease,Bipolar disorder,0.07058823529411765
-1430,Huntington's Disease,Anxiety disorder,0.07042253521126761
-1432,Anxiety disorder,Bipolar disorder,0.07042253521126761
-1433,Bipolar disorder,Anxiety disorder,0.07042253521126761
-1434,Anxiety disorder,Gender,0.07042253521126761
-1452,Peptic ulcer disease,Bipolar disorder,0.06976744186046512
-1479,Huntington's Disease,Gender,0.06912442396313365
-1480,Amyotrophic Lateral Sclerosis,Gender,0.06879361914257229
-1486,Endometriosis,Bipolar disorder,0.06870229007633588
-1491,Bladder Cancer,Bipolar disorder,0.06796116504854369
-1500,Obsessive-Compulsive Disorder,Obesity,0.06766917293233082
-1509,Obsessive-Compulsive Disorder,Hypertension,0.06766917293233082
-1514,Crohn's Disease,Bipolar disorder,0.06676783004552352
-1520,Underweight,Gender,0.06666666666666667
-1535,Essential Thrombocythemia,Gender,0.06666666666666667
-1546,Stomach Cancer,Obesity,0.06557377049180328
-1550,Head and Neck Cancer,Bipolar disorder,0.06535947712418301
-1562,Autism spectrum disorder (ASD),Obesity,0.0650887573964497
-1566,Psoriatic Arthritis,Obesity,0.06493506493506493
-1569,Hypertrophic Cardiomyopathy,Hypertension,0.06461538461538462
-1592,Amyotrophic Lateral Sclerosis,Bipolar disorder,0.06349206349206349
-1609,Colon and Rectal Cancer,Bipolar disorder,0.06278026905829596
-1612,Alopecia,Bipolar disorder,0.061855670103092786
-1619,Huntington's Disease,Hypertension,0.06178489702517163
-1645,Psoriatic Arthritis,Bipolar disorder,0.0603448275862069
-1696,Thyroid Cancer,Bipolar disorder,0.058419243986254296
-1716,Polycystic Kidney Disease,Obesity,0.05747126436781609
-1717,Peptic ulcer disease,Age,0.05747126436781609
-1730,Stomach Cancer,Bipolar disorder,0.056910569105691054
-1732,Sjögren's Syndrome,Bipolar disorder,0.056672760511883
-1768,Hypertension,Anxiety disorder,0.05555555555555555
-1769,Sickle Cell Anemia,Anxiety disorder,0.05555555555555555
-1770,Anxiety disorder,Hypertension,0.05555555555555555
-1773,Hypertrophic Cardiomyopathy,Obesity,0.054878048780487805
-1777,Kidney Papillary Cell Carcinoma,Bipolar disorder,0.0547945205479452
-1801,Polycystic Kidney Disease,Bipolar disorder,0.05343511450381679
-1812,Bile Duct Cancer,Gender,0.05263157894736842
-1813,Bile Duct Cancer,Age,0.05263157894736842
-1821,Bile Duct Cancer,Obesity,0.05263157894736842
-1832,Adrenocortical Cancer,Hypertension,0.05263157894736842
-1850,Bile Duct Cancer,Bipolar disorder,0.05263157894736842
-1869,Hypertrophic Cardiomyopathy,Age,0.05167173252279635
-1878,Esophageal Cancer,Bipolar disorder,0.05010893246187364
-1894,Essential Thrombocythemia,Bipolar disorder,0.04918032786885246
-1901,Essential Thrombocythemia,Hypertension,0.04918032786885246
-1912,Liver Cancer,Bipolar disorder,0.04918032786885246
-1925,Intellectual Disability,Bipolar disorder,0.04891740176423416
-1957,Poor Metabolizer of Drugs,Anxiety disorder,0.047619047619047616
-1959,Poor Metabolizer of Drugs,Bipolar disorder,0.047619047619047616
-1976,Endometrioid Cancer,Bipolar disorder,0.04743083003952569
-2069,Hypertrophic Cardiomyopathy,Bipolar disorder,0.04216867469879518
-2091,Obesity,Anxiety disorder,0.0410958904109589
-2092,Epilepsy,Anxiety disorder,0.0410958904109589
-2094,Anxiety disorder,Obesity,0.0410958904109589
-2096,Peptic ulcer disease,Anxiety disorder,0.0410958904109589
-2098,Essential Thrombocythemia,Age,0.04065040650406504
-2109,Essential Thrombocythemia,Obesity,0.04065040650406504
-2132,Intellectual Disability,Age,0.0380952380952381
-2147,Autoinflammatory Disorders,Obesity,0.037037037037037035
-2202,Intellectual Disability,Obesity,0.03399209486166008
-2216,Pheochromocytoma and Paraganglioma,Gender,0.03333333333333333
-2234,Underweight,Age,0.03225806451612903
-2264,Underweight,Anxiety disorder,0.03225806451612903
-2265,Underweight,Bipolar disorder,0.03225806451612903
-2348,Stomach Cancer,Anxiety disorder,0.02702702702702703
-2351,Osteoporosis,Anxiety disorder,0.02702702702702703
-2352,Sjögren's Syndrome,Anxiety disorder,0.02702702702702703
-2353,Endometriosis,Anxiety disorder,0.02702702702702703
-2354,COVID-19,Anxiety disorder,0.02702702702702703
-2355,Multiple sclerosis,Anxiety disorder,0.02702702702702703
-2357,Cardiovascular Disease,Anxiety disorder,0.02702702702702703
-2360,Anxiety disorder,Age,0.02702702702702703
-2362,Esophageal Cancer,Anxiety disorder,0.02702702702702703
-2364,Essential Thrombocythemia,Anxiety disorder,0.02702702702702703
-2365,Pancreatic Cancer,Anxiety disorder,0.02702702702702703
-2383,Intellectual Disability,Gender,0.025686448184233834
-2425,Bile Duct Cancer,Anxiety disorder,0.02564102564102564
-2433,Bile Duct Cancer,Hypertension,0.02564102564102564
-2439,Adrenocortical Cancer,Obesity,0.02564102564102564
-2458,Adrenocortical Cancer,Bipolar disorder,0.02564102564102564
-2485,Craniosynostosis,Obesity,0.024390243902439025
-2492,Craniosynostosis,Gender,0.024390243902439025
-2493,Craniosynostosis,Age,0.024390243902439025
-2531,Kidney Chromophobe,Gender,0.022727272727272728
-2538,Kidney Chromophobe,Bipolar disorder,0.022727272727272728
-2552,Intellectual Disability,Hypertension,0.022673964034401875
-2567,Kidney stones,Gender,0.02127659574468085
-2579,Kidney stones,Hypertension,0.02127659574468085
-2628,Multiple Endocrine Neoplasia Type 2,Hypertension,0.01818181818181818
-2631,Multiple Endocrine Neoplasia Type 2,Anxiety disorder,0.01818181818181818
-2752,Congenital Adrenal Hyperplasia,Anxiety disorder,0.014492753623188406
-2756,Congenital Adrenal Hyperplasia,Obesity,0.014492753623188406
-2792,Chronic obstructive pulmonary disease (COPD),Anxiety disorder,0.013333333333333334
-2793,Colon and Rectal Cancer,Anxiety disorder,0.013333333333333334
-2795,Endometrioid Cancer,Anxiety disorder,0.013333333333333334
-2797,Psoriatic Arthritis,Anxiety disorder,0.013333333333333334
-2798,Atherosclerosis,Anxiety disorder,0.013333333333333334
-2803,Lung Cancer,Anxiety disorder,0.013333333333333334
-2804,Breast Cancer,Anxiety disorder,0.013333333333333334
-2808,Crohn's Disease,Anxiety disorder,0.013333333333333334
-2809,Thyroid Cancer,Anxiety disorder,0.013333333333333334
-2811,Alopecia,Anxiety disorder,0.013333333333333334
-2813,Bladder Cancer,Anxiety disorder,0.013333333333333334
-2814,Ankylosing Spondylitis,Anxiety disorder,0.013333333333333334
-2816,Hypertrophic Cardiomyopathy,Anxiety disorder,0.013333333333333334
-2817,Hepatitis,Anxiety disorder,0.013333333333333334
-2818,Kidney Papillary Cell Carcinoma,Anxiety disorder,0.013333333333333334
-2819,Liver Cancer,Anxiety disorder,0.013333333333333334
-2837,Brugada Syndrome,Bipolar disorder,0.011235955056179775
-2840,Kidney Chromophobe,Age,0.011235955056179775
-2844,Kidney Chromophobe,Hypertension,0.011235955056179775
-2867,Kidney Chromophobe,Obesity,0.011235955056179775
+461,Obsessive-Compulsive_Disorder,Anxiety_disorder,0.1515151515151515
+462,Crohns_Disease,Prostate_Cancer,0.1515151515151515
+463,Anxiety_disorder,Obsessive-Compulsive_Disorder,0.1515151515151515
+464,Anxiety_disorder,Anorexia_Nervosa,0.1515151515151515
+465,Anorexia_Nervosa,Anxiety_disorder,0.1515151515151515
+466,Prostate_Cancer,Crohns_Disease,0.1515151515151515
+467,Susceptibility_to_Infections,Obesity,0.1509433962264151
+468,Obesity,Susceptibility_to_Infections,0.1509433962264151
+469,Prostate_Cancer,COVID-19,0.1506276150627615
+470,COVID-19,Prostate_Cancer,0.1506276150627615
+471,Crohns_Disease,Endometriosis,0.1505728314238952
+472,Endometriosis,Crohns_Disease,0.1505728314238952
+473,Thyroid_Cancer,Vitamin_D_Levels,0.1504702194357366
+474,Esophageal_Cancer,Longevity_and_Aging,0.1503267973856209
+475,Obstructive_sleep_apnea,Longevity_and_Aging,0.1503267973856209
+476,Bladder_Cancer,Longevity_and_Aging,0.1503267973856209
+477,Glucocorticoid_Sensitivity,Liver_Cancer,0.15
+478,Osteoporosis,Glucocorticoid_Sensitivity,0.15
+479,Glucocorticoid_Sensitivity,Osteoporosis,0.15
+480,Liver_Cancer,Glucocorticoid_Sensitivity,0.15
+481,Peptic_ulcer_disease,Gender,0.15
+482,Psoriatic_Arthritis,Crohns_Disease,0.1495327102803738
+483,Crohns_Disease,Psoriatic_Arthritis,0.1495327102803738
+484,Atherosclerosis,Sjögrens_Syndrome,0.1491053677932405
+485,Sjögrens_Syndrome,Atherosclerosis,0.1491053677932405
+486,Head_and_Neck_Cancer,Age,0.1478873239436619
+487,Esophageal_Cancer,Glucocorticoid_Sensitivity,0.1477927063339731
+488,Glucocorticoid_Sensitivity,Esophageal_Cancer,0.1477927063339731
+489,Hepatitis,Colon_and_Rectal_Cancer,0.1476997578692493
+490,Colon_and_Rectal_Cancer,Hepatitis,0.1476997578692493
+491,Obstructive_sleep_apnea,Prostate_Cancer,0.1476323119777158
+492,Prostate_Cancer,Obstructive_sleep_apnea,0.1476323119777158
+493,Obstructive_sleep_apnea,Bladder_Cancer,0.1476323119777158
+494,Bladder_Cancer,Obstructive_sleep_apnea,0.1476323119777158
+495,Chronic_obstructive_pulmonary_disease_(COPD),Glucocorticoid_Sensitivity,0.1475409836065573
+496,Chronic_obstructive_pulmonary_disease_(COPD),Head_and_Neck_Cancer,0.1475409836065573
+497,Glucocorticoid_Sensitivity,Chronic_obstructive_pulmonary_disease_(COPD),0.1475409836065573
+498,Head_and_Neck_Cancer,Chronic_obstructive_pulmonary_disease_(COPD),0.1475409836065573
+499,Bladder_Cancer,COVID-19,0.1470281543274244
+500,COVID-19,Bladder_Cancer,0.1470281543274244
+501,Liver_Cancer,Vitamin_D_Levels,0.146875
+502,Sjögrens_Syndrome,Endometriosis,0.1468253968253968
+503,Endometriosis,Sjögrens_Syndrome,0.1468253968253968
+504,Esophageal_Cancer,Age,0.1467089611419508
+505,Cardiovascular_Disease,Bladder_Cancer,0.1463414634146341
+506,Bladder_Cancer,Cardiovascular_Disease,0.1463414634146341
+507,Cardiovascular_Disease,Susceptibility_to_Infections,0.1463087248322147
+508,Susceptibility_to_Infections,Cardiovascular_Disease,0.1463087248322147
+509,Crohns_Disease,Obesity,0.1458842705786471
+510,Obesity,Crohns_Disease,0.1458842705786471
+511,Osteoporosis,Gender,0.1457858769931662
+512,Anorexia_Nervosa,Bone_Density,0.145631067961165
+513,Susceptibility_to_Infections,Vitamin_D_Levels,0.1450858034321372
+514,Colon_and_Rectal_Cancer,Gender,0.144927536231884
+515,Chronic_obstructive_pulmonary_disease_(COPD),Kidney_Papillary_Cell_Carcinoma,0.1448598130841121
+516,Kidney_Papillary_Cell_Carcinoma,Chronic_obstructive_pulmonary_disease_(COPD),0.1448598130841121
+517,Obesity,Pancreatic_Cancer,0.1447613969608104
+518,Pancreatic_Cancer,Obesity,0.1447613969608104
+519,Crohns_Disease,Celiac_Disease,0.1446540880503144
+520,Celiac_Disease,Crohns_Disease,0.1446540880503144
+521,Crohns_Disease,Sjögrens_Syndrome,0.1445544554455445
+522,Sjögrens_Syndrome,Crohns_Disease,0.1445544554455445
+523,Obstructive_sleep_apnea,Osteoporosis,0.1444444444444444
+524,Osteoporosis,Obstructive_sleep_apnea,0.1444444444444444
+525,Ankylosing_Spondylitis,Hypertension,0.1443478260869565
+526,Hypertension,Ankylosing_Spondylitis,0.1443478260869565
+527,Thyroid_Cancer,Gender,0.1442687747035573
+528,Alopecia,Psoriatic_Arthritis,0.1441860465116279
+529,Psoriatic_Arthritis,Alopecia,0.1441860465116279
+530,Atherosclerosis,Esophageal_Cancer,0.1439873417721519
+531,Esophageal_Cancer,Atherosclerosis,0.1439873417721519
+532,Hypertension,Head_and_Neck_Cancer,0.143859649122807
+533,Head_and_Neck_Cancer,Hypertension,0.143859649122807
+534,COVID-19,Vitamin_D_Levels,0.1433021806853582
+535,Kidney_Papillary_Cell_Carcinoma,Vitamin_D_Levels,0.1433021806853582
+536,Chronic_obstructive_pulmonary_disease_(COPD),Longevity_and_Aging,0.1428571428571428
+537,Autoinflammatory_Disorders,Psoriatic_Arthritis,0.1428571428571428
+538,Anorexia_Nervosa,Underweight,0.1428571428571428
+539,Underweight,Anorexia_Nervosa,0.1428571428571428
+540,Bipolar_disorder,Longevity_and_Aging,0.1428571428571428
+541,Psoriatic_Arthritis,Autoinflammatory_Disorders,0.1428571428571428
+542,Obesity,Kidney_Papillary_Cell_Carcinoma,0.1424460431654676
+543,Kidney_Papillary_Cell_Carcinoma,Obesity,0.1424460431654676
+544,Celiac_Disease,Multiple_sclerosis,0.1422594142259414
+545,Multiple_sclerosis,Celiac_Disease,0.1422594142259414
+546,Inflammatory_Disorders,Thyroid_Cancer,0.1421772754312909
+547,Thyroid_Cancer,Inflammatory_Disorders,0.1421772754312909
+548,Hepatitis,Osteoporosis,0.1418842224744608
+549,Osteoporosis,Hepatitis,0.1418842224744608
+550,Bladder_Cancer,Obesity,0.1414408460013218
+551,Obesity,Bladder_Cancer,0.1414408460013218
+552,Obstructive_sleep_apnea,Age,0.1412742382271468
+553,Breast_Cancer,Obstructive_sleep_apnea,0.1412742382271468
+554,Lung_Cancer,Obstructive_sleep_apnea,0.1412742382271468
+555,Obstructive_sleep_apnea,Breast_Cancer,0.1412742382271468
+556,Obstructive_sleep_apnea,Lung_Cancer,0.1412742382271468
+557,Obstructive_sleep_apnea,LDL_Cholesterol_Levels,0.1412429378531073
+558,Osteoporosis,Obesity,0.1405895691609977
+559,Obesity,Osteoporosis,0.1405895691609977
+560,Ankylosing_Spondylitis,Osteoporosis,0.1403812824956672
+561,Osteoporosis,Ankylosing_Spondylitis,0.1403812824956672
+562,Susceptibility_to_Infections,Thyroid_Cancer,0.1401869158878504
+563,Thyroid_Cancer,Susceptibility_to_Infections,0.1401869158878504
+564,Celiac_Disease,Susceptibility_to_Infections,0.1398747390396659
+565,Susceptibility_to_Infections,Celiac_Disease,0.1398747390396659
+566,Head_and_Neck_Cancer,Gender,0.1398601398601398
+567,Epilepsy,Chronic_obstructive_pulmonary_disease_(COPD),0.1395348837209302
+568,Chronic_obstructive_pulmonary_disease_(COPD),Epilepsy,0.1395348837209302
+569,Susceptibility_to_Infections,Psoriatic_Arthritis,0.1388888888888889
+570,Psoriatic_Arthritis,Susceptibility_to_Infections,0.1388888888888889
+571,Esophageal_Cancer,Hypertension,0.1385826771653543
+572,Hypertension,Esophageal_Cancer,0.1385826771653543
+573,Inflammatory_Disorders,Alopecia,0.1381215469613259
+574,Pancreatic_Cancer,Obstructive_sleep_apnea,0.1381215469613259
+575,Multiple_sclerosis,Alopecia,0.1381215469613259
+576,Alopecia,Hepatitis,0.1381215469613259
+577,Alopecia,Multiple_sclerosis,0.1381215469613259
+578,Endometriosis,Alopecia,0.1381215469613259
+579,Alopecia,Inflammatory_Disorders,0.1381215469613259
+580,Alopecia,Endometriosis,0.1381215469613259
+581,Obstructive_sleep_apnea,Pancreatic_Cancer,0.1381215469613259
+582,Hepatitis,Alopecia,0.1381215469613259
+583,Susceptibility_to_Infections,Alopecia,0.1381215469613259
+584,Alopecia,Susceptibility_to_Infections,0.1381215469613259
+585,Crohns_Disease,Vitamin_D_Levels,0.137984496124031
+586,Head_and_Neck_Cancer,Atherosclerosis,0.137870855148342
+587,Atherosclerosis,Head_and_Neck_Cancer,0.137870855148342
+588,Chronic_obstructive_pulmonary_disease_(COPD),Esophageal_Cancer,0.1368909512761021
+589,Esophageal_Cancer,Chronic_obstructive_pulmonary_disease_(COPD),0.1368909512761021
+590,Crohns_Disease,Hypertension,0.1366208569118835
+591,Hypertension,Crohns_Disease,0.1366208569118835
+593,Sjögrens_Syndrome,Peptic_ulcer_disease,0.1358024691358024
+594,Endometriosis,Peptic_ulcer_disease,0.1358024691358024
+595,Peptic_ulcer_disease,Psoriatic_Arthritis,0.1358024691358024
+596,Peptic_ulcer_disease,Inflammatory_Disorders,0.1358024691358024
+597,Inflammatory_Disorders,Peptic_ulcer_disease,0.1358024691358024
+598,Psoriatic_Arthritis,Peptic_ulcer_disease,0.1358024691358024
+599,Peptic_ulcer_disease,Sjögrens_Syndrome,0.1358024691358024
+600,Peptic_ulcer_disease,Endometriosis,0.1358024691358024
+601,Ankylosing_Spondylitis,Sjögrens_Syndrome,0.1355599214145383
+602,Sjögrens_Syndrome,Ankylosing_Spondylitis,0.1355599214145383
+603,Thyroid_Cancer,COVID-19,0.1351909184726522
+604,COVID-19,Thyroid_Cancer,0.1351909184726522
+605,Celiac_Disease,Sjögrens_Syndrome,0.1351351351351351
+606,Sjögrens_Syndrome,Celiac_Disease,0.1351351351351351
+607,Sjögrens_Syndrome,Obstructive_sleep_apnea,0.1349862258953168
+608,Susceptibility_to_Infections,Obstructive_sleep_apnea,0.1349862258953168
+609,Obstructive_sleep_apnea,Susceptibility_to_Infections,0.1349862258953168
+610,Obstructive_sleep_apnea,Sjögrens_Syndrome,0.1349862258953168
+611,Breast_Cancer,Ankylosing_Spondylitis,0.1344827586206896
+612,Pancreatic_Cancer,Ankylosing_Spondylitis,0.1344827586206896
+613,Ankylosing_Spondylitis,Breast_Cancer,0.1344827586206896
+614,Ankylosing_Spondylitis,Bladder_Cancer,0.1344827586206896
+615,Bladder_Cancer,Ankylosing_Spondylitis,0.1344827586206896
+616,Ankylosing_Spondylitis,Pancreatic_Cancer,0.1344827586206896
+617,Osteoporosis,Multiple_sclerosis,0.1341600901916572
+618,Multiple_sclerosis,Osteoporosis,0.1341600901916572
+619,Inflammatory_Disorders,Esophageal_Cancer,0.1341176470588235
+620,Esophageal_Cancer,Inflammatory_Disorders,0.1341176470588235
+621,Colon_and_Rectal_Cancer,Age,0.1339712918660287
+622,COVID-19,Head_and_Neck_Cancer,0.1339130434782608
+623,Head_and_Neck_Cancer,COVID-19,0.1339130434782608
+624,Epilepsy,Age,0.1337837837837837
+625,Psoriatic_Arthritis,Celiac_Disease,0.1336405529953917
+626,Celiac_Disease,Psoriatic_Arthritis,0.1336405529953917
+627,Kidney_Papillary_Cell_Carcinoma,Gender,0.1330724070450097
+628,Ankylosing_Spondylitis,Cardiovascular_Disease,0.1325301204819277
+629,Cardiovascular_Disease,Ankylosing_Spondylitis,0.1325301204819277
+630,Alopecia,Crohns_Disease,0.1318681318681318
+631,Crohns_Disease,Alopecia,0.1318681318681318
+632,Thyroid_Cancer,Obstructive_sleep_apnea,0.1318681318681318
+633,Obstructive_sleep_apnea,Thyroid_Cancer,0.1318681318681318
+634,Kidney_Papillary_Cell_Carcinoma,Multiple_sclerosis,0.1318602993585174
+635,Multiple_sclerosis,Kidney_Papillary_Cell_Carcinoma,0.1318602993585174
+636,Chronic_obstructive_pulmonary_disease_(COPD),Liver_Cancer,0.1316397228637413
+637,Liver_Cancer,Chronic_obstructive_pulmonary_disease_(COPD),0.1316397228637413
+638,Sickle_Cell_Anemia,Obstructive_sleep_apnea,0.1314285714285714
+639,Obstructive_sleep_apnea,Sickle_Cell_Anemia,0.1314285714285714
+640,Inflammatory_Disorders,Colon_and_Rectal_Cancer,0.1312649164677804
+641,Colon_and_Rectal_Cancer,Inflammatory_Disorders,0.1312649164677804
+642,Kidney_Papillary_Cell_Carcinoma,Susceptibility_to_Infections,0.1311258278145695
+643,Susceptibility_to_Infections,Kidney_Papillary_Cell_Carcinoma,0.1311258278145695
+644,Esophageal_Cancer,Ankylosing_Spondylitis,0.1305841924398625
+645,Ankylosing_Spondylitis,Esophageal_Cancer,0.1305841924398625
+646,COVID-19,Glucocorticoid_Sensitivity,0.1304347826086956
+647,Glucocorticoid_Sensitivity,COVID-19,0.1304347826086956
+648,Osteoporosis,Thyroid_Cancer,0.1303370786516854
+649,Thyroid_Cancer,Osteoporosis,0.1303370786516854
+650,Crohns_Disease,Cardiovascular_Disease,0.1302605210420841
+651,Cardiovascular_Disease,Crohns_Disease,0.1302605210420841
+652,Crohns_Disease,Gender,0.1297560975609756
+653,Obesity,Thyroid_Cancer,0.1294117647058823
+654,Thyroid_Cancer,Obesity,0.1294117647058823
+655,Osteoporosis,Cardiovascular_Disease,0.1290684624017957
+656,Cardiovascular_Disease,Osteoporosis,0.1290684624017957
+657,Obstructive_sleep_apnea,Glucocorticoid_Sensitivity,0.1287671232876712
+658,Glucocorticoid_Sensitivity,Obstructive_sleep_apnea,0.1287671232876712
+659,Hypertension,Thyroid_Cancer,0.128747795414462
+660,Thyroid_Cancer,Hypertension,0.128747795414462
+661,Psoriatic_Arthritis,Chronic_obstructive_pulmonary_disease_(COPD),0.128440366972477
+662,Psoriatic_Arthritis,Inflammatory_Disorders,0.128440366972477
+663,Inflammatory_Disorders,Psoriatic_Arthritis,0.128440366972477
+664,Chronic_obstructive_pulmonary_disease_(COPD),Psoriatic_Arthritis,0.128440366972477
+665,Crohns_Disease,Longevity_and_Aging,0.1282051282051282
+666,Breast_Cancer,Longevity_and_Aging,0.1282051282051282
+667,Inflammatory_Disorders,Epilepsy,0.1276881720430107
+668,Epilepsy,Inflammatory_Disorders,0.1276881720430107
+669,Obesity,Anorexia_Nervosa,0.1276595744680851
+670,Anorexia_Nervosa,Obesity,0.1276595744680851
+671,Esophageal_Cancer,Vitamin_D_Levels,0.1274961597542242
+672,Sjögrens_Syndrome,Pancreatic_Cancer,0.1267056530214425
+673,Pancreatic_Cancer,Sjögrens_Syndrome,0.1267056530214425
+674,Crohns_Disease,Obstructive_sleep_apnea,0.1256830601092896
+675,Obstructive_sleep_apnea,Crohns_Disease,0.1256830601092896
+676,Liver_Cancer,Multiple_sclerosis,0.1247803163444639
+677,Multiple_sclerosis,Liver_Cancer,0.1247803163444639
+678,Hepatitis,Celiac_Disease,0.1234567901234567
+679,Celiac_Disease,Hepatitis,0.1234567901234567
+680,Psoriatic_Arthritis,Hepatitis,0.1232876712328767
+681,Hepatitis,Psoriatic_Arthritis,0.1232876712328767
+682,Osteoporosis,Psoriatic_Arthritis,0.1232876712328767
+683,Psoriatic_Arthritis,Osteoporosis,0.1232876712328767
+684,Kidney_Papillary_Cell_Carcinoma,Crohns_Disease,0.1230031948881789
+685,Crohns_Disease,Kidney_Papillary_Cell_Carcinoma,0.1230031948881789
+686,Crohns_Disease,Thyroid_Cancer,0.1230031948881789
+687,Thyroid_Cancer,Crohns_Disease,0.1230031948881789
+688,Liver_Cancer,Obesity,0.1228070175438596
+689,Obesity,Liver_Cancer,0.1228070175438596
+690,Liver_Cancer,Susceptibility_to_Infections,0.1222076215505913
+691,Susceptibility_to_Infections,Liver_Cancer,0.1222076215505913
+692,Crohns_Disease,Head_and_Neck_Cancer,0.1222030981067125
+693,Head_and_Neck_Cancer,Crohns_Disease,0.1222030981067125
+694,Head_and_Neck_Cancer,Obesity,0.1222030981067125
+695,Obesity,Head_and_Neck_Cancer,0.1222030981067125
+696,Susceptibility_to_Infections,Peptic_ulcer_disease,0.1219512195121951
+697,Peptic_ulcer_disease,Cardiovascular_Disease,0.1219512195121951
+698,Obstructive_sleep_apnea,Peptic_ulcer_disease,0.1219512195121951
+699,Atherosclerosis,Peptic_ulcer_disease,0.1219512195121951
+700,Peptic_ulcer_disease,Atherosclerosis,0.1219512195121951
+701,Peptic_ulcer_disease,Ankylosing_Spondylitis,0.1219512195121951
+702,Peptic_ulcer_disease,Osteoporosis,0.1219512195121951
+703,Peptic_ulcer_disease,Susceptibility_to_Infections,0.1219512195121951
+704,Ankylosing_Spondylitis,Peptic_ulcer_disease,0.1219512195121951
+705,Osteoporosis,Peptic_ulcer_disease,0.1219512195121951
+706,Peptic_ulcer_disease,Obstructive_sleep_apnea,0.1219512195121951
+707,Cardiovascular_Disease,Peptic_ulcer_disease,0.1219512195121951
+708,Ankylosing_Spondylitis,Longevity_and_Aging,0.1210191082802547
+709,Ankylosing_Spondylitis,Lung_Cancer,0.120954003407155
+710,Lung_Cancer,Ankylosing_Spondylitis,0.120954003407155
+711,Stomach_Cancer,Endometriosis,0.1206896551724138
+712,Endometriosis,Stomach_Cancer,0.1206896551724138
+713,Colon_and_Rectal_Cancer,Hypertension,0.1205673758865248
+714,Hypertension,Colon_and_Rectal_Cancer,0.1205673758865248
+715,Endometrioid_Cancer,Age,0.120507399577167
+716,Head_and_Neck_Cancer,Osteoporosis,0.120274914089347
+717,Head_and_Neck_Cancer,Vitamin_D_Levels,0.120274914089347
+718,Osteoporosis,Head_and_Neck_Cancer,0.120274914089347
+719,Autoinflammatory_Disorders,Multiple_sclerosis,0.12
+720,Autoinflammatory_Disorders,Ankylosing_Spondylitis,0.12
+721,Endometriosis,Autoinflammatory_Disorders,0.12
+722,Autoinflammatory_Disorders,Endometriosis,0.12
+723,Multiple_sclerosis,Autoinflammatory_Disorders,0.12
+724,Ankylosing_Spondylitis,Autoinflammatory_Disorders,0.12
+725,Ankylosing_Spondylitis,Alopecia,0.1195652173913043
+726,Alopecia,Ankylosing_Spondylitis,0.1195652173913043
+727,Ankylosing_Spondylitis,Vitamin_D_Levels,0.119047619047619
+728,Esophageal_Cancer,Osteoporosis,0.1190211345939933
+729,Osteoporosis,Esophageal_Cancer,0.1190211345939933
+730,Celiac_Disease,Ankylosing_Spondylitis,0.1188524590163934
+731,Celiac_Disease,COVID-19,0.1188524590163934
+732,Ankylosing_Spondylitis,Celiac_Disease,0.1188524590163934
+733,COVID-19,Celiac_Disease,0.1188524590163934
+734,Epilepsy,Gender,0.1188405797101449
+735,Anorexia_Nervosa,Obsessive-Compulsive_Disorder,0.1181102362204724
+736,Obsessive-Compulsive_Disorder,Anorexia_Nervosa,0.1181102362204724
+737,Osteoporosis,Colon_and_Rectal_Cancer,0.1179245283018868
+738,Colon_and_Rectal_Cancer,Osteoporosis,0.1179245283018868
+739,Epilepsy,Hypertension,0.1179213857428381
+740,Hypertension,Epilepsy,0.1179213857428381
+741,Susceptibility_to_Infections,Glucocorticoid_Sensitivity,0.1177570093457943
+742,Glucocorticoid_Sensitivity,Susceptibility_to_Infections,0.1177570093457943
+743,Obstructive_sleep_apnea,Anxiety_disorder,0.1176470588235294
+744,Autism_spectrum_disorder_(ASD),Anxiety_disorder,0.1176470588235294
+745,Anxiety_disorder,Autism_spectrum_disorder_(ASD),0.1176470588235294
+746,Anxiety_disorder,Obstructive_sleep_apnea,0.1176470588235294
+747,Osteoporosis,Crohns_Disease,0.1165371809100998
+748,Crohns_Disease,Osteoporosis,0.1165371809100998
+750,Obstructive_sleep_apnea,Liver_Cancer,0.1165311653116531
+751,Liver_Cancer,Obstructive_sleep_apnea,0.1165311653116531
+752,Head_and_Neck_Cancer,Multiple_sclerosis,0.1164383561643835
+753,Multiple_sclerosis,Head_and_Neck_Cancer,0.1164383561643835
+754,Esophageal_Cancer,Susceptibility_to_Infections,0.1163398692810457
+755,Susceptibility_to_Infections,Esophageal_Cancer,0.1163398692810457
+756,Thyroid_Cancer,Sjögrens_Syndrome,0.1158301158301158
+757,Sjögrens_Syndrome,Hypertension,0.1158301158301158
+758,Sjögrens_Syndrome,Thyroid_Cancer,0.1158301158301158
+759,Hypertension,Sjögrens_Syndrome,0.1158301158301158
+760,Obesity,Epilepsy,0.1156914893617021
+761,Epilepsy,Obesity,0.1156914893617021
+762,COVID-19,Kidney_Papillary_Cell_Carcinoma,0.1156186612576064
+763,Kidney_Papillary_Cell_Carcinoma,COVID-19,0.1156186612576064
+764,Colon_and_Rectal_Cancer,Glucocorticoid_Sensitivity,0.1152941176470588
+765,Glucocorticoid_Sensitivity,Colon_and_Rectal_Cancer,0.1152941176470588
+766,Ankylosing_Spondylitis,Prostate_Cancer,0.1152542372881356
+767,Prostate_Cancer,Ankylosing_Spondylitis,0.1152542372881356
+768,Multiple_sclerosis,Thyroid_Cancer,0.114335461404527
+769,Thyroid_Cancer,Multiple_sclerosis,0.114335461404527
+770,Endometriosis,Celiac_Disease,0.1142857142857142
+771,Celiac_Disease,Endometriosis,0.1142857142857142
+772,Colon_and_Rectal_Cancer,Longevity_and_Aging,0.1139240506329113
+773,Celiac_Disease,Longevity_and_Aging,0.1139240506329113
+774,Sjögrens_Syndrome,Vitamin_D_Levels,0.1136801541425818
+775,Sjögrens_Syndrome,Breast_Cancer,0.1136801541425818
+776,Breast_Cancer,Sjögrens_Syndrome,0.1136801541425818
+777,Alopecia,Bladder_Cancer,0.1135135135135135
+778,Obstructive_sleep_apnea,Kidney_Papillary_Cell_Carcinoma,0.1135135135135135
+779,Kidney_Papillary_Cell_Carcinoma,Obstructive_sleep_apnea,0.1135135135135135
+780,Bladder_Cancer,Alopecia,0.1135135135135135
+782,Thyroid_Cancer,Ankylosing_Spondylitis,0.1133671742808798
+783,Ankylosing_Spondylitis,Thyroid_Cancer,0.1133671742808798
+784,Psoriatic_Arthritis,Multiple_sclerosis,0.1131221719457013
+785,Psoriatic_Arthritis,Obstructive_sleep_apnea,0.1131221719457013
+796,Celiac_Disease,Gender,0.1120162932790224
+802,Ankylosing_Spondylitis,Obesity,0.1114864864864864
+809,Congenital_Adrenal_Hyperplasia,Hypertension,0.1111111111111111
+829,Esophageal_Cancer,Gender,0.1091954022988505
+837,Peptic_ulcer_disease,Obesity,0.108433734939759
+839,Peptic_ulcer_disease,Hypertension,0.108433734939759
+855,Esophageal_Cancer,Obesity,0.1080459770114942
+862,Colon_and_Rectal_Cancer,Obesity,0.1074766355140186
+871,Stomach_Cancer,Gender,0.1063829787234042
+884,Sjögrens_Syndrome,Age,0.1051625239005736
+889,Autism_spectrum_disorder_(ASD),Gender,0.1042944785276073
+895,Anorexia_Nervosa,Hypertension,0.1041666666666666
+897,Anorexia_Nervosa,Gender,0.1041666666666666
+920,Sjögrens_Syndrome,Obesity,0.1030534351145038
+927,Liver_Cancer,Gender,0.1018078020932445
+939,Inflammatory_Disorders,Bipolar_disorder,0.1015736766809728
+944,Epilepsy,Bipolar_disorder,0.1
+959,Amyotrophic_Lateral_Sclerosis,Age,0.0994871794871794
+960,Glucocorticoid_Sensitivity,Bipolar_disorder,0.0992647058823529
+969,Alopecia,Obesity,0.0986666666666666
+977,Psoriatic_Arthritis,Gender,0.0982142857142857
+993,Endometrioid_Cancer,Gender,0.0973084886128364
+996,Stomach_Cancer,Age,0.0970464135021097
+1001,Obstructive_sleep_apnea,Bipolar_disorder,0.0957446808510638
+1002,Alopecia,Hypertension,0.0957446808510638
+1031,Sickle_Cell_Anemia,Obesity,0.0939226519337016
+1048,Obsessive-Compulsive_Disorder,Gender,0.0923076923076923
+1055,Celiac_Disease,Obesity,0.092
+1056,Celiac_Disease,Hypertension,0.092
+1062,Bipolar_disorder,Obesity,0.0914245216158752
+1063,Obesity,Bipolar_disorder,0.0914245216158752
+1068,Endometrioid_Cancer,Hypertension,0.0905349794238683
+1074,Multiple_sclerosis,Bipolar_disorder,0.0898796886058032
+1081,Chronic_obstructive_pulmonary_disease_(COPD),Bipolar_disorder,0.0888888888888888
+1084,Breast_Cancer,Bipolar_disorder,0.0883392226148409
+1085,Hypertension,Bipolar_disorder,0.0883392226148409
+1086,Bipolar_disorder,Hypertension,0.0883392226148409
+1097,Sickle_Cell_Anemia,Bipolar_disorder,0.0879120879120879
+1102,Sickle_Cell_Anemia,Hypertension,0.0879120879120879
+1117,Anorexia_Nervosa,Bipolar_disorder,0.0871794871794871
+1131,Polycystic_Kidney_Disease,Gender,0.0866141732283464
+1133,Susceptibility_to_Infections,Bipolar_disorder,0.0865139949109414
+1144,Glucocorticoid_Sensitivity,Anxiety_disorder,0.0857142857142857
+1147,Celiac_Disease,Age,0.0854870775347912
+1172,Obsessive-Compulsive_Disorder,Bipolar_disorder,0.0839694656488549
+1175,Amyotrophic_Lateral_Sclerosis,Hypertension,0.0839231547017189
+1180,Endometrioid_Cancer,Obesity,0.0838445807770961
+1186,Psoriatic_Arthritis,Age,0.0837004405286343
+1194,Atherosclerosis,Bipolar_disorder,0.0829817158931083
+1197,Amyotrophic_Lateral_Sclerosis,Obesity,0.0828282828282828
+1216,Ankylosing_Spondylitis,Bipolar_disorder,0.0822368421052631
+1231,Huntingtons_Disease,Age,0.0815850815850815
+1233,Huntingtons_Disease,Bipolar_disorder,0.0815850815850815
+1234,Lung_Cancer,Bipolar_disorder,0.0814606741573033
+1249,Pancreatic_Cancer,Bipolar_disorder,0.0807017543859649
+1251,Osteoporosis,Bipolar_disorder,0.0805585392051557
+1266,Psoriatic_Arthritis,Hypertension,0.0789473684210526
+1271,Cardiovascular_Disease,Bipolar_disorder,0.0783938814531548
+1273,Autism_spectrum_disorder_(ASD),Hypertension,0.0778443113772455
+1280,Autism_spectrum_disorder_(ASD),Bipolar_disorder,0.0778443113772455
+1296,Hepatitis,Bipolar_disorder,0.0769230769230769
+1302,Autoinflammatory_Disorders,Bipolar_disorder,0.0769230769230769
+1315,Autoinflammatory_Disorders,Hypertension,0.0769230769230769
+1320,Prostate_Cancer,Bipolar_disorder,0.0769230769230769
+1332,COVID-19,Bipolar_disorder,0.0763209393346379
+1358,Stomach_Cancer,Hypertension,0.0743801652892562
+1369,Huntingtons_Disease,Obesity,0.074074074074074
+1380,Polycystic_Kidney_Disease,Hypertension,0.0739299610894941
+1407,Hypertrophic_Cardiomyopathy,Gender,0.0712074303405572
+1429,Celiac_Disease,Bipolar_disorder,0.0705882352941176
+1430,Huntingtons_Disease,Anxiety_disorder,0.0704225352112676
+1432,Anxiety_disorder,Bipolar_disorder,0.0704225352112676
+1433,Bipolar_disorder,Anxiety_disorder,0.0704225352112676
+1434,Anxiety_disorder,Gender,0.0704225352112676
+1452,Peptic_ulcer_disease,Bipolar_disorder,0.0697674418604651
+1479,Huntingtons_Disease,Gender,0.0691244239631336
+1480,Amyotrophic_Lateral_Sclerosis,Gender,0.0687936191425722
+1486,Endometriosis,Bipolar_disorder,0.0687022900763358
+1491,Bladder_Cancer,Bipolar_disorder,0.0679611650485436
+1500,Obsessive-Compulsive_Disorder,Obesity,0.0676691729323308
+1509,Obsessive-Compulsive_Disorder,Hypertension,0.0676691729323308
+1514,Crohns_Disease,Bipolar_disorder,0.0667678300455235
+1520,Underweight,Gender,0.0666666666666666
+1535,Essential_Thrombocythemia,Gender,0.0666666666666666
+1546,Stomach_Cancer,Obesity,0.0655737704918032
+1550,Head_and_Neck_Cancer,Bipolar_disorder,0.065359477124183
+1562,Autism_spectrum_disorder_(ASD),Obesity,0.0650887573964497
+1566,Psoriatic_Arthritis,Obesity,0.0649350649350649
+1569,Hypertrophic_Cardiomyopathy,Hypertension,0.0646153846153846
+1592,Amyotrophic_Lateral_Sclerosis,Bipolar_disorder,0.0634920634920634
+1609,Colon_and_Rectal_Cancer,Bipolar_disorder,0.0627802690582959
+1612,Alopecia,Bipolar_disorder,0.0618556701030927
+1619,Huntingtons_Disease,Hypertension,0.0617848970251716
+1645,Psoriatic_Arthritis,Bipolar_disorder,0.0603448275862069
+1696,Thyroid_Cancer,Bipolar_disorder,0.0584192439862542
+1716,Polycystic_Kidney_Disease,Obesity,0.057471264367816
+1717,Peptic_ulcer_disease,Age,0.057471264367816
+1730,Stomach_Cancer,Bipolar_disorder,0.056910569105691
+1732,Sjögrens_Syndrome,Bipolar_disorder,0.056672760511883
+1768,Hypertension,Anxiety_disorder,0.0555555555555555
+1769,Sickle_Cell_Anemia,Anxiety_disorder,0.0555555555555555
+1770,Anxiety_disorder,Hypertension,0.0555555555555555
+1773,Hypertrophic_Cardiomyopathy,Obesity,0.0548780487804878
+1777,Kidney_Papillary_Cell_Carcinoma,Bipolar_disorder,0.0547945205479452
+1801,Polycystic_Kidney_Disease,Bipolar_disorder,0.0534351145038167
+1812,Bile_Duct_Cancer,Gender,0.0526315789473684
+1813,Bile_Duct_Cancer,Age,0.0526315789473684
+1821,Bile_Duct_Cancer,Obesity,0.0526315789473684
+1832,Adrenocortical_Cancer,Hypertension,0.0526315789473684
+1850,Bile_Duct_Cancer,Bipolar_disorder,0.0526315789473684
+1869,Hypertrophic_Cardiomyopathy,Age,0.0516717325227963
+1878,Esophageal_Cancer,Bipolar_disorder,0.0501089324618736
+1894,Essential_Thrombocythemia,Bipolar_disorder,0.0491803278688524
+1901,Essential_Thrombocythemia,Hypertension,0.0491803278688524
+1912,Liver_Cancer,Bipolar_disorder,0.0491803278688524
+1925,Intellectual_Disability,Bipolar_disorder,0.0489174017642341
+1957,Poor_Metabolizer_of_Drugs,Anxiety_disorder,0.0476190476190476
+1959,Poor_Metabolizer_of_Drugs,Bipolar_disorder,0.0476190476190476
+1976,Endometrioid_Cancer,Bipolar_disorder,0.0474308300395256
+2069,Hypertrophic_Cardiomyopathy,Bipolar_disorder,0.0421686746987951
+2091,Obesity,Anxiety_disorder,0.0410958904109589
+2092,Epilepsy,Anxiety_disorder,0.0410958904109589
+2094,Anxiety_disorder,Obesity,0.0410958904109589
+2096,Peptic_ulcer_disease,Anxiety_disorder,0.0410958904109589
+2098,Essential_Thrombocythemia,Age,0.040650406504065
+2109,Essential_Thrombocythemia,Obesity,0.040650406504065
+2132,Intellectual_Disability,Age,0.0380952380952381
+2147,Autoinflammatory_Disorders,Obesity,0.037037037037037
+2202,Intellectual_Disability,Obesity,0.03399209486166
+2216,Pheochromocytoma_and_Paraganglioma,Gender,0.0333333333333333
+2234,Underweight,Age,0.032258064516129
+2264,Underweight,Anxiety_disorder,0.032258064516129
+2265,Underweight,Bipolar_disorder,0.032258064516129
+2348,Stomach_Cancer,Anxiety_disorder,0.027027027027027
+2351,Osteoporosis,Anxiety_disorder,0.027027027027027
+2352,Sjögrens_Syndrome,Anxiety_disorder,0.027027027027027
+2353,Endometriosis,Anxiety_disorder,0.027027027027027
+2354,COVID-19,Anxiety_disorder,0.027027027027027
+2355,Multiple_sclerosis,Anxiety_disorder,0.027027027027027
+2357,Cardiovascular_Disease,Anxiety_disorder,0.027027027027027
+2360,Anxiety_disorder,Age,0.027027027027027
+2362,Esophageal_Cancer,Anxiety_disorder,0.027027027027027
+2364,Essential_Thrombocythemia,Anxiety_disorder,0.027027027027027
+2365,Pancreatic_Cancer,Anxiety_disorder,0.027027027027027
+2383,Intellectual_Disability,Gender,0.0256864481842338
+2425,Bile_Duct_Cancer,Anxiety_disorder,0.0256410256410256
+2433,Bile_Duct_Cancer,Hypertension,0.0256410256410256
+2439,Adrenocortical_Cancer,Obesity,0.0256410256410256
+2458,Adrenocortical_Cancer,Bipolar_disorder,0.0256410256410256
+2485,Craniosynostosis,Obesity,0.024390243902439
+2492,Craniosynostosis,Gender,0.024390243902439
+2493,Craniosynostosis,Age,0.024390243902439
+2531,Kidney_Chromophobe,Gender,0.0227272727272727
+2538,Kidney_Chromophobe,Bipolar_disorder,0.0227272727272727
+2552,Intellectual_Disability,Hypertension,0.0226739640344018
+2567,Kidney_stones,Gender,0.0212765957446808
+2579,Kidney_stones,Hypertension,0.0212765957446808
+2628,Multiple_Endocrine_Neoplasia_Type_2,Hypertension,0.0181818181818181
+2631,Multiple_Endocrine_Neoplasia_Type_2,Anxiety_disorder,0.0181818181818181
+2752,Congenital_Adrenal_Hyperplasia,Anxiety_disorder,0.0144927536231884
+2756,Congenital_Adrenal_Hyperplasia,Obesity,0.0144927536231884
+2792,Chronic_obstructive_pulmonary_disease_(COPD),Anxiety_disorder,0.0133333333333333
+2793,Colon_and_Rectal_Cancer,Anxiety_disorder,0.0133333333333333
+2795,Endometrioid_Cancer,Anxiety_disorder,0.0133333333333333
+2797,Psoriatic_Arthritis,Anxiety_disorder,0.0133333333333333
+2798,Atherosclerosis,Anxiety_disorder,0.0133333333333333
+2803,Lung_Cancer,Anxiety_disorder,0.0133333333333333
+2804,Breast_Cancer,Anxiety_disorder,0.0133333333333333
+2808,Crohns_Disease,Anxiety_disorder,0.0133333333333333
+2809,Thyroid_Cancer,Anxiety_disorder,0.0133333333333333
+2811,Alopecia,Anxiety_disorder,0.0133333333333333
+2813,Bladder_Cancer,Anxiety_disorder,0.0133333333333333
+2814,Ankylosing_Spondylitis,Anxiety_disorder,0.0133333333333333
+2816,Hypertrophic_Cardiomyopathy,Anxiety_disorder,0.0133333333333333
+2817,Hepatitis,Anxiety_disorder,0.0133333333333333
+2818,Kidney_Papillary_Cell_Carcinoma,Anxiety_disorder,0.0133333333333333
+2819,Liver_Cancer,Anxiety_disorder,0.0133333333333333
+2837,Brugada_Syndrome,Bipolar_disorder,0.0112359550561797
+2840,Kidney_Chromophobe,Age,0.0112359550561797
+2844,Kidney_Chromophobe,Hypertension,0.0112359550561797
+2867,Kidney_Chromophobe,Obesity,0.0112359550561797
 2908,Craniosynostosis,Hypertension,0.008
-2928,Craniosynostosis,Bipolar disorder,0.0
-2940,Brugada Syndrome,Anxiety disorder,0.0
-2953,Brugada Syndrome,Hypertension,0.0
-2963,Brugada Syndrome,Age,0.0
-2964,Brugada Syndrome,Gender,0.0
-3004,Head and Neck Cancer,Anxiety disorder,0.0
-3013,Multiple Chemical Sensitivity,Bipolar disorder,0.0
-3053,Brugada Syndrome,Obesity,0.0
-3076,Multiple Endocrine Neoplasia Type 2,Obesity,0.0
-3090,Craniosynostosis,Anxiety disorder,0.0
-3098,Multiple Chemical Sensitivity,Anxiety disorder,0.0
-3131,von Willebrand Disease,Bipolar disorder,0.0
-3144,Celiac Disease,Anxiety disorder,0.0
-3163,von Willebrand Disease,Hypertension,0.0
-3201,Polycystic Kidney Disease,Anxiety disorder,0.0
-3214,Multiple Chemical Sensitivity,Obesity,0.0
-3224,von Willebrand Disease,Anxiety disorder,0.0
-3266,von Willebrand Disease,Obesity,0.0
-3311,Kidney stones,Obesity,0.0
-3315,Kidney Chromophobe,Anxiety disorder,0.0
-3355,Inflammatory Disorders,Anxiety disorder,0.0
-3356,Autoinflammatory Disorders,Anxiety disorder,0.0
-3408,Kidney stones,Anxiety disorder,0.0
+2928,Craniosynostosis,Bipolar_disorder,0.0
+2940,Brugada_Syndrome,Anxiety_disorder,0.0
+2953,Brugada_Syndrome,Hypertension,0.0
+2963,Brugada_Syndrome,Age,0.0
+2964,Brugada_Syndrome,Gender,0.0
+3004,Head_and_Neck_Cancer,Anxiety_disorder,0.0
+3013,Multiple_Chemical_Sensitivity,Bipolar_disorder,0.0
+3053,Brugada_Syndrome,Obesity,0.0
+3076,Multiple_Endocrine_Neoplasia_Type_2,Obesity,0.0
+3090,Craniosynostosis,Anxiety_disorder,0.0
+3098,Multiple_Chemical_Sensitivity,Anxiety_disorder,0.0
+3131,von_Willebrand_Disease,Bipolar_disorder,0.0
+3144,Celiac_Disease,Anxiety_disorder,0.0
+3163,von_Willebrand_Disease,Hypertension,0.0
+3201,Polycystic_Kidney_Disease,Anxiety_disorder,0.0
+3214,Multiple_Chemical_Sensitivity,Obesity,0.0
+3224,von_Willebrand_Disease,Anxiety_disorder,0.0
+3266,von_Willebrand_Disease,Obesity,0.0
+3311,Kidney_stones,Obesity,0.0
+3315,Kidney_Chromophobe,Anxiety_disorder,0.0
+3355,Inflammatory_Disorders,Anxiety_disorder,0.0
+3356,Autoinflammatory_Disorders,Anxiety_disorder,0.0
+3408,Kidney_stones,Anxiety_disorder,0.0
 3421,Underweight,Hypertension,0.0
-3440,Kidney stones,Bipolar disorder,0.0
-3467,Pheochromocytoma and Paraganglioma,Age,0.0
-3481,Adrenocortical Cancer,Anxiety disorder,0.0
-3503,Poor Metabolizer of Drugs,Hypertension,0.0
-3573,Intellectual Disability,Anxiety disorder,0.0
-3578,Congenital Adrenal Hyperplasia,Bipolar disorder,0.0
-3613,Poor Metabolizer of Drugs,Obesity,0.0
-3633,Susceptibility to Infections,Anxiety disorder,0.0
-3643,Amyotrophic Lateral Sclerosis,Anxiety disorder,0.0
-3652,Multiple Endocrine Neoplasia Type 2,Bipolar disorder,0.0
-3677,Aniridia,Bipolar disorder,0.0
+3440,Kidney_stones,Bipolar_disorder,0.0
+3467,Pheochromocytoma_and_Paraganglioma,Age,0.0
+3481,Adrenocortical_Cancer,Anxiety_disorder,0.0
+3503,Poor_Metabolizer_of_Drugs,Hypertension,0.0
+3573,Intellectual_Disability,Anxiety_disorder,0.0
+3578,Congenital_Adrenal_Hyperplasia,Bipolar_disorder,0.0
+3613,Poor_Metabolizer_of_Drugs,Obesity,0.0
+3633,Susceptibility_to_Infections,Anxiety_disorder,0.0
+3643,Amyotrophic_Lateral_Sclerosis,Anxiety_disorder,0.0
+3652,Multiple_Endocrine_Neoplasia_Type_2,Bipolar_disorder,0.0
+3677,Aniridia,Bipolar_disorder,0.0
 3689,Aniridia,Gender,0.0
 3690,Aniridia,Age,0.0
 3699,Aniridia,Hypertension,0.0
-3707,Pheochromocytoma and Paraganglioma,Bipolar disorder,0.0
-3712,Pheochromocytoma and Paraganglioma,Anxiety disorder,0.0
-3731,Pheochromocytoma and Paraganglioma,Hypertension,0.0
-3754,Pheochromocytoma and Paraganglioma,Obesity,0.0
-3764,Multiple Chemical Sensitivity,Age,0.0
-3770,Multiple Chemical Sensitivity,Hypertension,0.0
-3783,Aniridia,Anxiety disorder,0.0
-3790,Prostate Cancer,Anxiety disorder,0.0
+3707,Pheochromocytoma_and_Paraganglioma,Bipolar_disorder,0.0
+3712,Pheochromocytoma_and_Paraganglioma,Anxiety_disorder,0.0
+3731,Pheochromocytoma_and_Paraganglioma,Hypertension,0.0
+3754,Pheochromocytoma_and_Paraganglioma,Obesity,0.0
+3764,Multiple_Chemical_Sensitivity,Age,0.0
+3770,Multiple_Chemical_Sensitivity,Hypertension,0.0
+3783,Aniridia,Anxiety_disorder,0.0
+3790,Prostate_Cancer,Anxiety_disorder,0.0
 3868,Aniridia,Obesity,0.0

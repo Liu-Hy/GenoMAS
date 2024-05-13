@@ -22,7 +22,8 @@ client = AzureOpenAI(
 )
 
 
-def call_openai_gpt_chat(trait, condition, trait_data_path, output_dir, utils_code, two_step=False, genes=None):
+def call_openai_gpt_chat(trait, condition, trait_data_path, output_dir, utils_code, two_step=False,
+                         gene_info_path=None):
     if not two_step:
         messages = [
             {"role": "system", "content": "You are a helpful assistant."},
@@ -36,7 +37,7 @@ def call_openai_gpt_chat(trait, condition, trait_data_path, output_dir, utils_co
             {"role": "user",
              "content": STEP_TWO_PROMPT.format(trait=trait, condition=condition, trait_data_path=trait_data_path,
                                                condition_data_path=condition_data_path, output_dir=output_dir,
-                                               utils_code=utils_code, genes=genes)}
+                                               utils_code=utils_code, gene_info_path=gene_info_path)}
         ]
     response = client.chat.completions.create(
         model="gpt-4",  # Adjust the model name as needed
@@ -86,11 +87,11 @@ if has_batch_effect:
 else:
     model_constructor = Lasso
     model_params = {{'alpha': 1.0, 'random_state': 42}}
-    
+
 6. Conduct cross-validation on the model from the previous step. Hint: You may use the 'cross_validation' function. Please set the parameter 'target_type' properly, either 'binary' or 'continuous'. This can be determined by whether the array 'Y' has two unique values.
 7. Normalize the X and Z to have a mean of 0 and standard deviation of 1. Hint: you may use the 'normalize_data' function from utils.
 8. Train the model on the whole dataset.
-9. Interpret the trained model to identify the effect of the condition and significant genes. Set threshold to 0.05 for the p-value. Hint: You may use the 'interpret_result' function from utils, and use the output_dir given. For the parameter 'feature_names', we will only need the condition and gene, so please remove the trait {trait} from the column names.
+9. Interpret the trained model to identify the effect of the condition and significant genes. Set threshold to 0.05 for the p-value. Hint: You may use the 'interpret_result' function from utils, and use the output_dir given. Use the column names as the parameter 'var_names'.
 
 
 NOTICE: Please import all the functions in 'utils.py' at the beginning of the code, and feel free to use '*' in the import statement.
@@ -106,8 +107,8 @@ Background:
 {utils_code}
 2. Path to the input data about the trait '{trait}': {trait_data_path}
 3. Path to the input data about the condition '{condition}': {condition_data_path}
-4. The output directory: {output_dir}
-5. A list of gene symbols used as common regressors: regressors = {genes}
+4. Path to a table storing biomedical knowledge about the genes related to each trait: {gene_info_path}
+5. The output directory: {output_dir}
 Note: a trait or a condition can be a multi-word phrase like 'Breast Cancer'. While they may appear as 'Breast-Cancer' in file paths, please stick to their
 surface form as shown in the instruction.
 
@@ -129,23 +130,24 @@ include the condition as a regressor now, we need to exclude those genes from th
 prevent co-linearity.
 Below are more detailed instructions. Based on the context and the instructions, write code that is elegant and easy to read.
 1. Load the input data about the trait and the condition into two dataframes, and convert them to float type respectively.
-2. From the condition dataframe, select the columns corresponding to the gene regressors as 'X_condition', and the column corresponding to the condition value as 'Y_condition', and convert them to numpy arrays.
-3. Determine the data type of the condition, which is either 'binary' or 'continuous', by seeing whether the array of condition values has two unique values.
+2. Get the gene regressors based on the trait and conditional datasets as well as external knowledge about known genes related to the condition. Hint: you may use the 'get_gene_regressors' function from utils.
+3. From the condition dataframe, select the columns corresponding to the gene regressors as 'X_condition', and the column corresponding to the condition value as 'Y_condition', and convert them to numpy arrays.
+4. Determine the data type of the condition, which is either 'binary' or 'continuous', by seeing whether the array of condition values has two unique values.
 ## The first step regression
-4. Please choose an appropriate regression model for the condition. 
-   - If the condition is a binary variable, then use the LogisticRegression model, and choose to use L1 penalty if 'X_condition' has more columns than rows.
+5. Please choose an appropriate regression model for the condition. 
+   - If the condition is a binary variable, then use the LogisticRegression model. Use L1 penalty if 'X_condition' has more columns than rows.
    - If the condition is a continuous variable, then choose Lasso or LinearRegression depending on whether 'X_condition' has more columns than rows.
    Normalize 'X_condition' to a mean of 0 and std of 1. With the model you chose, fit the model on 'normalized_X_condition' and 'Y_condition'
-5. From the trait dataframe, select the columns corresponding to the common gene regressors to get a numpy array, and normalize it to a mean of 0 and std of 1.
-6. With the model trained in Step 4, predict the condition of the samples in the trait dataframe based on the normalized gene regressors. 
+6. From the trait dataframe, select the columns corresponding to the common gene regressors to get a numpy array, and normalize it to a mean of 0 and std of 1.
+7. With the model trained in Step 5, predict the condition of the samples in the trait dataframe based on the normalized gene regressors. 
   If the condition is a continuous variable, use the predict() method of the model to get the predicted values of the condition; otherwise, use the predict_proba() 
   method and select the column corresponding to the positive label, to get the predicted probability of the condition being true. 
   Add a column named {condition} to the trait dataframe, storing predicted condition values.
-7. From the trait dataframe, drop the columns about the common gene regressors, and drop the columns 'Age' and 'Gender' if any of them exist.
+8. From the trait dataframe, drop the columns about the common gene regressors, and drop the columns 'Age' and 'Gender' if any of them exist.
 ## The second step regression
-8. From the trait dataframe, select the data in relevant columns for regression analysis. We need three numpy arrays X, Y and Z. Y is the trait data from the column '{trait}', Z is the condition data from the column '{condition}', and X is the rest of the data. We want to analyze and find the genetic factors related to the trait when considering the influence of the condition.
-9. Check whether the feature X shows batch effect. Hint: you may use the 'detect_batch_effect' function from utils.
-10. Select appropriate models based on whether the dataset has batch effect. 
+9. From the trait dataframe, select the data in relevant columns for regression analysis. We need three numpy arrays X, Y and Z. Y is the trait data from the column '{trait}', Z is the condition data from the column '{condition}', and X is the rest of the data. We want to analyze and find the genetic factors related to the trait when considering the influence of the condition.
+10. Check whether the feature X shows batch effect. Hint: you may use the 'detect_batch_effect' function from utils.
+11. Select appropriate models based on whether the dataset has batch effect. 
 if has_batch_effect:
     model_constructor = VariableSelection
     model_params = {{'modified': True, 'lamda': 3e-4}}  # Note that the 'lamda' is not 'lambda'
@@ -153,20 +155,17 @@ else:
     model_constructor = Lasso
     model_params = {{'alpha': 1.0, 'random_state': 42}}
 
-11. Conduct cross-validation on the model from the previous step. Hint: You may use the 'cross_validation' function. Please set the parameter 'target_type' properly, either 'binary' or 'continuous'. This can be determined by whether the array 'Y' has two unique values.
-12. Normalize the X and Z to have a mean of 0 and standard deviation of 1. Hint: you may use the 'normalize_data' function from utils.
-13. Train the model on the whole dataset.
-14. Interpret the trained model to identify the effect of the condition and significant genes. Set threshold to 0.05 for the p-value. Hint: You may use the 'interpret_result' function from utils, and use the output_dir given. For the parameter 'feature_names', we will only need the condition and gene, so please remove the trait {trait} from the column names.
+12. Conduct cross-validation on the model from the previous step. Hint: You may use the 'cross_validation' function. Please set the parameter 'target_type' properly, either 'binary' or 'continuous'. This can be determined by whether the array 'Y' has two unique values.
+13. Normalize the X and Z to have a mean of 0 and standard deviation of 1. Hint: you may use the 'normalize_data' function from utils to normalize X and Z in two seperate lines.
+14. Train the model on the whole dataset.
+15. Interpret the trained model to identify the effect of the condition and significant genes. Set threshold to 0.05 for the p-value. Hint: You may use the 'interpret_result' function from utils, and use the output_dir given. Use the column names as the parameter 'var_names'.
 
 NOTICE: Please import all the functions in 'utils.py' at the beginning of the code, and feel free to use '*' in the import statement.
 
 Return ```python your_code_here ``` with NO other texts. your_code_here is a placeholder.
 your code:
         """
-
-rel = pd.read_csv("trait_related_genes.csv").drop(columns=["Unnamed: 0"])
-rel['Related_Genes'] = rel['Related_Genes'].apply(ast.literal_eval)
-t2g = pd.Series(rel['Related_Genes'].values, index=rel['Trait']).to_dict()
+gene_info_path = "./trait_related_genes.csv"
 
 for i, (index, row) in enumerate(pairs.iterrows()):
     try:
@@ -192,33 +191,18 @@ for i, (index, row) in enumerate(pairs.iterrows()):
 
             print(CODE_TEMPLATE.format(code=code_text, stdout=stdout, stderr=stderr))
         else:
+            if trait in ['Inflammatory_Disorders', 'Lung_Cancer'] and condition in ['Inflammatory_Disorders', 'Lung_Cancer']:
+                continue
             condition_dir = os.path.join('/home/techt/Desktop/a4s/gold_subset', nm_condition)
             trait_cohort_id, _ = filter_and_rank_cohorts(os.path.join(trait_dir, 'cohort_info.json'))
             condition_cohort_id, _ = filter_and_rank_cohorts(os.path.join(condition_dir, 'cohort_info.json'))
             trait_data_path = os.path.join(trait_dir, trait_cohort_id + '.csv')
             condition_data_path = os.path.join(condition_dir, condition_cohort_id + '.csv')
-
-            trait_data = pd.read_csv(trait_data_path).astype('float')
-            condition_data = pd.read_csv(condition_data_path).astype('float')
-
-            related_genes = t2g[condition]
-            regressors = get_gene_regressors(trait, trait_data, condition_data, related_genes)
-            if regressors is None:
-                print(f'No gene regressors for trait \'{trait}\' and condition \'{condition}\'')
-                continue
-
-            rel = pd.read_csv("trait_related_genes.csv").drop(columns=["Unnamed: 0"])
-            rel['Related_Genes'] = rel['Related_Genes'].apply(ast.literal_eval)
-            t2g = pd.Series(rel['Related_Genes'].values, index=rel['Trait']).to_dict()  # the mapping from trait to genes
-            related_genes = t2g[condition]
-            regressors = get_gene_regressors(trait, trait_data, condition_data, related_genes)
-            if regressors is None:
-                print(f'No gene regressors for trait {trait} and condition {condition}')
-                continue
-
-            generated_code = call_openai_gpt_chat(nm_trait, nm_condition, trait_data_path, output_dir, utils_code, two_step=True, genes=regressors)
+            generated_code = call_openai_gpt_chat(nm_trait, nm_condition, trait_data_path, output_dir, utils_code,
+                                                  two_step=True, gene_info_path=gene_info_path)
             # Process and execute the generated code
             code_text = parse_code(generated_code)
+            # print(code_text)
             result = subprocess.run(["python", "-c", code_text], capture_output=True, text=True)
             stdout = result.stdout
             stderr = result.stderr
