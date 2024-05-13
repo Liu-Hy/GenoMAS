@@ -437,12 +437,12 @@ def cross_validation(model_constructor, model_params, X, Y, var_names, trait, ge
         elif target_type == 'continuous':
             nmse = np.sum((Y_test - predictions) ** 2) / np.sum((Y_test - np.mean(Y_test)) ** 2)
             performance = {"prediction": {"nmse": nmse}}
-        pred_genes = interpret_result(model, var_names, trait, condition)
+        pred_genes = interpret_result(model, var_names, trait, condition)["Variable"]
         ref_genes = get_known_related_genes(gene_info_path, feature=trait)
         performance["selection"] = evaluate_gene_selection(pred_genes, ref_genes)
         performances.append(performance)
 
-    cv_mean = np.mean(performances)
+    cv_mean = np.mean(performances)  # This line is wrong, needs modified
 
     if target_type == 'binary':
         print(f'The cross-validation accuracy is {(cv_mean * 100):.2f}%')
@@ -568,12 +568,14 @@ def interpret_result(model: Any, var_names: List[str], trait: str, condition = N
             f"Found {len(significant_genes_df)} significant genes associated with the trait '{trait}' conditional on "
             f"the factor '{condition}', with corrected p-value < {threshold}:")
 
-    print(significant_genes_df.to_string(index=False))
+    print(significant_genes_df["Variable"].tolist())
 
-    # Optionally, save this to a CSV file
-    if save_output:
-        significant_genes_df.to_csv(
-            os.path.join(output_dir, f'significant_genes_condition_{condition}.csv'), index=False)
+    return significant_genes_df.to_dict(orient="list")
+
+    # # Optionally, save this to a CSV file
+    # if save_output:
+    #     significant_genes_df.to_csv(
+    #         os.path.join(output_dir, f'significant_genes_condition_{condition}.csv'), index=False)
 
 
 def judge_binary_variable_biased(dataframe, col_name, min_proportion=0.1, min_num=5):
