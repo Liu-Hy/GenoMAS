@@ -356,14 +356,60 @@ class ResidualizationRegressor:
     def get_p_values(self):
         return self.p_values
 
-def cross_validation(X, Y, Z=None, model_constructor=Lasso, model_params=None, k=5, target_type='binary'):
-    assert target_type in ['binary', 'continuous'], "The target type must be chosen from 'binary' or 'continuous'"
+
+def jaccard(pred, ref):
+    p = set(pred)
+    r = set(ref)
+    if len(p.union(r)):
+        iou = len(p.intersection(r)) / len(p.union(r))
+    else:
+        iou = 0
+    return iou
+
+def jaccard2(pred, ref):
+    min_len = min(len(pred), len(ref))
+    p = set(pred[:min_len])
+    r = set(ref[:min_len])
+    if len(p.union(r)):
+        iou = len(p.intersection(r)) / len(p.union(r))
+    else:
+        iou = 0
+    return iou
+
+def recall(pred, ref):
+    ref = ref[:50]
+    if len(pred):
+        recall = sum([p in pred for p in ref]) / len(ref)
+    else:
+        recall = 0
+    return recall
+
+def pre_at_50(pred, ref):
+    pred_top = pred.copy()[:50]
+    if len(pred):
+        recall = sum([p in ref for p in pred_top]) / len(pred_top)
+    else:
+        recall = 0
+    return recall
+
+def precision(pred, ref):
+    if len(pred):
+        precision = sum([p in ref for p in pred]) / len(pred)
+    else:
+        precision = 0
+    return precision
+
+def evaluate_gene_selection(pred, ref):
+    return {'precision': precision(pred, ref), 'precision_at_50': pre_at_50(pred, ref), 'recall': recall(pred, ref), 'jaccard': jaccard(pred, ref), 'jaccard2': jaccard2(pred, ref)}
+
+def cross_validation(model_constructor, model_params, X, Y, var_names, trait, gene_info_path, condition=None, Z=None, k=5):
     indices = np.arange(X.shape[0])
     np.random.shuffle(indices)
 
     fold_size = len(X) // k
     performances = []
 
+    target_type = 'binary' if len(np.unique(Y)) == 2 else 'continuous'
     for i in range(k):
         # Split data into train and test based on the current fold
         test_indices = indices[i * fold_size: (i + 1) * fold_size]
@@ -387,11 +433,13 @@ def cross_validation(X, Y, Z=None, model_constructor=Lasso, model_params=None, k
         if target_type == 'binary':
             predictions = (predictions > 0.5).astype(int)
             Y_test = (Y_test > 0.5).astype(int)
-            performance = accuracy_score(Y_test, predictions)
+            performance = {"prediction": {"acc": accuracy_score(Y_test, predictions)}}
         elif target_type == 'continuous':
             nmse = np.sum((Y_test - predictions) ** 2) / np.sum((Y_test - np.mean(Y_test)) ** 2)
-            performance = nmse  # Lower is better
-
+            performance = {"prediction": {"nmse": nmse}}
+        pred_genes = interpret_result(model, var_names, trait, condition)
+        ref_genes = get_known_related_genes(gene_info_path, feature=trait)
+        performance["selection"] = evaluate_gene_selection(pred_genes, ref_genes)
         performances.append(performance)
 
     cv_mean = np.mean(performances)
