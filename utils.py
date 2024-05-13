@@ -4,6 +4,7 @@ import pandas as pd
 import gzip
 import mygene
 import re
+import ast
 import tempfile
 import shutil
 
@@ -17,7 +18,7 @@ from sparse_lmm import VariableSelection
 from statsmodels.stats.multitest import multipletests
 from sklearn.metrics import accuracy_score, mean_squared_error
 
-print("utils.py has been loaded")
+
 def geo_get_relevant_filepaths(cohort_dir):
     """Find the file paths of a SOFT file and a matrix file from the given data directory of a cohort.
     If there are multiple SOFT files or matrix files, simply choose the first one. Used for the GEO dataset.
@@ -250,15 +251,15 @@ def analyze_distributions(df, numerical_columns, categorical_columns):
 
 
 def normalize_data(X_train, X_test=None):
-    """Compute the mean and standard deviation statistics of the training data, use them to normalize the training data,
-    and optionally the test data"""
+    """This function computes the mean and standard deviation of the feature matrix (X_train) and uses these statistics
+    to normalize X_train. If provided, it can also normalize a separate test feature matrix (X_test) using the same
+    statistics. """
     mean = np.mean(X_train, axis=0)
     std = np.std(X_train, axis=0)
 
     # Handling columns with std = 0
     std_no_zero = np.where(std == 0, 1, std)
 
-    # Normalize X_train
     X_train_normalized = (X_train - mean) / std_no_zero
     # Set normalized values to 0 where std was 0
     X_train_normalized[:, std == 0] = 0
@@ -285,7 +286,6 @@ class ResidualizationRegressor:
     def _reshape_data(self, data):
         """
         Reshape the data to ensure it's in the correct format (2D array).
-
         :param data: The input data (can be 1D or 2D array).
         :return: Reshaped 2D array.
         """
@@ -296,7 +296,6 @@ class ResidualizationRegressor:
     def _reshape_output(self, data):
         """
         Reshape the output data to ensure it's in the correct format (1D array).
-
         :param data: The output data (can be 1D or 2D array).
         :return: Reshaped 1D array.
         """
@@ -304,18 +303,19 @@ class ResidualizationRegressor:
             return data.ravel()
         return data
 
-    def fit(self, X, Y, Z):
+    def fit(self, X, Y, Z=None):
         X = self._reshape_data(X)
         Y = self._reshape_data(Y)
-        Z = self._reshape_data(Z)
 
-        # Step 1: Linear regression of Y on Z
-        Z_ones = np.column_stack((np.ones(Z.shape[0]), Z))
-        self.beta_Z = np.linalg.pinv(Z_ones.T @ Z_ones) @ Z_ones.T @ Y
-        Y_hat = Z_ones @ self.beta_Z
-        e_Y = Y - Y_hat  # Residual of Y
-
-        # Step 2: Regress the residual on X using the included regression model
+        if Z is not None:
+            Z = self._reshape_data(Z)
+            # Step 1: Linear regression of Y on Z
+            Z_ones = np.column_stack((np.ones(Z.shape[0]), Z))
+            self.beta_Z = np.linalg.pinv(Z_ones.T @ Z_ones) @ Z_ones.T @ Y
+            Y_hat = Z_ones @ self.beta_Z
+            e_Y = Y - Y_hat  # Residual of Y
+        else:
+            e_Y = Y
         self.regression_model.fit(X, e_Y)
 
         # Obtain coefficients from the regression model
@@ -331,27 +331,34 @@ class ResidualizationRegressor:
             if neg_log_p_output is not None:
                 self.neg_log_p_values = self._reshape_output(neg_log_p_output)
                 self.p_values = np.exp(-self.neg_log_p_values)
-                # Concatenate the p-values of Z and X. The p-values of Z were not computed, mark with NaN.
-                p_values_Z = np.full(Z.shape[1], np.nan)
-                self.p_values = np.concatenate((p_values_Z, self.p_values))
+                # Handling p-values depending on presence of Z
+                if Z is not None:
+                    p_values_Z = np.full(Z.shape[1], np.nan)
+                    self.p_values = np.concatenate((p_values_Z, self.p_values))
 
-    def predict(self, X, Z):
+    def predict(self, X, Z=None):
         X = self._reshape_data(X)
-        Z = self._reshape_data(Z)
+        e_Y = self.regression_model.predict(X)
 
-        Z_ones = np.column_stack((np.ones(Z.shape[0]), Z))
-        ZX = np.column_stack((Z, X))
-        combined_beta = np.concatenate((self.beta_Z[1:].ravel(), self.beta_X.ravel()))
-        return ZX @ combined_beta + self.beta_Z[0]
+        if Z is not None:
+            Z = self._reshape_data(Z)
+            Z_ones = np.column_stack((np.ones(Z.shape[0]), Z))
+            Y = e_Y + Z_ones @ self.beta_Z.ravel()
+        else:
+            Y = e_Y
+        return Y
 
     def get_coefficients(self):
-        return np.concatenate((self.beta_Z[1:].ravel(), self.beta_X.ravel()))
+        if self.beta_Z is not None:
+            return np.concatenate((self.beta_Z[1:].ravel(), self.beta_X.ravel()))
+        return self.beta_X.ravel()
 
     def get_p_values(self):
         return self.p_values
 
 
-def cross_validation(X, Y, Z, model_constructor, model_params, k=5, target_type='binary'):
+
+def cross_validation(X, Y, Z=None, model_constructor=Lasso, model_params=None, k=5, target_type='binary'):
     assert target_type in ['binary', 'continuous'], "The target type must be chosen from 'binary' or 'continuous'"
     indices = np.arange(X.shape[0])
     np.random.shuffle(indices)
@@ -366,10 +373,13 @@ def cross_validation(X, Y, Z, model_constructor, model_params, k=5, target_type=
 
         X_train, X_test = X[train_indices], X[test_indices]
         Y_train, Y_test = Y[train_indices], Y[test_indices]
-        Z_train, Z_test = Z[train_indices], Z[test_indices]
-
         normalized_X_train, normalized_X_test = normalize_data(X_train, X_test)
-        normalized_Z_train, normalized_Z_test = normalize_data(Z_train, Z_test)
+
+        if Z is not None:
+            Z_train, Z_test = Z[train_indices], Z[test_indices]
+            normalized_Z_train, normalized_Z_test = normalize_data(Z_train, Z_test)
+        else:
+            normalized_Z_train = normalized_Z_test = None
 
         # model = model_constructor(**model_params)
         model = ResidualizationRegressor(model_constructor, model_params)
@@ -396,23 +406,29 @@ def cross_validation(X, Y, Z, model_constructor, model_params, k=5, target_type=
     return cv_mean, cv_std
 
 
-def get_feature_related_genes(file_path, feature, normalize):
+def get_known_related_genes(file_path, feature, normalize=True):
     """Read a csv file into a dataframe about gene-trait association, and get the gene symbols related to a given
     trait"""
     related_gene_df = pd.read_csv(file_path)
-    related_gene_df = related_gene_df.loc[:, ['Disease Name', 'Corresponding_Gene_Symbol']].set_index('Disease Name')
-    feature_related_genes = related_gene_df.loc[feature].tolist()[0].strip().split(',')
-    feature_related_genes = [gn.strip() for gn in feature_related_genes]
+    related_gene_df = related_gene_df.loc[:, ['Trait', 'Related_Genes']].set_index('Trait')
+    if feature not in related_gene_df.index:
+        print(f"The gene info file does not contain genes related to the feature '{feature}'.")
+        return None
+    feature_related_genes = ast.literal_eval(related_gene_df.loc[feature].tolist()[0])
+    # feature_related_genes = [gn.strip() for gn in feature_related_genes if isinstance(gn, str)]
     if normalize:
         feature_related_genes = normalize_gene_symbols(feature_related_genes)
 
     return feature_related_genes
 
 
-def get_gene_regressors(trait, trait_df, condition_df, related_genes):
+def get_gene_regressors(trait, condition, trait_df, condition_df, gene_info_path):
     """Find the appropriate genes for two-step regression. Compare the indices of two dataframes to find the genes
     in common, and select those that are known to be related to a trait"""
     gene_regressors = None
+    related_genes = get_known_related_genes(gene_info_path, condition)
+    if not related_genes:
+        return None
     genes_in_trait_data = set(trait_df.columns) - {'Age', 'Gender', trait}
     genes_in_condition_data = set(condition_df.columns) - {'Age', 'Gender', trait}
 
@@ -437,31 +453,37 @@ def get_gene_regressors(trait, trait_df, condition_df, related_genes):
 
 
 def normalize_trait(trait):
-    trait = '-'.join(trait.split())
+    trait = '_'.join(trait.split())
     normalized_trait = ''.join(trait.split("'"))
     return normalized_trait
 
-def interpret_result(model: Any, feature_names: List[str], trait: str, condition: str,
+def interpret_result(model: Any, var_names: List[str], trait: str, condition = None,
                      threshold: float = 0.05, save_output: bool = True,
-                     output_dir: str = './output', model_id: int = 1) -> None:
+                     output_dir: str = './output') -> None:
     """This function interprets and reports the result of a trained linear regression model, where the regressor
-    consists of one variable about condition and multiple variables about genetic factors.
+    consists of one variable about some biomedical condition and multiple variables about genetic factors.
     The function extracts coefficients and p-values from the model, and identifies the significant genes based on
     p-values or non-zero coefficients, depending on the availability of p-values.
 
     Parameters:
     model (Any): The trained regression Model.
-    feature_names (List[str]): A list of feature names corresponding to the model's coefficients.
+    var_names (List[str]): List of variable names involved in the regression analysis.
     trait (str): The target trait of interest.
     condition (str): The specific condition to examine within the model.
     threshold (float): Significance level for p-value correction. Defaults to 0.05.
     save_output (bool): Flag to determine whether to save the output to a file. Defaults to True.
     output_dir (str): Directory path where output files are saved. Defaults to './output'.
-    model_id (int): The index of the model, 1 or 2.
 
     Returns:
     None: This function does not return anything but prints and optionally saves the output.
     """
+    feature_names = [var for var in var_names if var != trait]
+
+    # If a condition is specified, move it to the beginning of the list
+    if condition and condition in feature_names:
+        feature_names.remove(condition)
+        feature_names.insert(0, condition)
+
     coefficients = model.get_coefficients().reshape(-1).tolist()
     p_values = model.get_p_values()
     if p_values is None:
@@ -476,36 +498,38 @@ def interpret_result(model: Any, feature_names: List[str], trait: str, condition
             'p_value': p_values.reshape(-1).tolist()
         })
 
-    condition_effect = regression_df[regression_df['Variable'] == condition].iloc[0]
+    if condition is not None:
+        condition_effect = regression_df[regression_df['Variable'] == condition].iloc[0]
 
-    print(f"Effect of the condition on the target variable:")
-    print(f"Variable: {condition}")
-    print(f"Coefficient: {condition_effect['Coefficient']:.4f}")
-    gene_regression_df = regression_df[regression_df['Variable'] != condition]
+        print(f"Effect of the condition on the target variable:")
+        print(f"Variable: {condition}")
+        print(f"Coefficient: {condition_effect['Coefficient']:.4f}")
+        gene_regression_df = regression_df[regression_df['Variable'] != condition]
+    else:
+        gene_regression_df = regression_df
     if p_values is None:
-        gene_regression_df['Absolute Coefficient'] = gene_regression_df['Coefficient'].abs()
-        significant_genes = gene_regression_df[gene_regression_df['Coefficient'] != 0]
-        significant_genes_sorted = significant_genes.sort_values(by='Absolute Coefficient', ascending=False)
+        significant_genes_df = gene_regression_df[gene_regression_df['Coefficient'] != 0].copy()
+        significant_genes_df['Absolute Coefficient'] = significant_genes_df['Coefficient'].abs()
+        significant_genes_df = significant_genes_df.sort_values('Absolute Coefficient', ascending=False)
         print(
-            f"Found {len(significant_genes_sorted)} genes with non-zero coefficients associated with the trait '{trait}' "
+            f"Found {len(significant_genes_df)} genes with non-zero coefficients associated with the trait '{trait}' "
             f"conditional on the factor '{condition}'. These genes are identified as significant based on the regression model.")
     else:
         # Apply the Benjamini-Hochberg correction, to get the corrected p-values
         corrected_p_values = multipletests(gene_regression_df['p_value'], alpha=threshold, method='fdr_bh')[1]
         gene_regression_df.loc[:, 'corrected_p_value'] = corrected_p_values
-        significant_genes = gene_regression_df.loc[gene_regression_df['corrected_p_value'] < threshold]
-        significant_genes_sorted = significant_genes.sort_values('corrected_p_value')
+        significant_genes_df = gene_regression_df.loc[gene_regression_df['corrected_p_value'] < threshold]
+        significant_genes_df = significant_genes_df.sort_values('corrected_p_value', ascending=True)
         print(
-            f"Found {len(significant_genes_sorted)} significant genes associated with the trait '{trait}' conditional on "
+            f"Found {len(significant_genes_df)} significant genes associated with the trait '{trait}' conditional on "
             f"the factor '{condition}', with corrected p-value < {threshold}:")
 
-    print(significant_genes_sorted.to_string(index=False))
+    print(significant_genes_df.to_string(index=False))
 
-    nm_condition = normalize_trait(condition)
     # Optionally, save this to a CSV file
     if save_output:
-        significant_genes_sorted.to_csv(
-            os.path.join(output_dir, f'significant_genes_condition_{nm_condition}_{model_id}.csv'), index=False)
+        significant_genes_df.to_csv(
+            os.path.join(output_dir, f'significant_genes_condition_{condition}.csv'), index=False)
 
 
 def judge_binary_variable_biased(dataframe, col_name, min_proportion=0.1, min_num=5):
