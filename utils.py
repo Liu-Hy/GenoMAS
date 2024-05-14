@@ -12,7 +12,7 @@ import seaborn as sns
 import matplotlib.pyplot as plt
 import numpy as np
 import json
-from typing import Callable, Optional, List, Tuple, Union, Any
+from typing import Callable, Optional, List, Tuple, Dict, Union, Any
 from sklearn.linear_model import LinearRegression, Lasso, LogisticRegression
 from sparse_lmm import VariableSelection
 from statsmodels.stats.multitest import multipletests
@@ -416,35 +416,6 @@ def evaluate_gene_selection(pred, ref):
         'jaccard2': jaccard2(pred, ref)
     }
 
-def tune_hyperparameters(model_constructor, fixed_params, tune_params, X, Y, var_names, trait, gene_info_path, condition=None, Z=None, k=5):
-    best_selection_precision = -np.inf
-    best_prediction_score = -np.inf
-    best_config = {}
-    best_performance = {}
-    prediction_metric = "f1_score" if len(np.unique(Y)) == 2 else "r_squared"
-    # Generate all combinations of parameters to be tuned
-    keys, values = zip(*tune_params.items())
-    for combination in itertools.product(*values):
-        # Combine the fixed parameters with the current combination of tuning parameters
-        current_params = dict(zip(keys, combination))
-        current_params.update(fixed_params)
-
-        results = cross_validation(model_constructor, current_params, X, Y, var_names, trait, gene_info_path, condition,
-                                   Z, k)
-        current_selection_precision = results["selection"]["precision"]
-
-        if current_selection_precision > best_selection_precision:
-            best_selection_precision = current_selection_precision
-            best_config = current_params
-            best_performance["selection"] = results["selection"]
-
-        current_prediction_score = results["prediction"][prediction_metric]
-        if current_prediction_score > best_prediction_score:
-            best_prediction_score = current_prediction_score
-            best_performance["prediction"] = results["prediction"]
-
-    return best_config, best_performance
-
 def cross_validation(model_constructor, model_params, X, Y, var_names, trait, gene_info_path, condition=None, Z=None, k=5):
     indices = np.arange(X.shape[0])
     np.random.shuffle(indices)
@@ -512,7 +483,44 @@ def cross_validation(model_constructor, model_params, X, Y, var_names, trait, ge
 
     return cv_means
 
-def tune_hyperparameters(model_constructor, fixed_params, tune_params, X, Y, var_names, trait, gene_info_path, condition=None, Z=None, k=5):
+def tune_hyperparameters(
+    model_constructor: Callable,
+    fixed_params: Dict[str, Any],
+    tune_params: Dict[str, list],
+    X: np.ndarray,
+    Y: np.ndarray,
+    var_names: list,
+    trait: str,
+    gene_info_path: str,
+    condition: Optional[str] = None,
+    Z: Optional[np.ndarray] = None,
+    k: int = 5
+) -> Tuple[Dict[str, Any], Dict[str, Dict[str, float]]]:
+    """
+    Tune hyperparameters for a given model by exploring combinations of parameter values.
+
+    This function performs cross-validation to find the best hyperparameter settings based on the precision
+    of gene identification. It returns the best configuration along with the top performance metrics for both
+    prediction and gene identification.
+
+    Parameters:
+    - model_constructor: A callable that returns an instance of the model to be used.
+    - fixed_params: Dictionary of parameters that remain constant during tuning.
+    - tune_params: Dictionary specifying the hyperparameters to tune and their possible values.
+    - X: Input features as a numpy array.
+    - Y: Target variable as a numpy array.
+    - var_names: List of variable names corresponding to columns in X.
+    - trait: String identifier for the trait under analysis.
+    - gene_info_path: File path to the gene information data.
+    - condition: Optional; specific condition affecting the model.
+    - Z: Optional; conditions or confounding variables as a numpy array.
+    - k: Number of folds for cross-validation.
+
+    Returns:
+    - Tuple containing:
+        1. Dictionary of the best hyperparameters based on gene identification precision.
+        2. Dictionary of the best performances for 'selection' and 'prediction'.
+    """
     best_selection_precision = -np.inf
     best_prediction_score = -np.inf
     best_config = {}
