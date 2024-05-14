@@ -16,7 +16,7 @@ from typing import Callable, Optional, List, Tuple, Union, Any
 from sklearn.linear_model import LinearRegression, Lasso, LogisticRegression
 from sparse_lmm import VariableSelection
 from statsmodels.stats.multitest import multipletests
-from sklearn.metrics import accuracy_score, mean_squared_error
+from sklearn.metrics import accuracy_score, precision_score, recall_score, f1_score, r2_score
 
 
 def geo_get_relevant_filepaths(cohort_dir):
@@ -416,6 +416,35 @@ def evaluate_gene_selection(pred, ref):
         'jaccard2': jaccard2(pred, ref)
     }
 
+def tune_hyperparameters(model_constructor, fixed_params, tune_params, X, Y, var_names, trait, gene_info_path, condition=None, Z=None, k=5):
+    best_selection_precision = -np.inf
+    best_prediction_score = -np.inf
+    best_config = {}
+    best_performance = {}
+    prediction_metric = "f1_score" if len(np.unique(Y)) == 2 else "r_squared"
+    # Generate all combinations of parameters to be tuned
+    keys, values = zip(*tune_params.items())
+    for combination in itertools.product(*values):
+        # Combine the fixed parameters with the current combination of tuning parameters
+        current_params = dict(zip(keys, combination))
+        current_params.update(fixed_params)
+
+        results = cross_validation(model_constructor, current_params, X, Y, var_names, trait, gene_info_path, condition,
+                                   Z, k)
+        current_selection_precision = results["selection"]["precision"]
+
+        if current_selection_precision > best_selection_precision:
+            best_selection_precision = current_selection_precision
+            best_config = current_params
+            best_performance["selection"] = results["selection"]
+
+        current_prediction_score = results["prediction"][prediction_metric]
+        if current_prediction_score > best_prediction_score:
+            best_prediction_score = current_prediction_score
+            best_performance["prediction"] = results["prediction"]
+
+    return best_config, best_performance
+
 def cross_validation(model_constructor, model_params, X, Y, var_names, trait, gene_info_path, condition=None, Z=None, k=5):
     indices = np.arange(X.shape[0])
     np.random.shuffle(indices)
@@ -443,14 +472,23 @@ def cross_validation(model_constructor, model_params, X, Y, var_names, trait, ge
         model.fit(normalized_X_train, Y_train, normalized_Z_train)
         predictions = model.predict(normalized_X_test, normalized_Z_test)
 
+        performance = {}
         if target_type == 'binary':
             predictions = (predictions > 0.5).astype(int)
             Y_test = (Y_test > 0.5).astype(int)
-            acc = accuracy_score(Y_test, predictions)
-            performance = {"prediction": {"accuracy": acc}}
+            performance['prediction'] = {
+                "accuracy": accuracy_score(Y_test, predictions),
+                "precision": precision_score(Y_test, predictions),
+                "recall": recall_score(Y_test, predictions),
+                "f1_score": f1_score(Y_test, predictions)
+            }
         elif target_type == 'continuous':
             nmse = np.sum((Y_test - predictions) ** 2) / np.sum((Y_test - np.mean(Y_test)) ** 2)
-            performance = {"prediction": {"nmse": nmse}}
+            rsq = r2_score(Y_test, predictions)
+            performance['prediction'] = {
+                "nmse": nmse,
+                "r_squared": rsq
+            }
 
         pred_genes = interpret_result(model, var_names, trait, condition)["Variable"]
         ref_genes = get_known_related_genes(gene_info_path, feature=trait)
@@ -475,10 +513,11 @@ def cross_validation(model_constructor, model_params, X, Y, var_names, trait, ge
     return cv_means
 
 def tune_hyperparameters(model_constructor, fixed_params, tune_params, X, Y, var_names, trait, gene_info_path, condition=None, Z=None, k=5):
-    best_precision = -np.inf
+    best_selection_precision = -np.inf
+    best_prediction_score = -np.inf
     best_config = {}
     best_performance = {}
-
+    prediction_metric = "f1_score" if len(np.unique(Y)) == 2 else "r_squared"
     # Generate all combinations of parameters to be tuned
     keys, values = zip(*tune_params.items())
     for combination in itertools.product(*values):
@@ -488,12 +527,17 @@ def tune_hyperparameters(model_constructor, fixed_params, tune_params, X, Y, var
 
         results = cross_validation(model_constructor, current_params, X, Y, var_names, trait, gene_info_path, condition,
                                    Z, k)
-        current_precision = results["selection"]["precision"]
+        current_selection_precision = results["selection"]["precision"]
 
-        if current_precision > best_precision:
-            best_precision = current_precision
+        if current_selection_precision > best_selection_precision:
+            best_selection_precision = current_selection_precision
             best_config = current_params
-            best_performance = results
+            best_performance["selection"] = results["selection"]
+
+        current_prediction_score = results["prediction"][prediction_metric]
+        if current_prediction_score > best_prediction_score:
+            best_prediction_score = current_prediction_score
+            best_performance["prediction"] = results["prediction"]
 
     return best_config, best_performance
 
@@ -615,7 +659,7 @@ def save_result(condition: str, significant_genes: dict, performance: dict, outp
     """Save the gene identification result and the cross-validation performance.
     """
     output_path = os.path.join(output_dir, f'significant_genes_condition_{condition}.json')
-    output_data = {'significant_genes': significant_genes, 'performance': performance}
+    output_data = {'significant_genes': significant_genes, 'cv_performance': performance}
 
     with open(output_path, 'w') as f:
         json.dump(output_data, f, indent=4)
