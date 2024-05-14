@@ -547,13 +547,11 @@ def normalize_trait(trait):
     return normalized_trait
 
 def interpret_result(model: Any, var_names: List[str], trait: str, condition = None,
-                     threshold: float = 0.05, print_output = False, save_output = False, performance = None,
-                     output_dir: str = './output') -> dict:
+                     threshold: float = 0.05, print_output = False) -> dict:
     """This function interprets and reports the result of a trained linear regression model, where the regressor
     consists of one variable about some biomedical condition and multiple variables about genetic factors.
     The function extracts coefficients and p-values from the model, identifies significant genes based on
-    p-values or non-zero coefficients, depending on the availability of p-values, and optionally prints and saves
-    the output.
+    p-values or non-zero coefficients, depending on the availability of p-values, and optionally prints the output.
 
     Parameters:
         model (Any): The trained regression Model.
@@ -562,9 +560,6 @@ def interpret_result(model: Any, var_names: List[str], trait: str, condition = N
         condition (str): The specific condition to examine within the model.
         threshold (float): Significance level for p-value correction. Defaults to 0.05.
         print_output (bool): Flag to determine whether to print the output to the console. Defaults to False.
-        save_output (bool): Flag to determine whether to save the output to a file. Defaults to False.
-        performance (dict, optional): Dictionary containing performance metrics of the model. Defaults to None.
-        output_dir (str): Directory path where output files are saved. Defaults to './output'.
 
     Returns:
         dict: A dictionary containing the list of significant genes, sorted by their importance, and the corresponding
@@ -614,20 +609,16 @@ def interpret_result(model: Any, var_names: List[str], trait: str, condition = N
         print(f"Found {len(significant_genes_df)} significant genes associated with the trait '{trait}', "
               f"conditional on the factor '{condition}'.")
 
-    # Optionally, save this to a JSON file
-    if save_output:
-        output_path = os.path.join(output_dir, f'significant_genes_condition_{condition}.json')
-        output_data = {
-            'significant_genes': significant_genes_df.to_dict(orient='list')
-        }
-        if performance is not None:
-            output_data['performance'] = performance
-
-        with open(output_path, 'w') as f:
-            json.dump(output_data, f, indent=4)
-
     return significant_genes_df.to_dict(orient="list")
 
+def save_result(condition: str, significant_genes: dict, performance: dict, output_dir: str):
+    """Save the gene identification result and the cross-validation performance.
+    """
+    output_path = os.path.join(output_dir, f'significant_genes_condition_{condition}.json')
+    output_data = {'significant_genes': significant_genes, 'performance': performance}
+
+    with open(output_path, 'w') as f:
+        json.dump(output_data, f, indent=4)
 
 def judge_binary_variable_biased(dataframe, col_name, min_proportion=0.1, min_num=5):
     """
