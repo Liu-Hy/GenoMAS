@@ -416,7 +416,39 @@ def evaluate_gene_selection(pred, ref):
         'jaccard2': jaccard2(pred, ref)
     }
 
-def cross_validation(model_constructor, model_params, X, Y, var_names, trait, gene_info_path, condition=None, Z=None, k=5):
+def cross_validation(
+    model_constructor: Callable,
+    model_params: Dict[str, Any],
+    X: np.ndarray,
+    Y: np.ndarray,
+    var_names: List[str],
+    trait: str,
+    gene_info_path: str,
+    condition: Optional[str] = None,
+    Z: Optional[np.ndarray] = None,
+    k: int = 5
+) -> Dict[str, Any]:
+    """
+    Perform k-fold cross-validation for either classification or regression models,
+    assessing both prediction accuracy and variable selection precision.
+
+    Parameters:
+    - model_constructor: Callable that constructs a model instance.
+    - model_params: Dictionary of parameters to pass to the model constructor.
+    - X: Input features as a numpy array.
+    - Y: Target variable as a numpy array.
+    - var_names: List of names of all variables considered in the model.
+    - trait: Name of the trait under analysis.
+    - gene_info_path: Path to the file containing gene information.
+    - condition: Optional; name of the condition considered in the model, if applicable.
+    - Z: Optional; conditions as a numpy array, if applicable.
+    - k: Number of folds for cross-validation.
+
+    Returns:
+    - A dictionary containing the averaged results from the cross-validation,
+      including metrics like accuracy, precision, recall, F1 score, NMSE, and R-squared,
+      along with variable selection metrics based on gene identification.
+    """
     indices = np.arange(X.shape[0])
     np.random.shuffle(indices)
 
@@ -472,7 +504,6 @@ def cross_validation(model_constructor, model_params, X, Y, var_names, trait, ge
     cv_means = {}
     for metric in performances[0]:
         if isinstance(performances[0][metric], dict):
-            # Handle nested dictionary (e.g., 'prediction' and 'selection' metrics)
             cv_means[metric] = {}
             for submetric in performances[0][metric]:
                 cv_means[metric][submetric] = np.mean([p[metric][submetric] for p in performances])
@@ -509,11 +540,11 @@ def tune_hyperparameters(
     - tune_params: Dictionary specifying the hyperparameters to tune and their possible values.
     - X: Input features as a numpy array.
     - Y: Target variable as a numpy array.
-    - var_names: List of variable names corresponding to columns in X.
-    - trait: String identifier for the trait under analysis.
+    - var_names: List of names of all variables considered in the model.
+    - trait: Name of the trait under analysis.
     - gene_info_path: File path to the gene information data.
-    - condition: Optional; specific condition affecting the model.
-    - Z: Optional; conditions or confounding variables as a numpy array.
+    - condition: Optional; name of the condition considered in the model, if applicable.
+    - Z: Optional; conditions as a numpy array, if applicable.
     - k: Number of folds for cross-validation.
 
     Returns:
