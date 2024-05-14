@@ -357,7 +357,7 @@ class ResidualizationRegressor:
         return self.p_values
 
 
-def jaccard(pred, ref):
+def gene_jaccard(pred, ref):
     p = set(pred)
     r = set(ref)
     if len(p.union(r)):
@@ -366,7 +366,7 @@ def jaccard(pred, ref):
         iou = 0
     return iou
 
-def jaccard2(pred, ref):
+def gene_jaccard2(pred, ref):
     min_len = min(len(pred), len(ref))
     p = set(pred[:min_len])
     r = set(ref[:min_len])
@@ -376,14 +376,7 @@ def jaccard2(pred, ref):
         iou = 0
     return iou
 
-def recall(pred, ref):
-    if len(ref):
-        recall = sum([p in pred for p in ref]) / len(ref)
-    else:
-        recall = 0
-    return recall
-
-def precision_at_50(pred, ref):
+def gene_precision_at_50(pred, ref):
     pred_top = pred[:50]
     if len(pred_top) > 0:
         precision = sum([p in ref for p in pred_top]) / len(pred_top)
@@ -391,16 +384,23 @@ def precision_at_50(pred, ref):
         precision = 0
     return precision
 
-def precision(pred, ref):
+def gene_precision(pred, ref):
     if len(pred):
         precision = sum([p in ref for p in pred]) / len(pred)
     else:
         precision = 0
     return precision
 
-def f1_score(pred, ref):
-    prec = precision(pred, ref)
-    rec = recall(pred, ref)
+def gene_recall(pred, ref):
+    if len(ref):
+        recall = sum([p in pred for p in ref]) / len(ref)
+    else:
+        recall = 0
+    return recall
+
+def gene_f1(pred, ref):
+    prec = gene_precision(pred, ref)
+    rec = gene_recall(pred, ref)
     if prec + rec == 0:  # Prevent division by zero
         return 0
     f1 = 2 * (prec * rec) / (prec + rec)
@@ -408,12 +408,12 @@ def f1_score(pred, ref):
 
 def evaluate_gene_selection(pred, ref):
     return {
-        'precision': precision(pred, ref),
-        'precision_at_50': precision_at_50(pred, ref),
-        'recall': recall(pred, ref),
-        'f1_score': f1_score(pred, ref),  # Adding F1 score here
-        'jaccard': jaccard(pred, ref),
-        'jaccard2': jaccard2(pred, ref)
+        'precision': gene_precision(pred, ref),
+        'precision_at_50': gene_precision_at_50(pred, ref),
+        'recall': gene_recall(pred, ref),
+        'f1': gene_f1(pred, ref),
+        'jaccard': gene_jaccard(pred, ref),
+        'jaccard2': gene_jaccard2(pred, ref)
     }
 
 def cross_validation(
@@ -483,7 +483,7 @@ def cross_validation(
                 "accuracy": accuracy_score(Y_test, predictions),
                 "precision": precision_score(Y_test, predictions),
                 "recall": recall_score(Y_test, predictions),
-                "f1_score": f1_score(Y_test, predictions)
+                "f1": f1_score(Y_test, predictions)
             }
         elif target_type == 'continuous':
             nmse = np.sum((Y_test - predictions) ** 2) / np.sum((Y_test - np.mean(Y_test)) ** 2)
@@ -556,7 +556,7 @@ def tune_hyperparameters(
     best_prediction_score = -np.inf
     best_config = {}
     best_performance = {}
-    prediction_metric = "f1_score" if len(np.unique(Y)) == 2 else "r_squared"
+    prediction_metric = "f1" if len(np.unique(Y)) == 2 else "r_squared"
     # Generate all combinations of parameters to be tuned
     keys, values = zip(*tune_params.items())
     for combination in itertools.product(*values):
