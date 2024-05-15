@@ -517,7 +517,6 @@ def cross_validation(
 
 def tune_hyperparameters(
     model_constructor: Callable,
-    fixed_params: Dict[str, Any],
     tune_params: Dict[str, list],
     X: np.ndarray,
     Y: np.ndarray,
@@ -526,6 +525,7 @@ def tune_hyperparameters(
     gene_info_path: str,
     condition: Optional[str] = None,
     Z: Optional[np.ndarray] = None,
+    fixed_params: Optional[Dict[str, Any]] = {},
     k: int = 5
 ) -> Tuple[Dict[str, Any], Dict[str, Dict[str, float]]]:
     """
@@ -537,7 +537,6 @@ def tune_hyperparameters(
 
     Parameters:
     - model_constructor: A callable that returns an instance of the model to be used.
-    - fixed_params: Dictionary of parameters that remain constant during tuning.
     - tune_params: Dictionary specifying the hyperparameters to tune and their possible values.
     - X: Input features as a numpy array.
     - Y: Target variable as a numpy array.
@@ -546,6 +545,7 @@ def tune_hyperparameters(
     - gene_info_path: File path to the gene information data.
     - condition: Optional; name of the condition considered in the model, if applicable.
     - Z: Optional; conditions as a numpy array, if applicable.
+    - fixed_params: Dictionary of parameters that are different from the model's default, and remain constant during tuning.
     - k: Number of folds for cross-validation.
 
     Returns:
@@ -1042,8 +1042,8 @@ def filter_and_rank_cohorts(json_file: str, condition: Union[str, None] = None) 
 
 def select_and_load_cohort(data_root: str, trait: str, condition=None, is_two_step=True, gene_info_path=None) -> Tuple[Optional[pd.DataFrame], Optional[pd.DataFrame], Optional[List]]:
     """
-    Selects and loads cohort data for specified trait (and optionally condition) from a given data root directory,
-    along with gene regressors if in two-step mode. This function supports data selection for both single-step
+    Selects the best cohort data for specified trait (and optionally condition) from a given data root directory, load
+    the data and find the gene regressors if in two-step mode. This function supports data selection for both single-step
     and two-step regression based on the is_two_step flag.
 
     Args:
