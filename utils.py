@@ -406,7 +406,7 @@ def gene_f1(pred, ref):
     f1 = 2 * (prec * rec) / (prec + rec)
     return f1
 
-def evaluate_gene_selection(pred, ref):
+def evaluate_gene_selection(pred: List[str], ref: List[str]):
     return {
         'precision': gene_precision(pred, ref),
         'precision_at_50': gene_precision_at_50(pred, ref),
@@ -449,6 +449,7 @@ def cross_validation(
       including metrics like accuracy, precision, recall, F1 score, NMSE, and R-squared,
       along with variable selection metrics based on gene identification.
     """
+    np.random.seed(42)
     indices = np.arange(X.shape[0])
     np.random.shuffle(indices)
 
@@ -481,9 +482,9 @@ def cross_validation(
             Y_test = (Y_test > 0.5).astype(int)
             performance['prediction'] = {
                 "accuracy": accuracy_score(Y_test, predictions),
-                "precision": precision_score(Y_test, predictions),
-                "recall": recall_score(Y_test, predictions),
-                "f1": f1_score(Y_test, predictions)
+                "precision": precision_score(Y_test, predictions, zero_division=0),
+                "recall": recall_score(Y_test, predictions, zero_division=0),
+                "f1": f1_score(Y_test, predictions, zero_division=0)
             }
         elif target_type == 'continuous':
             nmse = np.sum((Y_test - predictions) ** 2) / np.sum((Y_test - np.mean(Y_test)) ** 2)
@@ -552,7 +553,7 @@ def tune_hyperparameters(
         1. Dictionary of the best hyperparameters based on gene identification precision.
         2. Dictionary of the best performances for 'selection' and 'prediction'.
     """
-    best_selection_precision = -np.inf
+    best_selection_score = -np.inf
     best_prediction_score = -np.inf
     best_config = {}
     best_performance = {}
@@ -566,10 +567,10 @@ def tune_hyperparameters(
 
         results = cross_validation(model_constructor, current_params, X, Y, var_names, trait, gene_info_path, condition,
                                    Z, k)
-        current_selection_precision = results["selection"]["precision"]
+        current_selection_score = results["selection"]["f1"]
 
-        if current_selection_precision > best_selection_precision:
-            best_selection_precision = current_selection_precision
+        if current_selection_score > best_selection_score:
+            best_selection_score = current_selection_score
             best_config = current_params
             best_performance["selection"] = results["selection"]
 
