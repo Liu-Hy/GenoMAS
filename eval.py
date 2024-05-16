@@ -3,7 +3,7 @@ import os
 import pandas as pd
 import json
 import numpy as np
-from utils import evaluate_gene_selection
+from utils.statistics import evaluate_gene_selection
 
 def calculate_metrics(ref_file, pred_file):
     assert os.path.exists(ref_file), "Reference file does not exist"
@@ -11,9 +11,14 @@ def calculate_metrics(ref_file, pred_file):
         ref = json.load(rfile)
     ref_genes = ref["significant_genes"]["Variable"]
 
-    metrics = {'precision': 0, 'precision_at_50': 0, 'recall': 0, 'f1': 0, 'jaccard': 0, 'jaccard2': 0}
-    # If the 'pred_file' does not exist, it indicates the agent's regression code fails to run on this question, and all
-    # metrics count as 0
+    # Initialize all metrics with 0
+    # If the 'pred_file' does not exist, it indicates the agent's regression code fails to run on this question
+    metrics = {'precision': 0, 'precision_at_50': 0, 'recall': 0, 'f1': 0, 'jaccard': 0, 'jaccard2': 0,
+               'success': 0}  # TO DO: 给nested metrics补0
+    metrics["cv_performance"] = ref["cv_performance"]
+    for section in metrics["cv_performance"]:
+        for m in metrics["cv_performance"][section]:
+            metrics["cv_performance"][section][m] = 0
 
     if os.path.exists(pred_file):
         with open(pred_file, 'r') as file:
@@ -40,7 +45,8 @@ def categorize_and_aggregate(results):
     aggregated_metrics = {}
     for category, metrics_list in categorized_results.items():
         aggregated_metrics[category] = average_metrics(metrics_list)
-    aggregated_metrics['overall'] = average_metrics([metric for sublist in categorized_results.values() for metric in sublist])
+    aggregated_metrics['overall'] = average_metrics(
+        [metric for sublist in categorized_results.values() for metric in sublist])
     return aggregated_metrics
 
 def average_metrics(metrics_list):
@@ -49,12 +55,14 @@ def average_metrics(metrics_list):
 
     avg_metrics = {}
     for metric in metrics_list[0]:
-        if isinstance(metrics_list[0][metric], dict):
+        if isinstance(metrics_list[0][metric], dict):  # metric == "cv_performance"
             avg_metrics[metric] = {}
-            for submetric in metrics_list[0][metric]:
+            for submetric in metrics_list[0][metric]:  # submetric in ["selection", "prediction"]
                 avg_metrics[metric][submetric] = {}
                 for subsubmetric in metrics_list[0][metric][submetric]:
-                    avg_metrics[metric][submetric][subsubmetric] = np.mean([p[metric][submetric][subsubmetric] for p in metrics_list])
+                    avg_metrics[metric][submetric][subsubmetric] = np.mean(
+                        [p[metric][submetric][subsubmetric] for p in metrics_list if
+                         subsubmetric in p[metric][submetric]])
         else:
             avg_metrics[metric] = np.mean([p[metric] for p in metrics_list])
     return avg_metrics
