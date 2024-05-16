@@ -807,7 +807,7 @@ def xena_convert_age(cell: str):
 
 def detect_batch_effect(X):
     """
-    Detect potential batch effects in a dataset using eigenvalues of XX^T.
+    Detect potential batch effects in a dataset using eigenvalues of XX^T after centering the data.
 
     Args:
     X (numpy.ndarray): A feature matrix with shape (n_samples, n_features).
@@ -815,21 +815,24 @@ def detect_batch_effect(X):
     Returns:
     bool: True if a potential batch effect is detected, False otherwise.
     """
-    n_samples = X.shape[0]
+    n_samples, n_features = X.shape
 
-    # Computing XX^T
-    XXt = np.dot(X, X.T)
+    # Center the data
+    X_centered = X - X.mean(axis=0)
+
+    # Compute XX^T from the centered data
+    XXt = np.dot(X_centered, X_centered.T)
 
     # Compute the eigenvalues of XX^T
     eigen_values = np.linalg.eigvalsh(XXt)  # Using eigvalsh since XX^T is symmetric
-    eigen_values = sorted(eigen_values, reverse=True)[:10]
+    eigen_values = sorted(eigen_values, reverse=True)[:10]  # Focus on the largest 10 eigenvalues
     eigen_values = np.array(eigen_values)
     normalized_ev = eigen_values / eigen_values[0]
 
     # Check for large gaps in the eigenvalues
     for i in range(len(normalized_ev) - 1):
         gap = normalized_ev[i] - normalized_ev[i + 1]
-        if gap > 1 / n_samples:  # You may need to adjust this threshold
+        if gap > 200 / n_samples:  # You may need to adjust this threshold
             return True
 
     return False
