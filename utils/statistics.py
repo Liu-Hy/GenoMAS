@@ -9,7 +9,10 @@ from sklearn.linear_model import LinearRegression, Lasso, LogisticRegression
 from sparse_lmm import LMM
 from statsmodels.stats.multitest import multipletests
 from sklearn.metrics import accuracy_score, precision_score, recall_score, f1_score, r2_score
+import warnings
+from sklearn.exceptions import ConvergenceWarning
 
+warnings.simplefilter('ignore', ConvergenceWarning)
 def read_json_to_dataframe(json_file: str) -> pd.DataFrame:
     """
     Reads a JSON file and converts it into a pandas DataFrame.
@@ -288,12 +291,12 @@ def gene_f1(pred, ref):
 
 def evaluate_gene_selection(pred: List[str], ref: List[str]):
     return {
-        'precision': gene_precision(pred, ref),
-        'precision_at_50': gene_precision_at_50(pred, ref),
-        'recall': gene_recall(pred, ref),
-        'f1': gene_f1(pred, ref),
-        'jaccard': gene_jaccard(pred, ref),
-        'jaccard2': gene_jaccard2(pred, ref)
+        'precision': round(gene_precision(pred, ref) * 100, 2),
+        'precision_at_50': round(gene_precision_at_50(pred, ref) * 100, 2),
+        'recall': round(gene_recall(pred, ref) * 100, 2),
+        'f1': round(gene_f1(pred, ref) * 100, 2),
+        'jaccard': round(gene_jaccard(pred, ref) * 100, 2),
+        'jaccard2': round(gene_jaccard2(pred, ref) * 100, 2)
     }
 
 def cross_validation(
@@ -361,10 +364,10 @@ def cross_validation(
             predictions = (predictions > 0.5).astype(int)
             Y_test = (Y_test > 0.5).astype(int)
             performance['prediction'] = {
-                "accuracy": accuracy_score(Y_test, predictions),
-                "precision": precision_score(Y_test, predictions, zero_division=0),
-                "recall": recall_score(Y_test, predictions, zero_division=0),
-                "f1": f1_score(Y_test, predictions, zero_division=0)
+                "accuracy": round(accuracy_score(Y_test, predictions) * 100, 2),
+                "precision": round(precision_score(Y_test, predictions, zero_division=0) * 100, 2),
+                "recall": round(recall_score(Y_test, predictions, zero_division=0) * 100, 2),
+                "f1": round(f1_score(Y_test, predictions, zero_division=0) * 100, 2)
             }
         elif target_type == 'continuous':
             nmse = np.sum((Y_test - predictions) ** 2) / np.sum((Y_test - np.mean(Y_test)) ** 2)
@@ -453,17 +456,17 @@ def tune_hyperparameters(
 
         results = cross_validation(model_constructor, current_params, X, Y, var_names, trait, gene_info_path, condition,
                                    Z, k)
-        current_selection_score = results["selection"]["f1"]
-
-        if current_selection_score > best_selection_score:
-            best_selection_score = current_selection_score
-            best_config = current_params
-            best_performance["selection"] = results["selection"]
 
         current_prediction_score = results["prediction"][prediction_metric]
         if current_prediction_score > best_prediction_score:
             best_prediction_score = current_prediction_score
             best_performance["prediction"] = results["prediction"]
+
+        current_selection_score = results["selection"]["f1"]
+        if current_selection_score > best_selection_score:
+            best_selection_score = current_selection_score
+            best_config = current_params
+            best_performance["selection"] = results["selection"]
 
     return best_config, best_performance
 
@@ -516,7 +519,7 @@ def normalize_trait(trait):
     normalized_trait = ''.join(trait.split("'"))
     return normalized_trait
 
-def interpret_result(model: Any, var_names: List[str], trait: str, condition = None,
+def interpret_result(model: ResidualizationRegressor, var_names: List[str], trait: str, condition = None,
                      threshold: float = 0.05, print_output = False) -> dict:
     """This function interprets and reports the result of a trained linear regression model, where the regressor
     consists of one variable about some biomedical condition and multiple variables about genetic factors.
@@ -535,6 +538,8 @@ def interpret_result(model: Any, var_names: List[str], trait: str, condition = N
         dict: A dictionary containing the list of significant genes, sorted by their importance, and the corresponding
         coefficient magnitude or corrected p-value.
     """
+    assert isinstance(model, ResidualizationRegressor), "The model must be an instance of the ResidualizationRegressor" \
+                                                        "class."
     feature_names = [var for var in var_names if var != trait]
 
     # If a condition is specified, move it to the beginning of the list
@@ -582,8 +587,20 @@ def interpret_result(model: Any, var_names: List[str], trait: str, condition = N
 
     return significant_genes_df.to_dict(orient="list")
 
-def save_result(condition: str, significant_genes: dict, performance: dict, output_dir: str):
-    """Save the gene identification result and the cross-validation performance.
+def save_result(significant_genes: Dict[str, any], performance: Dict[str, any], output_dir: str, condition: Optional[str] = None):
+    """
+    Saves the results of gene identification and model performance metrics to a JSON file.
+
+    Args:
+        significant_genes (dict): Dictionary containing identified significant genes and their related metrics.
+        performance (dict): Dictionary containing performance metrics from cross-validation.
+        output_dir (str): Directory path where the output file will be saved.
+        condition (str, optional): Specifies the condition related to the gene identification. Include this parameter if
+        the model considers a specific condition; otherwise, leave it as None.
+
+    Outputs:
+        A JSON file named 'significant_genes_condition_{condition}.json' in the specified directory, containing both the
+        significant genes and cross-validation performance data.
     """
     output_path = os.path.join(output_dir, f'significant_genes_condition_{condition}.json')
     output_data = {'significant_genes': significant_genes, 'cv_performance': performance}

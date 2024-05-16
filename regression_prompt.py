@@ -6,7 +6,6 @@ import json
 import ast
 import re
 import subprocess
-from utils import *
 import tqdm
 
 pairs_df = pd.read_csv("trait_condition_pairs.csv")
@@ -65,27 +64,48 @@ STDERR:
 {stderr}
 """
 
-INSTRUCTION_HEAD: str = \
+INSTRUCTION_HEAD_TEMPLATE: str = \
     """
     Role: You are a statistician in a biomedical research team, and your main goal is to write code to do statistical 
     analysis on biomedical datasets.
     In this project, you will explore gene expression datasets to identify the significant genes related to a trait, 
     optionally controlling for a condition.
 
-    Tools: please use the following functions from utils.py when possible:
+    Tools: In "utils.statistics", there are lots of well-written helper functions for this project. Please import and 
+    use them when possible. Hereafter I will call it "the library". Below is the source code.
     {utils_code}
 
     Background:
     1. All input data are stored in the directory: '{data_root}'.
-    2. The output should be saved to the directory '{output_dir}'.
+    2. The output should be saved to the directory '{output_root}', under a subdirectory named after the trait.
     3. External knowledge about genes related to each trait is available in a file '{gene_info_path}'.
 
-    NOTICE1: Please import all the functions in 'utils.py' at the beginning of the code, and feel free to use '*' in the import statement.
+    NOTICE1: Please import all the functions in 'utils.statistics' at the beginning of the code, and feel free to use '*' in the import statement.
     NOTICE2: The overall preprocessing requires multiple code snippets and each code snippet is based on the execution results of the last code snippet. 
     Consequently, the instruction will be divided into multiple STEPS, each STEP requires you to write a code snippet, then the execution result will be given to you for either revision of the current STEP or go to the next STEP.
 
     Based on the context, write code to follow the instructions.
     """
+
+UNCONDITIONAL_ONE_STEP_PROMPT = """
+Instruction: Write code to solve the following research question: What are the genetic factors related to the trait 
+'{trait}'?
+Based on the context and the following instructions, write code that is elegant and easy to read.
+1. Select the best input data about the trait into a dataframe, and load the data.
+2. Remove the columns 'Age' and 'Gender' if either is present.
+3. Select the data in relevant columns for regression analysis. We need numpy arrays X and Y. Y is the trait data from the column '{trait}', and X is the rest of the data.
+4. Check whether the feature X shows batch effect. Hint: you may use the 'detect_batch_effect' function from the library.
+5. Select appropriate models based on whether the dataset has batch effect. If yes, use an LMM (Linear Mixed Model); 
+   Otherwise, use a Lasso model.
+6. Do hyperparameter search from 1e-5 to 10 (inclusive) on a logarithm scale with a base of 10. Record the best hyperparameter setting for the chosen model, and the cross-validation performance. Hint: please use the tune_hyperparameters() function from the library.
+7. Normalize X to have a mean of 0 and standard deviation of 1.
+8. Train a model with the best hyperparameter on the whole dataset.
+9. Interpret the trained model to identify the effect of the condition and significant genes. Hint: You may use the 'interpret_result' function from the library, and use the output_dir given.
+10. Save the model output and cross-validation performance. Hint: you may use the 'save_result' function from the library
+
+Return ```python your_code_here ``` with NO other texts. your_code_here is a placeholder.
+your code:
+        """
 
 CONDITIONAL_ONE_STEP_PROMPT = """
 Instruction: Write code to solve the following research question: What are the genetic factors related to the trait 
@@ -94,17 +114,14 @@ Based on the context and the following instructions, write code that is elegant 
 1. Select the best input data about the trait into a dataframe, and load the data.
 2. We need only one condition from 'Age' and 'Gender'. Remove the redundant column if present.
 3. Select the data in relevant columns for regression analysis. We need three numpy arrays X, Y and Z. Y is the trait data from the column '{trait}', Z is the condition data from the column '{condition}', and X is the rest of the data.
-4. Check whether the feature X shows batch effect. Hint: you may use the 'detect_batch_effect' function from utils.
-5. Select appropriate models based on whether the dataset has batch effect. If yes, use a Linear Mixed Model implemented 
-   in the 'sparse_lmm' library, and you will later need to tune the hyperparameter 'lamda' (not 'lambda'). Otherwise, 
-   use a Lasso model, and you will later need to tune the hyperparameter 'alpha'. Use the default value for other hyperparameter.
-6. Do hyperparameter search from 1e-5 to 10 on a logarithm scale. Select the best hyperparameter setting for the chosen model, and record the cross-validation performance. Hint: please use the tune_hyperparameters() function from utils.
+4. Check whether the feature X shows batch effect. Hint: you may use the 'detect_batch_effect' function from the library.
+5. Select appropriate models based on whether the dataset has batch effect. If yes, use an LMM (Linear Mixed Model); 
+   Otherwise, use a Lasso model.
+6. Do hyperparameter search from 1e-5 to 10 (inclusive) on a logarithm scale with a base of 10. Record the best hyperparameter setting for the chosen model, and the cross-validation performance. Hint: please use the tune_hyperparameters() function from the library.
 7. Normalize the X and Z to have a mean of 0 and standard deviation of 1.
-8. Train a model with the best hyperparameter on the whole dataset.
-9. Interpret the trained model to identify the effect of the condition and significant genes. Hint: You may use the 'interpret_result' function from utils, and use the output_dir given.
-10. Save the model output and cross-validation performance. Hint: you may use the 'save_result' function from utils
-
-NOTICE: Please import all the functions in 'utils.py' at the beginning of the code, and feel free to use '*' in the import statement.
+8. Train a model with the best hyperparameter on the whole dataset. The model should conduct residualization to account for the confounder Z.
+9. Interpret the trained model to identify the effect of the condition and significant genes. Hint: You may use the 'interpret_result' function from the library, and use the output_dir given.
+10. Save the model output and cross-validation performance. Hint: you may use the 'save_result' function from the library
 
 Return ```python your_code_here ``` with NO other texts. your_code_here is a placeholder.
 your code:
@@ -136,17 +153,14 @@ Below are more detailed instructions. Based on the context and the instructions,
 7. From the trait dataframe, drop the columns about the common gene regressors, and drop the columns 'Age' and 'Gender' if any of them exist.
 ## The second step regression
 8. From the trait dataframe, select the data in relevant columns for regression analysis. We need three numpy arrays X, Y and Z. Y is the trait data from the column '{trait}', Z is the condition data from the column '{condition}', and X is the rest of the data. We want to analyze and find the genetic factors related to the trait when considering the influence of the condition.
-9. Check whether the feature X shows batch effect. Hint: you may use the 'detect_batch_effect' function from utils.
-10. Select appropriate models based on whether the dataset has batch effect. If yes, use a Linear Mixed Model implemented 
-   in the 'sparse_lmm' library, and you will later need to tune the hyperparameter 'lamda' (not 'lambda'). Otherwise, 
-   use a Lasso model, and you will later need to tune the hyperparameter 'alpha'. Use the default value for other hyperparameter.
-11. Do hyperparameter search from 1e-5 to 10 on a logarithm scale. Select the best hyperparameter setting for the chosen model, and record the cross-validation performance. Hint: please use the tune_hyperparameters() function from utils.
-12. Normalize the X and Z to have a mean of 0 and standard deviation of 1. Hint: you may use the 'normalize_data' function from utils to normalize X and Z in two seperate lines.
-13. Train a model with the best hyperparameter on the whole dataset.
-14. Interpret the trained model to identify the effect of the condition and significant genes. Hint: You may use the 'interpret_result' function from utils, and use the output_dir given.
-15. Save the model output and cross-validation performance. Hint: you may use the 'save_result' function from utils
-
-NOTICE: Please import all the functions in 'utils.py' at the beginning of the code, and feel free to use '*' in the import statement.
+9. Check whether the feature X shows batch effect. Hint: you may use the 'detect_batch_effect' function from the library.
+10. Select appropriate models based on whether the dataset has batch effect. If yes, use an LMM (Linear Mixed Model); 
+   Otherwise, use a Lasso model.
+11. Do hyperparameter search from 1e-5 to 10 on a logarithm scale with a base of 10. Record the best hyperparameter setting for the chosen model, and the cross-validation performance. Hint: please use the tune_hyperparameters() function from the library.
+12. Normalize the X and Z to have a mean of 0 and standard deviation of 1. Hint: you may use the 'normalize_data' function from the library to normalize X and Z in two seperate lines.
+13. Train a model with the best hyperparameter on the whole dataset. The model should conduct residualization to account for the confounder Z.
+14. Interpret the trained model to identify the effect of the condition and significant genes. Hint: You may use the 'interpret_result' function from the library, and use the output_dir given.
+15. Save the model output and cross-validation performance. Hint: you may use the 'save_result' function from the library
 
 Return ```python your_code_here ``` with NO other texts. your_code_here is a placeholder.
 your code:
@@ -175,18 +189,18 @@ REVIEW_CODE_PROMPT_TEMPLATE: str = \
     Please take a deep breath and think step by step. Provide an accurate and detailed review.
     Your review:
     """
-utils_code = "".join(open("utils.py", 'r').readlines())
+utils_code = "".join(open("utils/statistics.py", 'r').readlines())
 
 for index, pair in enumerate(all_pairs):
     trait, condition = pair
-    output_dir = os.path.join(output_root, trait)
-    os.makedirs(output_dir, exist_ok=True)
-    regression_prompt = INSTRUCTION_HEAD.format(utils_code=utils_code, data_root=data_root, output_dir=output_dir,
+    if trait != 'Adrenocortical_Cancer' or condition != 'Anxiety_disorder': continue
+    instruction_head = INSTRUCTION_HEAD_TEMPLATE.format(utils_code=utils_code, data_root=data_root, output_root=output_root,
                                                 gene_info_path=gene_info_path)
-    if condition in ['Age', 'Gender']:
+    if condition is None or condition.lower == "none":
+        regression_prompt = UNCONDITIONAL_ONE_STEP_PROMPT
+    elif condition in ['Age', 'Gender']:
         regression_prompt = CONDITIONAL_ONE_STEP_PROMPT
     else:
-        continue
         regression_prompt = TWO_STEP_PROMPT
 
     history = ""
@@ -194,7 +208,7 @@ for index, pair in enumerate(all_pairs):
     while True:
         attempt_count += 1
         # Call Azure OpenAI to generate the regression code using chat
-        write_code_prompt = regression_prompt.format(trait=trait, condition=condition,
+        write_code_prompt = instruction_head + regression_prompt.format(trait=trait, condition=condition,
                                                      )
         generated_code = call_openai_gpt_chat(
             history + write_code_prompt
