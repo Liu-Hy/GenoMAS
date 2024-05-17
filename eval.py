@@ -14,7 +14,7 @@ def calculate_metrics(ref_file, pred_file):
     # Initialize all metrics with 0
     # If the 'pred_file' does not exist, it indicates the agent's regression code fails to run on this question
     metrics = {'precision': 0, 'precision_at_50': 0, 'recall': 0, 'f1': 0, 'jaccard': 0, 'jaccard2': 0,
-               'success': 0}  # TO DO: 给nested metrics补0
+               'success': 0}
     metrics["cv_performance"] = ref["cv_performance"]
     for section in metrics["cv_performance"]:
         for m in metrics["cv_performance"][section]:
@@ -60,11 +60,11 @@ def average_metrics(metrics_list):
             for submetric in metrics_list[0][metric]:  # submetric in ["selection", "prediction"]
                 avg_metrics[metric][submetric] = {}
                 for subsubmetric in metrics_list[0][metric][submetric]:
-                    avg_metrics[metric][submetric][subsubmetric] = np.mean(
+                    avg_metrics[metric][submetric][subsubmetric] = np.round(np.mean(
                         [p[metric][submetric][subsubmetric] for p in metrics_list if
-                         subsubmetric in p[metric][submetric]])
+                         subsubmetric in p[metric][submetric]]), 2)
         else:
-            avg_metrics[metric] = np.mean([p[metric] for p in metrics_list])
+            avg_metrics[metric] = np.round(np.mean([p[metric] for p in metrics_list]), 2)
     return avg_metrics
 
 

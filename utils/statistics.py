@@ -291,12 +291,10 @@ def gene_f1(pred, ref):
 
 def evaluate_gene_selection(pred: List[str], ref: List[str]):
     return {
-        'precision': round(gene_precision(pred, ref) * 100, 2),
-        'precision_at_50': round(gene_precision_at_50(pred, ref) * 100, 2),
-        'recall': round(gene_recall(pred, ref) * 100, 2),
-        'f1': round(gene_f1(pred, ref) * 100, 2),
-        'jaccard': round(gene_jaccard(pred, ref) * 100, 2),
-        'jaccard2': round(gene_jaccard2(pred, ref) * 100, 2)
+        'precision': gene_precision(pred, ref) * 100,
+        'recall': gene_recall(pred, ref) * 100,
+        'f1': gene_f1(pred, ref) * 100,
+        'jaccard': gene_jaccard(pred, ref) * 100
     }
 
 def cross_validation(
@@ -364,10 +362,10 @@ def cross_validation(
             predictions = (predictions > 0.5).astype(int)
             Y_test = (Y_test > 0.5).astype(int)
             performance['prediction'] = {
-                "accuracy": round(accuracy_score(Y_test, predictions) * 100, 2),
-                "precision": round(precision_score(Y_test, predictions, zero_division=0) * 100, 2),
-                "recall": round(recall_score(Y_test, predictions, zero_division=0) * 100, 2),
-                "f1": round(f1_score(Y_test, predictions, zero_division=0) * 100, 2)
+                "accuracy": accuracy_score(Y_test, predictions) * 100,
+                "precision": precision_score(Y_test, predictions, zero_division=0) * 100,
+                "recall": recall_score(Y_test, predictions, zero_division=0) * 100,
+                "f1": f1_score(Y_test, predictions, zero_division=0) * 100
             }
         elif target_type == 'continuous':
             nmse = np.sum((Y_test - predictions) ** 2) / np.sum((Y_test - np.mean(Y_test)) ** 2)
