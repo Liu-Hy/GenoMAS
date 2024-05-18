@@ -29,6 +29,15 @@ class DataScientistAgent:
         self.guidelines = guidelines
         self.action_units = action_units
         self.task_context = []
+        """TO DO: 
+        please define a TaskContext class, that holds the all staffs, and handles common functions such as
+        the display of the context, concatenation of previous code, etc. The context should be formatted in a nice way 
+        for humans to read. Just think of how a Jupyter notebook displays the markdown cells, code cells, and output 
+        nicely. You can use special characters or even ascii art to show the structure of the context. Of course, our
+        design is different from jupyter notebook. We need things like the index of the current step, the name of
+        the action unit chosen, the instruction of the action unit, the code, the stdout, and stderr, for each step.
+        """
+
         self.code_snippet_buffer = {unit: [] for unit in action_units.keys()}
         self.current_state = {}
 
@@ -40,15 +49,27 @@ class DataScientistAgent:
                 buffer.clear()
 
     def aggregate_code_snippets(self, buffer):
-        return "\n".join(buffer)
+        """TO DO:
+        I didn't mean "aggregate" in the literal way.
+        The agent should read and compare the different versions of the code snippet, including the original one and
+        the different revised versions in the buffer, to get a modified version as the new code snippet for this
+        action unit.
+        """
+        raise NotImplementedError
 
     def choose_action_unit(self):
-        for unit, details in self.action_units.items():
-            if not details['completed']:
-                return unit
-        return "task_completed"
+        """TO DO:
+        Analyze current task context to choose the next action unit. Use a prompt to ask the agent itself like
+        the below, but you should format it much more nicely.
+        prompt = f"You are a data scientist agent. Here is the guideline for your task {guideline}. Here is your current
+        task context: {self.context.history}. Here are the action units you can choose, with their names and
+        instructions: {}
+        Based on these information, please choose one and only one action unit. Please only answer the name of the unit.
+        Your answer:\n"
+        """
+        raise NotImplementedError
 
-    def execute_code_snippet(self, action_unit):
+    def execute_action_unit(self, action_unit):
         code_snippet = self.action_units[action_unit]['code_snippet']
         if not code_snippet:
             code_snippet = self.write_initial_code(action_unit)
@@ -68,9 +89,6 @@ class DataScientistAgent:
 
         if error:
             self.task_context[-1]['error'] = str(error)
-            self.handle_execution_result(action_unit, error=str(error))
-        else:
-            self.action_units[action_unit]['completed'] = True
 
     def run_snippet(self, snippet, namespace):
         stdout = io.StringIO()
@@ -91,7 +109,7 @@ class DataScientistAgent:
             else:
                 new_code_snippet = self.rewrite_code(action_unit, error)
                 self.task_context[-1]['code_snippet'] = new_code_snippet
-                self.execute_code_snippet(action_unit)
+                self.execute_action_unit(action_unit)
         else:
             self.action_units[action_unit]['completed'] = True
 
@@ -99,21 +117,6 @@ class DataScientistAgent:
         prompt = f"Rewrite the following code to fix the error:\n\n{self.task_context[-1]['code_snippet']}\n\nError: {error}"
         response = call_openai_gpt(prompt)
         return response
-
-    def reset_and_retry(self, action_unit):
-        self.current_state.clear()
-        concatenated_code = self.concatenate_snippets(up_to_index=len(self.task_context) - 1)
-        stdout, stderr, error = self.run_snippet(concatenated_code, self.current_state)
-
-        if error:
-            self.task_context[-1].update({
-                'stdout': stdout,
-                'stderr': stderr,
-                'error': str(error)
-            })
-            self.execute_code_snippet(action_unit)
-        else:
-            self.action_units[action_unit]['completed'] = True
 
     def concatenate_snippets(self, up_to_index):
         return "\n".join([step['code_snippet'] for step in self.task_context[:up_to_index + 1]])
@@ -129,7 +132,7 @@ class DataScientistAgent:
             action_unit = self.choose_action_unit()
             if action_unit == "task_completed":
                 break
-            self.execute_code_snippet(action_unit)
+            self.execute_action_unit(action_unit)
         return self.task_context
 
 
@@ -143,10 +146,10 @@ class CodeReviewerAgent:
 # Example usage:
 guidelines = "High-level guidelines for performing data analysis tasks."
 action_units = {
-    "load_data": {"instruction": "Load the dataset.", "code_snippet": "", "completed": False},
-    "preprocess_data": {"instruction": "Preprocess the dataset.", "code_snippet": "", "completed": False},
-    "train_model": {"instruction": "Train the machine learning model.", "code_snippet": "", "completed": False},
-    "evaluate_model": {"instruction": "Evaluate the model performance.", "code_snippet": "", "completed": False}
+    "load_data": {"instruction": "Load the dataset.", "code_snippet": ""},
+    "preprocess_data": {"instruction": "Preprocess the dataset.", "code_snippet": ""},
+    "train_model": {"instruction": "Train the machine learning model.", "code_snippet": ""},
+    "evaluate_model": {"instruction": "Evaluate the model performance.", "code_snippet": ""}
 }
 
 data_scientist = DataScientistAgent(guidelines, action_units)
