@@ -1,138 +1,156 @@
-import subprocess
+import sys
+import io
+from contextlib import redirect_stdout, redirect_stderr
+import json
 from openai import AzureOpenAI
 
-class Agent:
-    def __init__(self, guidelines):
-        self.client = None
+
+client = AzureOpenAI(
+    api_key="57983a2e88fa4d6b81205a8d55d9bd46",
+    api_version="2023-10-01-preview",
+    azure_endpoint="https://haoyang2.openai.azure.com/"
+)
+
+
+def call_openai_gpt(prompt):
+    messages = [
+        {"role": "system", "content": "You are a helpful assistant."},
+        {"role": "user", "content": prompt}
+    ]
+    response = client.chat.completions.create(
+        model="gpt-4",  # Adjust the model name as needed
+        messages=messages
+    )
+    return response.choices[0].message.content
+
+
+class DataScientistAgent:
+    def __init__(self, guidelines, action_units):
         self.guidelines = guidelines
-        self.context = TaskContext()
-        self.action_units = {}
-        self.buffer = {}
-        self.subprocess = Subprocess()
-        self.initialize_action_units()
+        self.action_units = action_units
+        self.task_context = []
+        self.code_snippet_buffer = {unit: [] for unit in action_units.keys()}
+        self.current_state = {}
 
-    def initialize_action_units(self):
-        # Define initial action units with names and instructions
-        action_unit_names = ["data_loading", "data_cleaning", "data_analysis", "data_visualization", "exit_with_error", "task_completed"]
-        for name in action_unit_names:
-            instructions = f"Instructions for {name}"
-            self.action_units[name] = ActionUnit(name, instructions)
+    def check_code_snippet_buffer(self):
+        for unit, buffer in self.code_snippet_buffer.items():
+            if len(buffer) == 3:
+                modified_snippet = self.aggregate_code_snippets(buffer)
+                self.action_units[unit]['code_snippet'] = modified_snippet
+                buffer.clear()
 
-    def initialize_client(self):
-        self.client = AzureOpenAI(
-            api_key="57983a2e88fa4d6b81205a8d55d9bd46",
-            api_version="2023-10-01-preview",
-            azure_endpoint="https://haoyang2.openai.azure.com/"
-        )
+    def aggregate_code_snippets(self, buffer):
+        return "\n".join(buffer)
 
     def choose_action_unit(self):
-        # Analyze current task context to choose the next action unit
-        prompt = f"You are a data analysis agent. Here is your current task context: {self.context.history}. Based on this context, what should be the next action unit to perform?"
-        action_unit_name = self.call_openai_gpt(prompt).strip()
-        return self.action_units[action_unit_name]
+        for unit, details in self.action_units.items():
+            if not details['completed']:
+                return unit
+        return "task_completed"
 
-    def execute_action_unit(self, action_unit):
-        result = self.subprocess.execute(action_unit.code_snippet)
-        self.context.record_step(action_unit.name, action_unit.code_snippet, result)
-        return result
+    def execute_code_snippet(self, action_unit):
+        code_snippet = self.action_units[action_unit]['code_snippet']
+        if not code_snippet:
+            code_snippet = self.write_initial_code(action_unit)
 
-    def troubleshoot_and_debug(self, action_unit):
-        for _ in range(3):  # Maximum of 3 debugging attempts
-            result = self.execute_action_unit(action_unit)
-            if result['status'] == 'success':
-                action_unit.add_revised_version(action_unit.code_snippet)
-                return result
-            else:
-                error_message = result['error']
-                prompt = f"The following code snippet failed to execute: {action_unit.code_snippet}. Here is the error message: {error_message}. Please suggest a revised code snippet to fix this issue."
-                revised_code_snippet = self.call_openai_gpt(prompt).strip()
-                action_unit.add_code_snippet(revised_code_snippet)
+        self.task_context.append({
+            'action_unit': action_unit,
+            'instruction': self.action_units[action_unit]['instruction'],
+            'code_snippet': code_snippet
+        })
 
-        self.context.record_step("exit_with_error", "", "Max debugging attempts reached. Exiting with error.")
-        return "exit_with_error"
+        stdout, stderr, error = self.run_snippet(code_snippet, self.current_state)
 
-    def update_code_snippet(self, action_unit):
-        if len(action_unit.revised_versions) == 3:
-            # Aggregate buffer and update the code snippet
-            new_code_snippet = self.aggregate_code_snippets(action_unit.revised_versions)
-            action_unit.add_code_snippet(new_code_snippet)
-            action_unit.revised_versions = []
+        self.task_context[-1].update({
+            'stdout': stdout,
+            'stderr': stderr
+        })
 
-    def modify_instructions(self, action_unit):
-        # Modify instructions based on new and old code snippets if needed
-        pass
+        if error:
+            self.task_context[-1]['error'] = str(error)
+            self.handle_execution_result(action_unit, error=str(error))
+        else:
+            self.action_units[action_unit]['completed'] = True
 
-    def call_openai_gpt(self, prompt):
-        messages = [
-            {"role": "system", "content": "You are a helpful assistant."},
-            {"role": "user",
-             "content": prompt}
-        ]
-        response = self.client.chat.completions.create(
-            model="gpt-4",  # Adjust the model name as needed
-            messages=messages
-        )
-        return response.choices[0].message.content
-
-    def aggregate_code_snippets(self, snippets):
-        # Placeholder for aggregating code snippets
-        return snippets[-1]
-
-class TaskContext:
-    def __init__(self):
-        self.history = []
-        self.current_step = None
-
-    def record_step(self, action_unit_name, code_snippet, result):
-        step = {
-            "action_unit": action_unit_name,
-            "code_snippet": code_snippet,
-            "result": result
-        }
-        self.history.append(step)
-        self.current_step = step
-
-    def get_last_step(self):
-        if self.history:
-            return self.history[-1]
-        return None
-
-class ActionUnit:
-    def __init__(self, name, instructions):
-        self.name = name
-        self.instructions = instructions
-        self.code_snippet = ""
-        self.revised_versions = []
-
-    def add_code_snippet(self, code_snippet):
-        self.code_snippet = code_snippet
-
-    def add_revised_version(self, code_snippet):
-        self.revised_versions.append(code_snippet)
-
-class Subprocess:
-    def __init__(self):
-        self.process = None
-
-    def execute(self, code):
+    def run_snippet(self, snippet, namespace):
+        stdout = io.StringIO()
+        stderr = io.StringIO()
         try:
-            # Using eval to simulate code execution (to be replaced with actual execution logic)
-            exec_globals = {}
-            exec(code, exec_globals)
-            result = exec_globals
-            return {"status": "success", "result": result}
+            with redirect_stdout(stdout), redirect_stderr(stderr):
+                exec(snippet, namespace)
+            return stdout.getvalue(), stderr.getvalue(), None
         except Exception as e:
-            return {"status": "error", "error": str(e)}
+            return stdout.getvalue(), stderr.getvalue(), e
 
-    def reset(self):
-        self.process = None
+    def handle_execution_result(self, action_unit, error=None):
+        if error:
+            self.code_snippet_buffer[action_unit].append(self.task_context[-1]['code_snippet'])
+            if len(self.code_snippet_buffer[action_unit]) >= 3:
+                self.check_code_snippet_buffer()
+                self.reset_and_retry(action_unit)
+            else:
+                new_code_snippet = self.rewrite_code(action_unit, error)
+                self.task_context[-1]['code_snippet'] = new_code_snippet
+                self.execute_code_snippet(action_unit)
+        else:
+            self.action_units[action_unit]['completed'] = True
 
-# Example guidelines (to be extended as needed)
-guidelines = """
-1. Always validate input data before analysis.
-2. Use appropriate visualization techniques for different data types.
-3. Ensure reproducibility of analysis by maintaining a clear record of steps.
-"""
+    def rewrite_code(self, action_unit, error):
+        prompt = f"Rewrite the following code to fix the error:\n\n{self.task_context[-1]['code_snippet']}\n\nError: {error}"
+        response = call_openai_gpt(prompt)
+        return response
 
-# Initialize the agent with guidelines
-agent = Agent(guidelines)
+    def reset_and_retry(self, action_unit):
+        self.current_state.clear()
+        concatenated_code = self.concatenate_snippets(up_to_index=len(self.task_context) - 1)
+        stdout, stderr, error = self.run_snippet(concatenated_code, self.current_state)
+
+        if error:
+            self.task_context[-1].update({
+                'stdout': stdout,
+                'stderr': stderr,
+                'error': str(error)
+            })
+            self.execute_code_snippet(action_unit)
+        else:
+            self.action_units[action_unit]['completed'] = True
+
+    def concatenate_snippets(self, up_to_index):
+        return "\n".join([step['code_snippet'] for step in self.task_context[:up_to_index + 1]])
+
+    def write_initial_code(self, action_unit):
+        prompt = f"Write the initial code for the following instruction:\n\n{self.action_units[action_unit]['instruction']}"
+        response = call_openai_gpt(prompt)
+        return response
+
+    def run_task(self):
+        self.check_code_snippet_buffer()
+        while True:
+            action_unit = self.choose_action_unit()
+            if action_unit == "task_completed":
+                break
+            self.execute_code_snippet(action_unit)
+        return self.task_context
+
+
+class CodeReviewerAgent:
+    def review_code(self, code_snippet):
+        prompt = f"Review the following code snippet:\n\n{code_snippet}"
+        response = call_openai_gpt(prompt)
+        return response
+
+
+# Example usage:
+guidelines = "High-level guidelines for performing data analysis tasks."
+action_units = {
+    "load_data": {"instruction": "Load the dataset.", "code_snippet": "", "completed": False},
+    "preprocess_data": {"instruction": "Preprocess the dataset.", "code_snippet": "", "completed": False},
+    "train_model": {"instruction": "Train the machine learning model.", "code_snippet": "", "completed": False},
+    "evaluate_model": {"instruction": "Evaluate the model performance.", "code_snippet": "", "completed": False}
+}
+
+data_scientist = DataScientistAgent(guidelines, action_units)
+task_context = data_scientist.run_task()
+
+for step in task_context:
+    print(json.dumps(step, indent=4))
