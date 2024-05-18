@@ -2,6 +2,7 @@ import sys
 import io
 from contextlib import redirect_stdout, redirect_stderr
 import json
+import re
 from openai import AzureOpenAI
 
 # Azure OpenAI client setup
@@ -11,7 +12,12 @@ client = AzureOpenAI(
     azure_endpoint="https://haoyang2.openai.azure.com/"
 )
 
+CODE_INDUCER: str = \
+"""
+Return ```python your_code_here ``` with NO other texts. your_code_here is a placeholder.
+your code:
 
+"""
 def call_openai_gpt(prompt):
     messages = [
         {"role": "system", "content": "You are a helpful assistant."},
@@ -104,12 +110,14 @@ class DataScientistAgent:
             f"Here are the candidate revised versions that worked:\n\n{'\n\n'.join(formatted_versions)}\n\n"
             f"Please read the candidate revised versions to understand the revisions made, either select the best one or combine their advantages, to write a single revised version."
         )
+        prompt = prompt + CODE_INDUCER
         response = call_openai_gpt(prompt)
-        return response
+        code = self.parse_code(response)
+        return code
 
     def choose_action_unit(self):
         action_units_formatted = "\n".join([str(unit) for unit in self.action_units.values()])
-        prompt = f"You are a data scientist agent. Here is the general guideline for your task:\n\n{self.guidelines}\n\n" \
+        prompt = f"Here is the general guideline for your task:\n\n{self.guidelines}\n\n" \
                  f"Here is your current task context:\n\n{self.task_context.display()}\n\n" \
                  f"Here are the action units you can choose for the next step, with their names and instructions:\n\n{action_units_formatted}\n\n" \
                  f"Based on this information, please choose one and only one action unit. Please only answer the name of the unit.\n\nYour answer:"
@@ -182,14 +190,18 @@ class DataScientistAgent:
             round_counter += 1
 
     def correct_code(self, action_unit_name, feedback):
-        prompt = f"Based on the following feedback, correct the code:\n\nFeedback: {feedback}\n\nCode:\n{self.task_context.history[-1]['code_snippet']}"
+        prompt = f"Based on the following feedback, write a corrected version of the code:\n\nFeedback: {feedback}\n\nCode:\n{self.task_context.history[-1]['code_snippet']}"
+        prompt = prompt + CODE_INDUCER
         response = call_openai_gpt(prompt)
-        return response
+        code = self.parse_code(response)
+        return code
 
     def write_initial_code(self, action_unit):
         prompt = f"Write the initial code for the following instruction:\n\n{action_unit.instruction}"
+        prompt = prompt + CODE_INDUCER
         response = call_openai_gpt(prompt)
-        return response
+        code = self.parse_code(response)
+        return code
 
     def run_task(self):
         self.check_code_snippet_buffer()
@@ -200,6 +212,13 @@ class DataScientistAgent:
             self.execute_action_unit(action_unit_name)
         print(self.task_context.display())
         return self.task_context.history
+
+    @staticmethod
+    def parse_code(rsp):
+        pattern = r"```python(.*)```"
+        match = re.search(pattern, rsp, re.DOTALL)
+        code_text = match.group(1) if match else rsp
+        return code_text
 
 
 class CodeReviewerAgent:
