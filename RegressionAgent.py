@@ -44,22 +44,23 @@ class TaskContext:
         self.current_step += 1
 
     def display(self):
-        # TO DO: the function should return a nicely formatted string rather than printing it now.
+        formatted_context = []
         for step in self.history:
-            print(f"STEP {step['index']}")
-            print(f"Chosen action unit: {step['action_unit_name']}")
-            print(f"Instruction: {step['instruction']}")
-            print("Code:")
-            print(step['code_snippet'])
-            print("Output:")
-            print(step['stdout'])
+            formatted_context.append(f"STEP {step['index']}")
+            formatted_context.append(f"Chosen action unit: {step['action_unit_name']}")
+            formatted_context.append(f"Instruction: {step['instruction']}")
+            formatted_context.append("Code:")
+            formatted_context.append(step['code_snippet'])
+            formatted_context.append("Output:")
+            formatted_context.append(step['stdout'])
             if step['stderr']:
-                print("Errors:")
-                print(step['stderr'])
+                formatted_context.append("Errors:")
+                formatted_context.append(step['stderr'])
             if 'error' in step:
-                print("Execution Error:")
-                print(step['error'])
-            print("=" * 50)
+                formatted_context.append("Execution Error:")
+                formatted_context.append(step['error'])
+            formatted_context.append("=" * 50)
+        return "\n".join(formatted_context)
 
     def concatenate_snippets(self, up_to_index):
         return "\n".join([step['code_snippet'] for step in self.history[:up_to_index + 1]])
@@ -79,13 +80,13 @@ class ActionUnit:
 class DataScientistAgent:
     def __init__(self, guidelines, action_units, max_rounds=3):
         self.guidelines = guidelines
-        self.action_units = {name: ActionUnit(name, **details) for name, details in action_units.items()}
+        self.action_units = {unit.name: unit for unit in action_units}
         self.task_context = TaskContext()
         self.current_state = {}
         self.max_rounds = max_rounds
 
     def check_code_snippet_buffer(self):
-        for unit_name, unit in self.action_units.items():
+        for unit in self.action_units.values():
             if len(unit.code_snippet_buffer) == 3:
                 modified_snippet = self.aggregate_code_snippets(unit)
                 unit.code_snippet = modified_snippet
@@ -132,7 +133,7 @@ class DataScientistAgent:
             error=str(error) if error else None
         )
 
-        if stderr or error or not code_snippet:
+        if stderr or error or not action_unit.code_snippet:
             self.review_and_correct(action_unit_name)
 
     def run_snippet(self, snippet, namespace):
@@ -197,7 +198,7 @@ class DataScientistAgent:
             if action_unit_name == "task_completed":
                 break
             self.execute_action_unit(action_unit_name)
-        self.task_context.display()
+        print(self.task_context.display())
         return self.task_context.history
 
 
@@ -229,19 +230,17 @@ class CodeReviewerAgent:
         return "\n".join(formatted_context)
 
 
-# TO DO: To facilitate testing, please add an "if __name__ == "__main__"" part
-# TO DO: please improve the constructor of DataScientistAgent. Using a dictionary for action units seems a bit
-# arbitrary.
-guidelines = "High-level guidelines for performing data analysis tasks."
-action_units = {
-    "load_data": {"instruction": "Load the dataset.", "code_snippet": ""},
-    "preprocess_data": {"instruction": "Preprocess the dataset.", "code_snippet": ""},
-    "train_model": {"instruction": "Train the machine learning model.", "code_snippet": ""},
-    "evaluate_model": {"instruction": "Evaluate the model performance.", "code_snippet": ""}
-}
+if __name__ == "__main__":
+    guidelines = "High-level guidelines for performing data analysis tasks."
+    action_units = [
+        ActionUnit("load_data", "Load the dataset."),
+        ActionUnit("preprocess_data", "Preprocess the dataset."),
+        ActionUnit("train_model", "Train the machine learning model."),
+        ActionUnit("evaluate_model", "Evaluate the model performance.")
+    ]
 
-data_scientist = DataScientistAgent(guidelines, action_units)
-task_context = data_scientist.run_task()
+    data_scientist = DataScientistAgent(guidelines, action_units)
+    task_context = data_scientist.run_task()
 
-for step in task_context:
-    print(json.dumps(step, indent=4))
+    for step in task_context:
+        print(json.dumps(step, indent=4))
