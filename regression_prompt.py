@@ -31,7 +31,7 @@ client = AzureOpenAI(
 )
 
 
-def call_openai_gpt_chat(prompt):
+def call_openai_gpt(prompt):
     messages = [
         {"role": "system", "content": "You are a helpful assistant."},
         {"role": "user",
