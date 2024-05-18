@@ -45,7 +45,8 @@ class TaskContext:
 
     def display(self):
         for step in self.history:
-            print(f"Step {step['index']}: {step['action_unit']}")
+            print(f"STEP {step['index']}")
+            print(f"Chosen action unit: {step['action_unit']}")
             print(f"Instruction: {step['instruction']}")
             print("Code:")
             print(step['code_snippet'])
@@ -66,6 +67,8 @@ class TaskContext:
 class DataScientistAgent:
     def __init__(self, guidelines, action_units, max_rounds=3):
         self.guidelines = guidelines
+        # TO DO: Please define an action unit as a class. It should hold the name, instruction, code snippet, and the
+        # code snippet buffer.
         self.action_units = action_units
         self.task_context = TaskContext()
         self.code_snippet_buffer = {unit: [] for unit in action_units.keys()}
@@ -81,13 +84,20 @@ class DataScientistAgent:
 
     def aggregate_code_snippets(self, unit):
         original_snippet = self.action_units[unit]['code_snippet']
+        # TO DO: please format the revised versions in the prompt, like "[original version]: xxx \n\n[version 1]: xxx ...
         revised_versions = self.code_snippet_buffer[unit]
-        prompt = f"Here is the original code snippet:\n\n{original_snippet}\n\nHere are the revised versions:\n\n{'\n\n'.join(revised_versions)}\n\nPlease combine these to create a modified version that addresses the errors."
+        # TO DO: solve the potential errors in string formatting. This file will involve complicated nested prompt
+        # templates that generates long multi-line text strings. Please choose a robust way of organizing the prompt.
+        prompt = f"We want to perform a task, with the gold guideline given below: \n\n{self.guidelines}" \
+                 f"Now we want to improve the code for a specific subtask. Below is a description of this subtask, which may or may not be accurate: \n\n{unit['instruction']}" \
+                 f"Here is the original code snippet which didn't seem to work:\n\n{original_snippet}\n\nHere are the candidate revised versions that worked:\n\n{'\n\n'.join(revised_versions)}\n" \
+                 f"Please read the candidate revised versions to understand the revisions made, either select the best one or combine their advantages, to write a single revised version."
         response = call_openai_gpt(prompt)
         return response
 
     def choose_action_unit(self):
-        prompt = f"You are a data scientist agent. Here is the guideline for your task: {self.guidelines}. Here is your current task context:\n\n{self.task_context.display()}\n\nHere are the action units you can choose, with their names and instructions:\n\n{json.dumps(self.action_units, indent=4)}\n\nBased on this information, please choose one and only one action unit. Please only answer the name of the unit.\n\nYour answer:"
+        # TO DO: Instead of using json.dump, we want to display the action unit options in a nicely formatted ways.
+        prompt = f"You are a data scientist agent. Here is the general guideline for your task: {self.guidelines}. Here is your current task context:\n\n{self.task_context.display()}\n\nHere are the action units you can choose, with their names and instructions:\n\n{json.dumps(self.action_units, indent=4)}\n\nBased on this information, please choose one and only one action unit. Please only answer the name of the unit.\n\nYour answer:"
         response = call_openai_gpt(prompt)
         return response.strip()
 
@@ -106,7 +116,8 @@ class DataScientistAgent:
             stderr=stderr,
             error=str(error) if error else None
         )
-
+        # TO DO: we want to review when the code snippet of the action unit is empty, not when the buffer is empty.
+        # The buffer is to store revised version when there is already a code snippet.
         if stderr or error or not self.code_snippet_buffer[action_unit]:
             self.review_and_correct(action_unit)
 
@@ -125,10 +136,13 @@ class DataScientistAgent:
         while round_counter < self.max_rounds:
             # Send code for review
             reviewer = CodeReviewerAgent()
+            # TO DO: The code review should receive the full context displayed, not just the last one.
             last_step = self.task_context.history[-1]
             feedback = reviewer.review_code(last_step)
 
-            # Check for approval or provide feedback
+            # TO DO: handle different cases correctly. If a code snippet is written to replace an empty one for the
+            # action unit, it should be used to directly replace the formal empty one.
+            # Otherwise, it should be put in butter.
             if "approved" in feedback.lower():
                 self.code_snippet_buffer[action_unit].append(last_step['code_snippet'])
                 self.action_units[action_unit]['code_snippet'] = last_step['code_snippet']
@@ -139,18 +153,13 @@ class DataScientistAgent:
             stdout, stderr, error = self.run_snippet(new_code_snippet, self.current_state)
 
             self.task_context.add_step(
-                action_unit=action_unit,
-                instruction=self.action_units[action_unit]['instruction'],
+                action_unit=f"Debugging Attempt {round_counter})",
+                instruction="(Omitted)",
                 code_snippet=new_code_snippet,
                 stdout=stdout,
                 stderr=stderr,
                 error=str(error) if error else None
             )
-
-            if not stderr and not error:
-                self.code_snippet_buffer[action_unit].append(new_code_snippet)
-                self.action_units[action_unit]['code_snippet'] = new_code_snippet
-                break
 
             round_counter += 1
 
