@@ -94,7 +94,7 @@ class DataScientistAgent:
     def execute_action_unit(self, action_unit):
         code_snippet = self.action_units[action_unit]['code_snippet']
         if not code_snippet:
-            code_snippet = self.write_initial_code(action_unit)  # TO DO: initialize the action unit with the code here?
+            code_snippet = self.write_initial_code(action_unit)
 
         stdout, stderr, error = self.run_snippet(code_snippet, self.current_state)
 
@@ -107,7 +107,7 @@ class DataScientistAgent:
             error=str(error) if error else None
         )
 
-        if stderr or error:
+        if stderr or error or not self.code_snippet_buffer[action_unit]:
             self.review_and_correct(action_unit)
 
     def run_snippet(self, snippet, namespace):
@@ -126,11 +126,12 @@ class DataScientistAgent:
             # Send code for review
             reviewer = CodeReviewerAgent()
             last_step = self.task_context.history[-1]
-            feedback = reviewer.review_code(last_step['code_snippet'])
+            feedback = reviewer.review_code(last_step)
 
             # Check for approval or provide feedback
             if "approved" in feedback.lower():
                 self.code_snippet_buffer[action_unit].append(last_step['code_snippet'])
+                self.action_units[action_unit]['code_snippet'] = last_step['code_snippet']
                 break
 
             # Correct the code based on feedback
@@ -148,6 +149,7 @@ class DataScientistAgent:
 
             if not stderr and not error:
                 self.code_snippet_buffer[action_unit].append(new_code_snippet)
+                self.action_units[action_unit]['code_snippet'] = new_code_snippet
                 break
 
             round_counter += 1
@@ -174,10 +176,28 @@ class DataScientistAgent:
 
 
 class CodeReviewerAgent:
-    def review_code(self, code_snippet):
-        prompt = f"Review the following code snippet:\n\n{code_snippet}"
+    def review_code(self, step):
+        prompt = f"Review the following code snippet in the context of the task:\n\nTask context:\n{self.format_context(step)}\n\nCode:\n{step['code_snippet']}\n\nExecution result:\nStdout:\n{step['stdout']}\nStderr:\n{step['stderr']}\n\nYour feedback:"
         response = call_openai_gpt(prompt)
         return response
+
+    def format_context(self, step):
+        context = []
+        for previous_step in step['history']:
+            context.append(f"Step {previous_step['index']}: {previous_step['action_unit']}")
+            context.append(f"Instruction: {previous_step['instruction']}")
+            context.append("Code:")
+            context.append(previous_step['code_snippet'])
+            context.append("Output:")
+            context.append(previous_step['stdout'])
+            if previous_step['stderr']:
+                context.append("Errors:")
+                context.append(previous_step['stderr'])
+            if 'error' in previous_step:
+                context.append("Execution Error:")
+                context.append(previous_step['error'])
+            context.append("=" * 50)
+        return "\n".join(context)
 
 
 # Example usage:
