@@ -76,6 +76,8 @@ def select_and_load_cohort(data_root: str, trait: str, condition=None, is_two_st
 
     """
     trait_dir = os.path.join(data_root, trait)
+    if not condition:
+        is_two_step = False
     if not is_two_step:
         trait_cohort_id, trait_info_df = filter_and_rank_cohorts(os.path.join(trait_dir, 'cohort_info.json'), condition)
         if trait_cohort_id is None:
@@ -84,7 +86,6 @@ def select_and_load_cohort(data_root: str, trait: str, condition=None, is_two_st
             trait_data = pd.read_csv(os.path.join(trait_dir, trait_cohort_id + '.csv')).astype('float')
             return trait_data, None, None
     else:
-        assert condition is not None, "A condition must be specified for two-step regression"
         assert gene_info_path is not None, "A path to gene information file must be specified for two-step regression"
         condition_dir = os.path.join(data_root, condition)
         trait_cohort_id, trait_info_df = filter_and_rank_cohorts(os.path.join(trait_dir, 'cohort_info.json'), None)

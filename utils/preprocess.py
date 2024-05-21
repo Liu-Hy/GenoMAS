@@ -129,9 +129,20 @@ def get_gene_mapping(annotation, prob_col, gene_col):
     return mapping_data
 
 
-def get_genetic_data(file_path):
+def get_genetic_data(file_path, marker="!series_matrix_table_begin"):
     """Read the gene expression data into a dataframe, and adjust its format"""
-    genetic_data = pd.read_csv(file_path, compression='gzip', skiprows=52, comment='!', delimiter='\t')
+    # Determine the number of rows to skip
+    with gzip.open(file_path, 'rt') as file:
+        for i, line in enumerate(file):
+            if marker in line:
+                skip_rows = i + 1  # +1 to skip the marker row itself
+                break
+        else:
+            raise ValueError(f"Marker '{marker}' not found in the file.")
+
+    # Read the genetic data into a dataframe
+    genetic_data = pd.read_csv(file_path, compression='gzip', skiprows=skip_rows, comment='!', delimiter='\t',
+                               on_bad_lines='skip')
     genetic_data = genetic_data.dropna()
     genetic_data = genetic_data.rename(columns={'ID_REF': 'ID'}).astype({'ID': 'str'})
     genetic_data.set_index('ID', inplace=True)
@@ -191,11 +202,14 @@ def normalize_gene_symbols(gene_symbols, batch_size=1000):
 
 def normalize_gene_symbols_in_index(gene_df):
     """Normalize the human gene symbols at the index of a dataframe, and replace the index with its normalized version.
-    Remove the rows where the index failed to be normalized."""
+    Aggregate rows where the index is normalized to the same gene by averaging the values."""
     normalized_gene_list = normalize_gene_symbols(gene_df.index.tolist())
     assert len(normalized_gene_list) == len(gene_df.index)
+
     gene_df.index = normalized_gene_list
     gene_df = gene_df[gene_df.index.notnull()]
+    gene_df = gene_df.groupby(gene_df.index).mean()
+
     return gene_df
 
 
