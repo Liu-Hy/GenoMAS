@@ -18,9 +18,11 @@ Return ```python your_code_here ``` with NO other texts. your_code_here is a pla
 your code:
 
 """
-def call_openai_gpt(prompt):
+def call_openai_gpt(prompt, sys_prompt=None):
+    if sys_prompt is None:
+        sys_prompt = "You are a helpful assistant."
     messages = [
-        {"role": "system", "content": "You are a helpful assistant."},
+        {"role": "system", "content": sys_prompt},
         {"role": "user", "content": prompt}
     ]
     response = client.chat.completions.create(
@@ -49,9 +51,10 @@ class TaskContext:
         self.history.append(step)
         self.current_step += 1
 
-    def display(self):
+    def display(self, last_only=False):
+        contxt_to_display = self.history[-1:] if last_only else self.history
         formatted_context = []
-        for step in self.history:
+        for step in contxt_to_display:
             formatted_context.append(f"STEP {step['index']}")
             formatted_context.append(f"Chosen action unit: {step['action_unit_name']}")
             formatted_context.append(f"Instruction: {step['instruction']}")
@@ -80,12 +83,37 @@ class ActionUnit:
 
 
 class DataScientistAgent:
-    def __init__(self, guidelines, action_units, max_rounds=3):
+    def __init__(self, role_prompt, tools, setups, guidelines, action_units, max_rounds=3):
+        self.role_prompt = role_prompt
+        self.tools = tools
+        self.setups = setups
         self.guidelines = guidelines
         self.action_units = {unit.name: unit for unit in action_units}
         self.task_context = TaskContext()
         self.current_state = {}
         self.max_rounds = max_rounds
+
+    def ask(self, prompt):
+        return call_openai_gpt(prompt, self.role_prompt)
+
+    def prepare_prompt(self, include_tools=True):
+        formatted_prompt = []
+        if include_tools:
+            formatted_prompt.append("To help you get prepared, I will provide you with the general guidelines for "
+                                    "the task, the task setups, the function tools, and the current context including the"
+                                    "instructions, code, and execution output of all previous steps taken.")
+        else:
+            formatted_prompt.append("To help you get prepared, I will provide you with the general guidelines for "
+                                    "the task, the task setups, and the current context including the"
+                                    "instructions, code, and execution output of all previous steps taken.")
+        formatted_prompt.append(f"General guidelines: \n{self.guidelines}")
+        formatted_prompt.append(f"Task setups: \n{self.setups}")
+        if include_tools:
+            formatted_prompt.append(f"Function tools: \n{self.tools}")
+        formatted_prompt.append(f"Task context: \n{self.task_context.display()}\n")
+
+        return "\n".join(formatted_prompt)
+
 
     def check_code_snippet_buffer(self):
         for unit in self.action_units.values():
@@ -111,7 +139,7 @@ class DataScientistAgent:
             f"Please read the candidate revised versions to understand the revisions made, either select the best one or combine their advantages, to write a single revised version."
         )
         prompt = prompt + CODE_INDUCER
-        response = call_openai_gpt(prompt)
+        response = self.ask(prompt)
         code = self.parse_code(response)
         return code
 
@@ -123,7 +151,7 @@ class DataScientistAgent:
                  f"Based on this information, please choose one and only one action unit. Please only answer the name of the unit, chosen from the below list" \
                  f"{[unit.name for unit in self.action_units.values()]}" \
                  f"\n\nYour answer:"
-        response = call_openai_gpt(prompt)
+        response = self.ask(prompt)
         return response.strip()
 
     def execute_action_unit(self, action_unit_name):
@@ -142,7 +170,7 @@ class DataScientistAgent:
             stderr=stderr,
             error=str(error) if error else None
         )
-        print(self.task_context.display())
+        print(self.task_context.display(last_only=True))
 
         if stderr or error or not action_unit.code_snippet:
             self.review_and_correct(action_unit_name)
@@ -161,7 +189,7 @@ class DataScientistAgent:
         round_counter = 0
         while round_counter < self.max_rounds:
             # Send code for review
-            reviewer = CodeReviewerAgent()
+            reviewer = CodeReviewerAgent("You are a code reviewer in this project.")
             full_context = self.task_context.display()
             feedback = reviewer.review_code(self.guidelines, full_context, self.task_context.history[-1])
 
@@ -185,25 +213,34 @@ class DataScientistAgent:
                 stderr=stderr,
                 error=str(error) if error else None
             )
-            print(self.task_context.display())
+            print(self.task_context.display(last_only=True))
 
-            if not stderr and not error:
-                self.action_units[action_unit_name].code_snippet_buffer.append(new_code_snippet)
-                break
+            # if not stderr and not error:
+            #     self.action_units[action_unit_name].code_snippet_buffer.append(new_code_snippet)
+            #     break
 
             round_counter += 1
 
     def correct_code(self, action_unit_name, feedback):
-        prompt = f"{self.guidelines}\n Based on the following feedback, write a corrected version of the code:\n\nFeedback: {feedback}\n\nCode:\n{self.task_context.history[-1]['code_snippet']}"
-        prompt = prompt + CODE_INDUCER
-        response = call_openai_gpt(prompt)
+        formatted_prompt = []
+        formatted_prompt.append(f"I will provide you with detailed information about the task. Please read relevant "
+                                f"information and correct the code for the last step.")
+        formatted_prompt.append(self.prepare_prompt())
+        formatted_prompt.append(f"Reviewer's feedback\n: {feedback}")
+        formatted_prompt.append(f"Based on the reviewer's feedback, write a corrected version of the code below: \n"
+                                f"{self.task_context.history[-1]['code_snippet']}")
+        formatted_prompt.append(CODE_INDUCER)
+        prompt = "\n".join(formatted_prompt)
+        response = self.ask(prompt)
         code = self.parse_code(response)
         return code
 
     def write_initial_code(self, action_unit):
-        prompt = f"{self.guidelines}\n Write the initial code for the following instruction:\n\n{action_unit.instruction}"
+        prompt = self.prepare_prompt()
+        prompt += f"\nNow that you've been familiar with the task setups and current status, please write the code " \
+                 f"following the instructions:\n\n{action_unit.instruction}\n"
         prompt = prompt + CODE_INDUCER
-        response = call_openai_gpt(prompt)
+        response = self.ask(prompt)
         code = self.parse_code(response)
         return code
 
@@ -214,7 +251,6 @@ class DataScientistAgent:
             if action_unit_name == "task_completed":
                 break
             self.execute_action_unit(action_unit_name)
-        print(self.task_context.display())
         return self.task_context.history
 
     @staticmethod
@@ -226,13 +262,17 @@ class DataScientistAgent:
 
 
 class CodeReviewerAgent:
+    def __init__(self, role_prompt):
+        self.role_prompt = role_prompt
+    def ask(self, prompt):
+        return call_openai_gpt(prompt, self.role_prompt)
     def review_code(self, guideline, full_context, step):
         prompt = f"{guideline}" \
                  f"Review the following code snippet in the context of the task:\n\nTask context:\n{full_context}\n\n" \
                  f"Code:\n{step['code_snippet']}\n\n" \
                  f"Execution result:\nStdout:\n{step['stdout']}\nStderr:\n{step['stderr']}\n\n" \
                  f"Your feedback:"
-        response = call_openai_gpt(prompt)
+        response = self.ask(prompt)
         print(response)
         return response
 
@@ -281,6 +321,11 @@ if __name__ == "__main__":
     data_root = '/home/techt/Desktop/a4s/gold_subset'
     output_root = './output_agent'
 
+    role_prompt = """You are a statistician in a biomedical research team, and your main goal is to write code to do statistical 
+        analysis on biomedical datasets.
+        In this project, you will explore gene expression datasets to identify the significant genes related to a trait, 
+        optionally controlling for a condition."""
+
     guidelines = """In this project, your job is to implement statistical models to identify significant genes related 
 to traits. 
 There are three types of problems to solve. The steps you should take depend on the problem type. 
@@ -290,24 +335,23 @@ There are three types of problems to solve. The steps you should take depend on 
 
 """
 
-    ROLE_BG: str = \
+    TOOLS: str = \
         """
-        Role: You are a statistician in a biomedical research team, and your main goal is to write code to do statistical 
-        analysis on biomedical datasets.
-        In this project, you will explore gene expression datasets to identify the significant genes related to a trait, 
-        optionally controlling for a condition.
-
-        Tools: In "utils.statistics", there are lots of well-developed helper functions for this project. Please import 
+        Tools: 
+        In "utils.statistics", there are lots of well-developed helper functions for this project. Please import 
         and use them when possible. Hereafter I will call it "the library". Below is the source code.
         {utils_code}
+        """
 
-        Background:
+    SETUPS : str = \
+        """
+        Setups:
         1. All input data are stored in the directory: '{data_root}'.
         2. The output should be saved to the directory '{output_root}', under a subdirectory named after the trait.
         3. External knowledge about genes related to each trait is available in a file '{gene_info_path}'.
 
         NOTICE1: Please import all the functions in 'utils.statistics' at the beginning of the code, and feel free to use '*' in the import statement.
-        NOTICE2: The overall preprocessing requires multiple code snippets and each code snippet is based on the execution results of the last code snippet. 
+        NOTICE2: The overall preprocessing requires multiple code snippets and each code snippet is based on the execution results of the previous code snippets. 
         Consequently, the instruction will be divided into multiple STEPS, each STEP requires you to write a code snippet, then the execution result will be given to you for either revision of the current STEP or go to the next STEP.
 
         Based on the context, write code to follow the instructions.
@@ -388,15 +432,14 @@ There are three types of problems to solve. The steps you should take depend on 
     for index, pair in enumerate(all_pairs):
         trait, condition = pair
         if index < 3: continue
-        #if condition is None or condition in ['Age', 'Gender'] or 'Endometriosis' in [trait, condition]: continue
-        if condition is not None: continue
+        if condition is None or condition in ['Age', 'Gender'] or 'Endometriosis' in [trait, condition]: continue
+        #if condition is not None: continue
         question = f"\nThe question to solve is: What are the genetic factors related to the trait '{trait}' when considering the influence of the " \
                    f"condition '{condition}'?"
         print(trait, condition)
         # if trait != 'Adrenocortical_Cancer' or condition != 'Anxiety_disorder': continue
-        instruction_head = ROLE_BG.format(utils_code=utils_code, data_root=data_root,
-                                                            output_root=output_root,
-                                                            gene_info_path=gene_info_path)
+        tools = TOOLS.format(utils_code=utils_code)
+        setups = SETUPS.format(data_root=data_root, output_root=output_root, gene_info_path=gene_info_path)
 
         action_units = [
             ActionUnit("unconditional one-step regression", UNCONDITIONAL_ONE_STEP_PROMPT.format(trait=trait, condition=condition,
@@ -408,7 +451,7 @@ There are three types of problems to solve. The steps you should take depend on 
             ActionUnit("task_completed", "Task completed, you don't need to write any code.")
         ]
 
-        data_scientist = DataScientistAgent(instruction_head + guidelines + question, action_units)
+        data_scientist = DataScientistAgent(role_prompt, tools, setups, guidelines + question, action_units)
         task_context = data_scientist.run_task()
 
         for step in task_context:
