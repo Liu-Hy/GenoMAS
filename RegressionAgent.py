@@ -192,15 +192,18 @@ class DataScientistAgent:
             return stdout.getvalue(), stderr.getvalue(), e
 
     def review_and_correct(self, action_unit_name, stderr, error):
-        round = 0
-        while round < self.max_rounds:
+        round_counter = 0
+        while round_counter < self.max_rounds:
             # Send code for review
             reviewer = CodeReviewerAgent("You are a code reviewer in this project.")
-            feedback = reviewer.review_code(self.prepare_prompt(contxt_end=-1), self.task_context.display(start_id=-1),
-                                            self.debug_context.display(debug=True))
+            feedback = reviewer.review_code(
+                self.prepare_prompt(contxt_end=-1),
+                self.task_context.display(start_id=-1),
+                self.debug_context.display(debug=True)
+            )
 
-            if ("approved" in feedback.lower()) and (not stderr) and (not error):
-                if round > 0:
+            if "approved" in feedback.lower() and not stderr and not error:
+                if round_counter > 0:
                     for key in self.task_context.history[-1]:
                         if key not in ['index', 'action_unit_name', 'instruction']:
                             self.task_context.history[-1][key] = self.debug_context.history[-1][key]
@@ -217,7 +220,7 @@ class DataScientistAgent:
             stdout, stderr, error = self.run_snippet(new_code_snippet, self.current_state)
 
             self.debug_context.add_step(
-                action_unit_name=f"Debugging Attempt {round}",
+                action_unit_name=f"Debugging Attempt {round_counter}",
                 instruction="(Omitted)",
                 code_snippet=new_code_snippet,
                 stdout=stdout,
@@ -226,7 +229,7 @@ class DataScientistAgent:
             )
             print(self.debug_context.display(start_id=-1, debug=True))
 
-            round += 1
+            round_counter += 1
 
     def correct_code(self, feedback):
         formatted_prompt = []
@@ -270,8 +273,10 @@ class DataScientistAgent:
 class CodeReviewerAgent:
     def __init__(self, role_prompt):
         self.role_prompt = role_prompt
+
     def ask(self, prompt):
         return call_openai_gpt(prompt, self.role_prompt)
+
     def review_code(self, prev_context, last_context, debug_context):
         formatted_prompt = []
         formatted_prompt.append(prev_context)
