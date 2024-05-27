@@ -51,20 +51,24 @@ class TaskContext:
         self.history.append(step)
         self.current_step += 1
 
-    def display(self, last_only=False):
-        contxt_to_display = self.history[-1:] if last_only else self.history
+    def display(self, start_id=None, end_id=None, debug=True):
+        contxt_to_display = self.history[start_id: end_id]
         formatted_context = []
         for step in contxt_to_display:
-            formatted_context.append(f"STEP {step['index']}")
+            if not debug:
+                formatted_context.append(f"STEP {step['index']}")
             formatted_context.append(f"Chosen action unit: {step['action_unit_name']}")
-            formatted_context.append(f"Instruction: {step['instruction']}")
+            formatted_context.append(f"Instruction:\n{step['instruction']}")
             formatted_context.append(f"Code:\n{step['code_snippet']}")
             formatted_context.append(f"Output:\n{step['stdout']}")
             if step['stderr']:
                 formatted_context.append(f"Errors:\n{step['stderr']}")
             if 'error' in step:
                 formatted_context.append(f"Execution Error:\n{step['error']}")
-            formatted_context.append("=" * 50)
+            if not debug:
+                formatted_context.append("=" * 50)
+            else:
+                formatted_context.append("\n")
         return "\n".join(formatted_context)
 
     def concatenate_snippets(self, up_to_index):
@@ -83,41 +87,42 @@ class ActionUnit:
 
 
 class DataScientistAgent:
-    def __init__(self, role_prompt, tools, setups, guidelines, action_units, max_rounds=3):
+    def __init__(self, role_prompt, guidelines, setups, tools, action_units, max_rounds=3):
         self.role_prompt = role_prompt
-        self.tools = tools
-        self.setups = setups
         self.guidelines = guidelines
+        self.setups = setups
+        self.tools = tools
         self.action_units = {unit.name: unit for unit in action_units}
         self.task_context = TaskContext()
+        self.debug_context = TaskContext()
         self.current_state = {}
         self.max_rounds = max_rounds
 
     def ask(self, prompt):
         return call_openai_gpt(prompt, self.role_prompt)
 
-    def prepare_prompt(self, include_tools=True):
+    def prepare_prompt(self, include_tools=True, contxt_start=None, contxt_end=None):
         formatted_prompt = []
         if include_tools:
             formatted_prompt.append("To help you get prepared, I will provide you with the general guidelines for "
-                                    "the task, the task setups, the function tools, and the current context including the"
-                                    "instructions, code, and execution output of all previous steps taken.")
+                                    "the task, the task setups, the function tools, and the context of previous steps "
+                                    "taken, including the instructions, code, and execution output of each step.")
         else:
             formatted_prompt.append("To help you get prepared, I will provide you with the general guidelines for "
-                                    "the task, the task setups, and the current context including the"
-                                    "instructions, code, and execution output of all previous steps taken.")
+                                    "the task, the task setups, and the context of previous steps taken, including the "
+                                    "instructions, code, and execution output of each step.")
         formatted_prompt.append(f"General guidelines: \n{self.guidelines}")
         formatted_prompt.append(f"Task setups: \n{self.setups}")
         if include_tools:
             formatted_prompt.append(f"Function tools: \n{self.tools}")
-        formatted_prompt.append(f"Task context: \n{self.task_context.display()}\n")
+        formatted_prompt.append(f"Task context: \n{self.task_context.display(contxt_start, contxt_end)}\n")
 
         return "\n".join(formatted_prompt)
 
 
     def check_code_snippet_buffer(self):
         for unit in self.action_units.values():
-            if len(unit.code_snippet_buffer) == 3:
+            if len(unit.code_snippet_buffer) >= 3:
                 modified_snippet = self.aggregate_code_snippets(unit)
                 unit.code_snippet = modified_snippet
                 unit.code_snippet_buffer.clear()
@@ -127,30 +132,31 @@ class DataScientistAgent:
         revised_versions = unit.code_snippet_buffer
         formatted_versions = [f"[version {i + 1}]: \n{version}" for i, version in enumerate(revised_versions)]
         formatted_versions = '\n\n'.join(formatted_versions)
-        prompt = (
-            f"We want to perform a task, with the gold guideline given below:\n\n"
-            f"{self.guidelines}\n\n"
-            f"Now we want to improve the code for a specific subtask. Below is a description of this subtask:\n\n"
-            f"{unit.instruction}\n\n"
-            f"Here is the original code snippet which didn't seem to work:\n\n"
-            f"{original_snippet}\n\n"
-            f"Here are the candidate revised versions that worked:\n\n"
-            f"{formatted_versions}\n\n"
-            f"Please read the candidate revised versions to understand the revisions made, either select the best one or combine their advantages, to write a single revised version."
-        )
-        prompt = prompt + CODE_INDUCER
+        prompt = []
+        prompt.append(f"We want to perform a task, with the gold guideline given below:\n\n{self.guidelines}\n")
+        prompt.append(f"Now we want to improve the code for a specific subtask. Below is a description of this subtask"
+                      f":\n\n{unit.instruction}\n")
+        prompt.append(f"Here is the original code snippet which didn't seem to work:\n\n{original_snippet}\n")
+        prompt.append(f"Here are the candidate revised versions that worked:\n{formatted_versions}\n")
+        prompt.append(f"Please read the candidate revised versions to understand the revisions made, either select the "
+                      f"best one or combine their advantages, to write a single revised version.")
+        prompt.append(CODE_INDUCER)
+        prompt = "\n".join(prompt)
         response = self.ask(prompt)
         code = self.parse_code(response)
         return code
 
     def choose_action_unit(self):
         action_units_formatted = "\n".join([str(unit) for unit in self.action_units.values()])
-        prompt = f"Here is the general guideline for your task:\n\n{self.guidelines}\n\n" \
-                 f"Here is your current task context:\n\n{self.task_context.display()}\n\n" \
-                 f"Here are the action units you can choose for the next step, with their names and instructions:\n\n{action_units_formatted}\n\n" \
-                 f"Based on this information, please choose one and only one action unit. Please only answer the name of the unit, chosen from the below list" \
-                 f"{[unit.name for unit in self.action_units.values()]}" \
-                 f"\n\nYour answer:"
+        prompt = []
+        prompt.append(f"Here is the general guideline for your task:\n\n{self.guidelines}\n")
+        prompt.append(f"Here is your current task context:\n\n{self.task_context.display()}\n")
+        prompt.append(f"Here are the action units you can choose for the next step, with their names and instructions:"
+                      f"\n\n{action_units_formatted}\n")
+        prompt.append(f"Based on this information, please choose one and only one action unit. Please only answer the "
+                      f"name of the unit, chosen from the below list {[unit.name for unit in self.action_units.values()]}"
+                      f"\n\nYour answer:")
+        prompt = "\n".join(prompt)
         response = self.ask(prompt)
         return response.strip()
 
@@ -170,10 +176,10 @@ class DataScientistAgent:
             stderr=stderr,
             error=str(error) if error else None
         )
-        print(self.task_context.display(last_only=True))
+        print(self.task_context.display(start_id=-1))
 
         if stderr or error or not action_unit.code_snippet:
-            self.review_and_correct(action_unit_name)
+            self.review_and_correct(action_unit_name, stderr, error)
 
     def run_snippet(self, snippet, namespace):
         stdout = io.StringIO()
@@ -185,15 +191,20 @@ class DataScientistAgent:
         except Exception as e:
             return stdout.getvalue(), stderr.getvalue(), e
 
-    def review_and_correct(self, action_unit_name):
-        round_counter = 0
-        while round_counter < self.max_rounds:
+    def review_and_correct(self, action_unit_name, stderr, error):
+        round = 0
+        while round < self.max_rounds:
             # Send code for review
             reviewer = CodeReviewerAgent("You are a code reviewer in this project.")
-            full_context = self.task_context.display()
-            feedback = reviewer.review_code(self.guidelines, full_context, self.task_context.history[-1])
+            feedback = reviewer.review_code(self.prepare_prompt(contxt_end=-1), self.task_context.display(start_id=-1),
+                                            self.debug_context.display(debug=True))
 
-            if "approved" in feedback.lower():
+            if ("approved" in feedback.lower()) and (not stderr) and (not error):
+                if round > 0:
+                    for key in self.task_context.history[-1]:
+                        if key not in ['index', 'action_unit_name', 'instruction']:
+                            self.task_context.history[-1][key] = self.debug_context.history[-1][key]
+                self.debug_context = TaskContext()
                 if not self.action_units[action_unit_name].code_snippet:
                     self.action_units[action_unit_name].code_snippet = self.task_context.history[-1]['code_snippet']
                 else:
@@ -202,33 +213,28 @@ class DataScientistAgent:
                 break
 
             # Correct the code based on feedback
-            new_code_snippet = self.correct_code(action_unit_name, feedback)
+            new_code_snippet = self.correct_code(feedback)
             stdout, stderr, error = self.run_snippet(new_code_snippet, self.current_state)
 
-            self.task_context.add_step(
-                action_unit_name=f"Debugging Attempt {round_counter}",
+            self.debug_context.add_step(
+                action_unit_name=f"Debugging Attempt {round}",
                 instruction="(Omitted)",
                 code_snippet=new_code_snippet,
                 stdout=stdout,
                 stderr=stderr,
                 error=str(error) if error else None
             )
-            print(self.task_context.display(last_only=True))
+            print(self.debug_context.display(start_id=-1, debug=True))
 
-            # if not stderr and not error:
-            #     self.action_units[action_unit_name].code_snippet_buffer.append(new_code_snippet)
-            #     break
+            round += 1
 
-            round_counter += 1
-
-    def correct_code(self, action_unit_name, feedback):
+    def correct_code(self, feedback):
         formatted_prompt = []
-        formatted_prompt.append(f"I will provide you with detailed information about the task. Please read relevant "
-                                f"information and correct the code for the last step.")
-        formatted_prompt.append(self.prepare_prompt())
+        formatted_prompt.append(self.prepare_prompt(contxt_end=-1))
+        formatted_prompt.append(f"The below step requires correction")
+        formatted_prompt.append(self.task_context.display(start_id=-1))
         formatted_prompt.append(f"Reviewer's feedback\n: {feedback}")
-        formatted_prompt.append(f"Based on the reviewer's feedback, write a corrected version of the code below: \n"
-                                f"{self.task_context.history[-1]['code_snippet']}")
+        formatted_prompt.append(f"Based on the reviewer's feedback, write a corrected version of the code for this step")
         formatted_prompt.append(CODE_INDUCER)
         prompt = "\n".join(formatted_prompt)
         response = self.ask(prompt)
@@ -266,33 +272,26 @@ class CodeReviewerAgent:
         self.role_prompt = role_prompt
     def ask(self, prompt):
         return call_openai_gpt(prompt, self.role_prompt)
-    def review_code(self, guideline, full_context, step):
-        prompt = f"{guideline}" \
-                 f"Review the following code snippet in the context of the task:\n\nTask context:\n{full_context}\n\n" \
-                 f"Code:\n{step['code_snippet']}\n\n" \
-                 f"Execution result:\nStdout:\n{step['stdout']}\nStderr:\n{step['stderr']}\n\n" \
-                 f"Your feedback:"
+    def review_code(self, prev_context, last_context, debug_context):
+        formatted_prompt = []
+        formatted_prompt.append(prev_context)
+        formatted_prompt.append(f"NOTE: The below code requires review: ")
+        formatted_prompt.append(last_context)
+        if debug_context:
+            formatted_prompt.append(f"Below are previously failed revision attempt(s). Not for review this time, but just "
+                                    f"for your reference:")
+            formatted_prompt.append(debug_context)
+            print(f"Debug context: {debug_context}")
+        formatted_prompt.append("Review the code to determine if it can be successfully executed and if it conforms to "
+                                "the given instructions. If not, provide a feedback to the code writer for revision "
+                                "and improvement. If the code functions correctly, and any issues are related to code "
+                                "quality or handling of corner cases, approve it because it can be slightly revised "
+                                "later. Return your decision as either \"Final Decision: approved\" or \"Final Decision"
+                                ": need major revision.\"")
+        prompt = "\n".join(formatted_prompt)
         response = self.ask(prompt)
         print(response)
         return response
-
-    def format_context(self, context):
-        formatted_context = []
-        for step in context.history:
-            formatted_context.append(f"STEP {step['index']}: {step['action_unit_name']}")
-            formatted_context.append(f"Instruction: {step['instruction']}")
-            formatted_context.append("Code:")
-            formatted_context.append(step['code_snippet'])
-            formatted_context.append("Output:")
-            formatted_context.append(step['stdout'])
-            if step['stderr']:
-                formatted_context.append("Errors:")
-                formatted_context.append(step['stderr'])
-            if 'error' in step:
-                formatted_context.append("Execution Error:")
-                formatted_context.append(step['error'])
-            formatted_context.append("=" * 50)
-        return "\n".join(formatted_context)
 
 
 if __name__ == "__main__":
@@ -451,7 +450,7 @@ There are three types of problems to solve. The steps you should take depend on 
             ActionUnit("task_completed", "Task completed, you don't need to write any code.")
         ]
 
-        data_scientist = DataScientistAgent(role_prompt, tools, setups, guidelines + question, action_units)
+        data_scientist = DataScientistAgent(role_prompt, guidelines + question, setups, tools, action_units)
         task_context = data_scientist.run_task()
 
         for step in task_context:
