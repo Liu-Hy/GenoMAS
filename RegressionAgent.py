@@ -3,6 +3,7 @@ import io
 from contextlib import redirect_stdout, redirect_stderr
 import json
 import re
+import copy
 from openai import AzureOpenAI
 
 # Azure OpenAI client setup
@@ -12,8 +13,7 @@ client = AzureOpenAI(
     azure_endpoint="https://haoyang2.openai.azure.com/"
 )
 
-CODE_INDUCER: str = \
-"""
+CODE_INDUCER = """
 Return ```python your_code_here ``` with NO other texts. your_code_here is a placeholder.
 your code:
 
@@ -51,20 +51,22 @@ class TaskContext:
         self.history.append(step)
         self.current_step += 1
 
-    def display(self, start_id=None, end_id=None, debug=True):
+    def display(self, start_id=None, end_id=None, debug=False):
         contxt_to_display = self.history[start_id: end_id]
         formatted_context = []
         for step in contxt_to_display:
             if not debug:
                 formatted_context.append(f"STEP {step['index']}")
-            formatted_context.append(f"Chosen action unit: {step['action_unit_name']}")
-            formatted_context.append(f"Instruction:\n{step['instruction']}")
-            formatted_context.append(f"Code:\n{step['code_snippet']}")
-            formatted_context.append(f"Output:\n{step['stdout']}")
+                formatted_context.append(f"[Chosen action unit]: {step['action_unit_name']}")
+                formatted_context.append(f"[Instruction]:\n{step['instruction']}")
+            else:
+                formatted_context.append(f"[{step['action_unit_name']}]")
+            formatted_context.append(f"[Code]:\n{step['code_snippet']}")
+            formatted_context.append(f"[Output]:\n{step['stdout']}")
             if step['stderr']:
-                formatted_context.append(f"Errors:\n{step['stderr']}")
+                formatted_context.append(f"[Errors]:\n{step['stderr']}")
             if 'error' in step:
-                formatted_context.append(f"Execution Error:\n{step['error']}")
+                formatted_context.append(f"[Execution Error]:\n{step['error']}")
             if not debug:
                 formatted_context.append("=" * 50)
             else:
@@ -95,7 +97,8 @@ class DataScientistAgent:
         self.action_units = {unit.name: unit for unit in action_units}
         self.task_context = TaskContext()
         self.debug_context = TaskContext()
-        self.current_state = {}
+        self.current_exec_state = {}
+        self.backup_exec_state = {}
         self.max_rounds = max_rounds
 
     def ask(self, prompt):
@@ -111,14 +114,19 @@ class DataScientistAgent:
             formatted_prompt.append("To help you get prepared, I will provide you with the general guidelines for "
                                     "the task, the task setups, and the context of previous steps taken, including the "
                                     "instructions, code, and execution output of each step.")
-        formatted_prompt.append(f"General guidelines: \n{self.guidelines}")
-        formatted_prompt.append(f"Task setups: \n{self.setups}")
+        formatted_prompt.append(f"**General guidelines**: \n{self.guidelines}")
+        formatted_prompt.append(f"**Task setups**: \n{self.setups}")
         if include_tools:
-            formatted_prompt.append(f"Function tools: \n{self.tools}")
-        formatted_prompt.append(f"Task context: \n{self.task_context.display(contxt_start, contxt_end)}\n")
+            formatted_prompt.append(f"**Function tools**: \n{self.tools}")
+        formatted_prompt.append(f"**Task context**: \n{self.task_context.display(contxt_start, contxt_end)}\n")
 
         return "\n".join(formatted_prompt)
 
+    def merge_revision_into_context(self):
+        for key in self.task_context.history[-1]:
+            if key not in ['index', 'action_unit_name', 'instruction']:
+                self.task_context.history[-1][key] = self.debug_context.history[-1][key]
+        self.debug_context = TaskContext()
 
     def check_code_snippet_buffer(self):
         for unit in self.action_units.values():
@@ -166,7 +174,10 @@ class DataScientistAgent:
         if not code_snippet:
             code_snippet = self.write_initial_code(action_unit)
 
-        stdout, stderr, error = self.run_snippet(code_snippet, self.current_state)
+        # Backup current state before execution
+        self.backup_exec_state = copy.deepcopy(self.current_exec_state)
+
+        stdout, stderr, error = self.run_snippet(code_snippet, self.current_exec_state)
 
         self.task_context.add_step(
             action_unit_name=action_unit_name,
@@ -199,15 +210,12 @@ class DataScientistAgent:
             feedback = reviewer.review_code(
                 self.prepare_prompt(contxt_end=-1),
                 self.task_context.display(start_id=-1),
-                self.debug_context.display(debug=True)
+                self.debug_context.display(end_id=-1, debug=True)
             )
-
+            print(feedback)
             if "approved" in feedback.lower() and not stderr and not error:
                 if round_counter > 0:
-                    for key in self.task_context.history[-1]:
-                        if key not in ['index', 'action_unit_name', 'instruction']:
-                            self.task_context.history[-1][key] = self.debug_context.history[-1][key]
-                self.debug_context = TaskContext()
+                    self.merge_revision_into_context()
                 if not self.action_units[action_unit_name].code_snippet:
                     self.action_units[action_unit_name].code_snippet = self.task_context.history[-1]['code_snippet']
                 else:
@@ -215,9 +223,11 @@ class DataScientistAgent:
                         self.task_context.history[-1]['code_snippet'])
                 break
 
+            # Restore state if execution failed and needs correction
+            self.current_exec_state = copy.deepcopy(self.backup_exec_state)
             # Correct the code based on feedback
             new_code_snippet = self.correct_code(feedback)
-            stdout, stderr, error = self.run_snippet(new_code_snippet, self.current_state)
+            stdout, stderr, error = self.run_snippet(new_code_snippet, self.current_exec_state)
 
             self.debug_context.add_step(
                 action_unit_name=f"Debugging Attempt {round_counter}",
@@ -230,6 +240,9 @@ class DataScientistAgent:
             print(self.debug_context.display(start_id=-1, debug=True))
 
             round_counter += 1
+
+        print(f"Exit due to maximum revision attempts {self.max_rounds} reached.")
+        self.merge_revision_into_context()
 
     def correct_code(self, feedback):
         formatted_prompt = []
@@ -295,7 +308,6 @@ class CodeReviewerAgent:
                                 ": need major revision.\"")
         prompt = "\n".join(formatted_prompt)
         response = self.ask(prompt)
-        print(response)
         return response
 
 
@@ -434,29 +446,30 @@ There are three types of problems to solve. The steps you should take depend on 
     utils_code = "".join(open("utils/statistics.py", 'r').readlines())
 
     for index, pair in enumerate(all_pairs):
-        trait, condition = pair
-        if index < 3: continue
-        if condition is None or condition in ['Age', 'Gender'] or 'Endometriosis' in [trait, condition]: continue
-        #if condition is not None: continue
-        question = f"\nThe question to solve is: What are the genetic factors related to the trait '{trait}' when considering the influence of the " \
-                   f"condition '{condition}'?"
-        print(trait, condition)
-        # if trait != 'Adrenocortical_Cancer' or condition != 'Anxiety_disorder': continue
-        tools = TOOLS.format(utils_code=utils_code)
-        setups = SETUPS.format(data_root=data_root, output_root=output_root, gene_info_path=gene_info_path)
+        try:
+            trait, condition = pair
+            # if index < 3: continue
+            # if condition is None or condition in ['Age', 'Gender'] or 'Endometriosis' in [trait, condition]: continue
+            #if condition is not None: continue
+            question = f"\nThe question to solve is: What are the genetic factors related to the trait '{trait}' when considering the influence of the " \
+                       f"condition '{condition}'?"
+            print(trait, condition)
+            # if trait != 'Adrenocortical_Cancer' or condition != 'Anxiety_disorder': continue
+            tools = TOOLS.format(utils_code=utils_code)
+            setups = SETUPS.format(data_root=data_root, output_root=output_root, gene_info_path=gene_info_path)
 
-        action_units = [
-            ActionUnit("unconditional one-step regression", UNCONDITIONAL_ONE_STEP_PROMPT.format(trait=trait, condition=condition,
-                                                     )),
-            ActionUnit("conditional one-step regression", CONDITIONAL_ONE_STEP_PROMPT.format(trait=trait, condition=condition,
-                                                     )),
-            ActionUnit("two-step regression", TWO_STEP_PROMPT.format(trait=trait, condition=condition,
-                                                     )),
-            ActionUnit("task_completed", "Task completed, you don't need to write any code.")
-        ]
+            action_units = [
+                ActionUnit("unconditional one-step regression", UNCONDITIONAL_ONE_STEP_PROMPT.format(trait=trait, condition=condition,
+                                                         )),
+                ActionUnit("conditional one-step regression", CONDITIONAL_ONE_STEP_PROMPT.format(trait=trait, condition=condition,
+                                                         )),
+                ActionUnit("two-step regression", TWO_STEP_PROMPT.format(trait=trait, condition=condition,
+                                                         )),
+                ActionUnit("task_completed", "Task completed, you don't need to write any code.")
+            ]
 
-        data_scientist = DataScientistAgent(role_prompt, guidelines + question, setups, tools, action_units)
-        task_context = data_scientist.run_task()
+            data_scientist = DataScientistAgent(role_prompt, guidelines + question, setups, tools, action_units)
+            task_context = data_scientist.run_task()
+        except:
+            continue
 
-        for step in task_context:
-            print(json.dumps(step, indent=4))
