@@ -15,7 +15,27 @@ client = AzureOpenAI(
 )
 
 CODE_INDUCER = """
+NOTE: 
+ONLY IMPLEMENT CODE FOR THE CURRENT STEP. MAKE SURE THE CODE CAN BE CONCATENATED WITH THE CODE FROM PREVIOUS STEPS AND CORRECTLY EXECUTED.
+
 Return ```python your_code_here ``` with NO other texts. your_code_here is a placeholder.
+your code:
+
+"""
+
+CODE_INDUCER2 = """
+NOTE: 
+ONLY IMPLEMENT CODE FOR THE CURRENT STEP. MAKE SURE THE CODE CAN BE CONCATENATED WITH THE CODE FROM PREVIOUS STEPS AND CORRECTLY EXECUTED.
+
+Please fill in the following code template:
+```python 
+# Initialize variables. Remember to change their values if they are available.
+is_gene_available = False
+trait_row = None  # set to a value if trait is available or can be inferred
+convert_trait = None  # define the function if trait is available or can be inferred
+
+your_code_here 
+```with NO other texts. your_code_here is a placeholder.
 your code:
 
 """
@@ -59,12 +79,13 @@ class TaskContext:
         }
         self.history.append(step)
 
-    def display(self, mode="all"):
+    def display(self, mode="all", domain_focus=False):
         assert mode in ["all", "past", "last"], "Unsupported mode: must be one of 'all', 'past', 'last'."
+        start_id = self.current_step - 1 if domain_focus else None
         if mode == "all":
-            contxt_to_display = self.history
+            contxt_to_display = self.history[start_id:]
         elif mode == "past":
-            contxt_to_display = self.history[:-1]
+            contxt_to_display = self.history[start_id:-1]
         else:
             contxt_to_display = self.history[-1:]
         formatted_context = []
@@ -76,6 +97,8 @@ class TaskContext:
                 formatted_context.append(f"STEP {step['index']}")
                 formatted_context.append(f"[Chosen action unit]: {step['action_unit_name']}")
                 formatted_context.append(f"[Instruction]:\n{step['instruction']}")
+                if domain_focus:
+                    formatted_context.append(self.history[start_id-1]['stdout'])
             formatted_context.append(f"[Code]:\n{step['code_snippet']}")
             formatted_context.append(f"[Output]:\n{step['stdout']}")
             if step['stderr']:
@@ -114,6 +137,8 @@ class GEOAgent:
         self.current_exec_state = {}
         self.backup_exec_state = {}
         self.max_rounds = max_rounds
+        self.one_history_only = ['2', '4']
+        self.need_biomedical_knowledge = ['2', '4', '6']
 
     def ask(self, prompt):
         return call_openai_gpt(prompt, self.role_prompt)
@@ -232,7 +257,7 @@ class GEOAgent:
         print(self.task_context.display(mode="last"))
 
         if stderr or error or not action_unit.code_snippet:
-            self.review_and_correct(action_unit_name)
+            self.review_and_correct(action_unit)
 
         self.clear_states(backup_only=True)
 
@@ -246,16 +271,14 @@ class GEOAgent:
         except Exception as e:
             return stdout.getvalue(), stderr.getvalue(), e
 
-    def review_and_correct(self, action_unit_name):
+    def review_and_correct(self, action_unit):
         round_counter = 0
         while round_counter < self.max_rounds:
             last_step = self.task_context.history[-1]
             stderr, error = last_step["stderr"], last_step["error"]
             # Send code for review
-            reviewer = CodeReviewerAgent()
-            feedback = reviewer.review_code(
-                self.prepare_prompt(mode="past"),
-                self.task_context.display(mode="last"),
+            feedback = self.send_code_for_review(
+                action_unit
             )
             print(feedback)
             if "approved" in feedback.lower() and not stderr and not error:
@@ -272,7 +295,7 @@ class GEOAgent:
             self.current_exec_state = copy.deepcopy(self.backup_exec_state)
             print(f"Restoring from backup took {round(time.time() - start_time, 2)} seconds")
             # Correct the code based on feedback
-            new_code_snippet = self.correct_code(feedback)
+            new_code_snippet = self.correct_code(action_unit, feedback)
             stdout, stderr, error = self.run_snippet(new_code_snippet, self.current_exec_state)
 
             self.task_context.add_step(
@@ -292,28 +315,83 @@ class GEOAgent:
         self.merge_revision_into_context()
 
 
-    def correct_code(self, feedback):
+    def correct_code(self, action_unit, feedback):
         formatted_prompt = []
-        formatted_prompt.append(self.prepare_prompt(mode="past"))
+        if action_unit.name in self.one_history_only:
+            formatted_prompt.append(self.task_context.display(mode="past"))
+            formatted_prompt.append("The detailed task instructions are provided below. Sometimes the record of"
+                                    "previous attempts are also provided")
+        else:
+            formatted_prompt.append(self.prepare_prompt(mode="past"))
         formatted_prompt.append(f"\nThe following code is the latest attempt for the current step and requires correction. "
-                                "Previous attempts may have been included in the task history above, but their presence"
-                                " does not indicate they succeeded or failed. You can refer to their execution outputs "
-                                "for context. Only correct the latest code attempt provided below.\n")
+                                "If previous attempts have been included in the task history above, their presence"
+                                " does not indicate they succeeded or failed, though you can refer to their execution "
+                                "outputs for context. \nOnly correct the latest code attempt provided below.\n")
         formatted_prompt.append(self.task_context.display(mode="last"))
         formatted_prompt.append(f"\nReviewer's feedback:\n{feedback}\n")
         formatted_prompt.append(f"Based on the reviewer's feedback, write a corrected version of the code\n")
         formatted_prompt.append(CODE_INDUCER)
         prompt = "\n".join(formatted_prompt)
-        response = self.ask(prompt)
+        if action_unit.name not in self.need_biomedical_knowledge:
+            response = self.ask(prompt)
+        else:
+            expert = DomainExpertAgent()
+            response = expert.ask(prompt)
+
         code = self.parse_code(response)
         return code
 
+    def send_code_for_review(self, action_unit):
+        formatted_prompt = []
+        if action_unit.name in self.one_history_only:
+            formatted_prompt.append(self.task_context.display(mode="past"))
+            formatted_prompt.append("The detailed task instructions are provided below. Sometimes the record of"
+                                    "previous attempts are also provided")
+        else:
+            formatted_prompt.append(self.prepare_prompt(mode="past"))
+        formatted_prompt.append("\n**TO DO: Code Review**\n"
+                                "The following code is the latest attempt for the current step and requires your review. "
+                                "If previous attempts have been included in the task history above, their presence"
+                                " does not indicate they succeeded or failed, though you can refer to their execution "
+                                "outputs for context. \nOnly review the latest code attempt provided below.\n")
+        formatted_prompt.append(self.task_context.display(mode="last"))
+        formatted_prompt.append("\nPlease review the code according to the following criteria:\n"
+                                "1. *Functionality*: Can the code be successfully executed in the current setting?\n"
+                                "2. *Conformance*: Does the code conform to the given instructions?\n"
+                                "Provide suggestions for revision and improvement if necessary.\n"
+                                "*NOTE*:\n"
+                                "1. Your review is not concerned with engineering code quality. The code is a quick "
+                                "demo for a research project, so the standards should not be strict.\n"
+                                "2. If you provide suggestions, please limit them to 1 to 3 key suggestions. Focus on "
+                                "the most important aspects, such as how to solve the execution errors or make the code "
+                                "conform to the instructions.\n\n"
+                                "Return your decision in the format: \"Final Decision: Approved\" or \"Final Decision: "
+                                "Rejected.\"")
+        prompt = "\n".join(formatted_prompt)
+        if action_unit.name not in self.need_biomedical_knowledge:
+            reviewer = CodeReviewerAgent()
+        else:
+            reviewer = DomainExpertAgent()
+        response = reviewer.ask(prompt)
+        return response
+
     def write_initial_code(self, action_unit):
-        prompt = self.prepare_prompt()
-        prompt += f"\n**TO DO: Programming** \nNow that you've been familiar with the task setups and current status" \
-                  f", please write the code following the instructions:\n\n{action_unit.instruction}\n"
-        prompt = prompt + CODE_INDUCER
-        response = self.ask(prompt)
+        if action_unit.name not in self.one_history_only:
+            prompt = self.prepare_prompt()
+            prompt += f"\n**TO DO: Programming** \nNow that you've been familiar with the task setups and current status" \
+                      f", please write the code following the instructions:\n\n{action_unit.instruction}\n"
+            prompt = prompt + CODE_INDUCER
+            if action_unit.name not in self.need_biomedical_knowledge:
+                response = self.ask(prompt)
+            else:
+                expert = DomainExpertAgent()
+                response = expert.ask(prompt)
+        else:
+            prompt = f"{action_unit.instruction}\n" \
+                     f"{self.task_context.history[-1]['stdout']}\n\n" \
+                     f"{CODE_INDUCER}"  # CODE_INDUCER 1 AND 2, TWO TYPES
+            expert = DomainExpertAgent()
+            response = expert.ask(prompt)
         code = self.parse_code(response)
         return code
 
@@ -322,6 +400,7 @@ class GEOAgent:
         self.check_code_snippet_buffer()
         while True:
             action_unit_name = self.choose_action_unit()
+            print('h\n'*10 + action_unit_name)
             if action_unit_name == "7":
                 break
             self.execute_action_unit(action_unit_name)
@@ -342,31 +421,6 @@ class CodeReviewerAgent:
     def ask(self, prompt):
         return call_openai_gpt(prompt, self.role_prompt)
 
-    def review_code(self, prev_context, last_context):
-        formatted_prompt = []
-        formatted_prompt.append(prev_context)
-        formatted_prompt.append("\n**TO DO: Code Review**\n"
-                                "The following code is the latest attempt for the current step and requires your review. "
-                                "Previous attempts may have been included in the task history above, but their presence"
-                                " does not indicate they succeeded or failed. You can refer to their execution outputs "
-                                "for context. Only review the latest code attempt provided below.\n")
-        formatted_prompt.append(last_context)
-        formatted_prompt.append("\nPlease review the code according to the following criteria:\n"
-                                "1. *Functionality*: Can the code be successfully executed in the current setting?\n"
-                                "2. *Conformance*: Does the code conform to the given instructions?\n"
-                                "Provide suggestions for revision and improvement if necessary.\n"
-                                "*NOTE*:\n"
-                                "1. Your review is not concerned with engineering code quality. The code is a quick "
-                                "demo for a research project, so the standards should not be strict.\n"
-                                "2. If you provide suggestions, please limit them to 1 to 3 key suggestions. Focus on "
-                                "the most important aspects, such as how to solve the execution errors or make the code "
-                                "conform to the instructions.\n\n"
-                                "Return your decision in the format: \"Final Decision: Approved\" or \"Final Decision: "
-                                "Rejected.\"")
-        prompt = "\n".join(formatted_prompt)
-        response = self.ask(prompt)
-        return response
-
 
 class DomainExpertAgent:
     def __init__(self, role_prompt="You are a domain expert in this biomedical research project."):
@@ -374,31 +428,6 @@ class DomainExpertAgent:
 
     def ask(self, prompt):
         return call_openai_gpt(prompt, self.role_prompt)
-
-    def review_code(self, prev_context, last_context):
-        formatted_prompt = []
-        formatted_prompt.append(prev_context)
-        formatted_prompt.append("\n**TO DO: Code Review**\n"
-                                "The following code is the latest attempt for the current step and requires your review. "
-                                "Previous attempts may have been included in the task history above, but their presence"
-                                " does not indicate they succeeded or failed. You can refer to their execution outputs "
-                                "for context. Only review the latest code attempt provided below.\n")
-        formatted_prompt.append(last_context)
-        formatted_prompt.append("\nPlease review the code according to the following criteria:\n"
-                                "1. *Functionality*: Can the code be successfully executed in the current setting?\n"
-                                "2. *Conformance*: Does the code conform to the given instructions?\n"
-                                "Provide suggestions for revision and improvement if necessary.\n"
-                                "*NOTE*:\n"
-                                "1. Your review is not concerned with engineering code quality. The code is a quick "
-                                "demo for a research project, so the standards should not be strict.\n"
-                                "2. If you provide suggestions, please limit them to 1 to 3 key suggestions. Focus on "
-                                "the most important aspects, such as how to solve the execution errors or make the code "
-                                "conform to the instructions.\n\n"
-                                "Return your decision in the format: \"Final Decision: Approved\" or \"Final Decision: "
-                                "Rejected.\"")
-        prompt = "\n".join(formatted_prompt)
-        response = self.ask(prompt)
-        return response
 
 
 if __name__ == "__main__":
@@ -437,18 +466,18 @@ There are three types of problems to solve. The steps you should take depend on 
     SETUPS: str = \
         """
 Setups:
-1. Path to the raw GEO dataset for preprocessing: {cohort_dir}
+1. Path to the raw GEO dataset for preprocessing: {in_cohort_dir}
 2. Directory to save the preprocessed GEO dataset: {output_dir}
 
 NOTICE 1: The overall preprocessing requires multiple code snippets, each based on the execution results of the previous snippets. 
 Consequently, the instructions will be divided into multiple STEPS. Each STEP requires you to write a code snippet, and then the execution result will be given to you for either revision of the current STEP or progression to the next STEP.
 
-NOTICE 2: All functions and classes in 'utils.preprocess' have been imported at the beginning of the code, so you can directly use their names. 
-Also, the trait name has been assigned to the string variable "trait." To make the code more general, please use the variable instead of the string literal.
+NOTICE 2: Please import all functions and classes in 'utils.preprocess' at the beginning of the code:
+'from utils.preprocess import *'
 
 Based on the context, write code to follow the instructions.
 """
-
+# Also, the trait name has been assigned to the string variable "trait." To make the code more general, please use the variable instead of the string literal.
     INSTRUCTION_STEP1: str = \
         """
         STEP1:
@@ -554,8 +583,6 @@ Please DO the following substeps 4-8 anyway:
 
     all_traits = pd.read_csv("all_traits.csv")["Trait"].tolist()
     all_traits = [normalize_trait(t) for t in all_traits]
-    one_history_only = ['2', '4']
-    need_biomedical_knowledge = ['2', '4', '6']
     input_dir = '/media/techt/DATA/GEO' if os.path.exists('/media/techt/DATA/GEO') else '../DATA/GEO'
 
     output_root = './output/preprocessed'
@@ -570,7 +597,6 @@ Please DO the following substeps 4-8 anyway:
             output_dir = os.path.join(version_dir, trait)
             os.makedirs(output_dir, exist_ok=True)
             json_path = os.path.join(output_dir, "cohort_info.json")
-            out_data_file = os.path.join(output_dir, f"{cohort}.csv")
 
             if not os.path.isdir(in_trait_dir):
                 print(f"Trait directory not found: {in_trait_dir}")
@@ -580,8 +606,8 @@ Please DO the following substeps 4-8 anyway:
                 if not os.path.isdir(in_cohort_dir):
                     print(f"Cohort directory not found: {in_cohort_dir}")
                     continue
-                setups = SETUPS.format(in_cohort_dir, output_dir)
-
+                setups = SETUPS.format(in_cohort_dir=in_cohort_dir, output_dir=output_dir)
+                out_data_file = os.path.join(output_dir, f"{cohort}.csv")
 
                 action_units = [
                     ActionUnit("1", INSTRUCTION_STEP1),
@@ -594,8 +620,9 @@ Please DO the following substeps 4-8 anyway:
                     ActionUnit("7", "Task completed, you don't need to write any code.")
                 ]
 
-            data_scientist = GEOAgent(ROLE_PROMPT, GUIDELINES, tools, setups, action_units)
-            task_context = data_scientist.run_task()
-        except:
+            geo_agent = GEOAgent(ROLE_PROMPT, GUIDELINES, tools, setups, action_units)
+            task_context = geo_agent.run_task()
+        except Exception as e:
+            print(e)
             continue
 
