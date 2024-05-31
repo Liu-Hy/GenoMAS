@@ -71,7 +71,7 @@ class TaskContext:
         for step in contxt_to_display:
             debug = step['debug']
             if debug:
-                formatted_context.append(f"[Debugging Attempt {step['index']}]")
+                formatted_context.append(f"Debugging Attempt {step['index']}")
             else:
                 formatted_context.append(f"STEP {step['index']}")
                 formatted_context.append(f"[Chosen action unit]: {step['action_unit_name']}")
@@ -140,7 +140,7 @@ class GEOAgent:
         formatted_prompt.append(f"**General guidelines**: \n{self.guidelines}\n")
         if include_tools:
             formatted_prompt.append(f"**Function tools**: \n{self.tools}\n")
-        formatted_prompt.append(f"**Task setups**: \n{self.setups}\n")
+        formatted_prompt.append(f"**Programming setups**: \n{self.setups}\n")
         formatted_prompt.append(f"**Task history**: \n{self.task_context.display(mode)}")
 
         return "\n".join(formatted_prompt)
@@ -149,9 +149,8 @@ class GEOAgent:
         current_step = self.task_context.current_step
         debug_step = self.task_context.debug_step
         if debug_step != 0:
-            for key in self.task_context.history[current_step-1]:
-                if key in ['code_snippet', 'stdout', 'stderr', 'error']:
-                    self.task_context.history[current_step-1][key] = self.task_context.history[-1][key]
+            for key in ['code_snippet', 'stdout', 'stderr', 'error']:
+                self.task_context.history[current_step-1][key] = self.task_context.history[-1][key]
         self.task_context.history = self.task_context.history[: current_step]
         self.task_context.debug_step = 0
 
@@ -187,27 +186,26 @@ class GEOAgent:
         return code
 
     def choose_action_unit(self):
-        action_units_formatted = "\n".join([str(unit) for unit in self.action_units.values()])
-        prompt = []
-        prompt.append(
-            "Please read the following information and choose one action unit for the next step. I will provide you "
-            "with the general guidelines, task history, and the available action units below.\n\n")
-        prompt.append("General Guidelines:\n")
-        prompt.append(f"{self.guidelines}\n")
-        prompt.append("Task History:\n")
-        prompt.append(f"{self.task_context.display()}\n")
-        prompt.append("Available Action Units:\n")
-        prompt.append(f"{action_units_formatted}\n")
-        prompt.append(
-            "Based on this information, please choose one and only one action unit for the next step. Please only "
-            "answer with the name of the unit, chosen from the list below:")
-        prompt.append(f"{[unit.name for unit in self.action_units.values()]}")
-        prompt.append("Your answer:")
-
-        prompt = "\n".join(prompt)
-
-        response = self.ask(prompt)
-        return response.strip()
+        # action_units_formatted = "\n".join([str(unit) for unit in self.action_units.values()])
+        # prompt = []
+        # prompt.append(
+        #     "Please read the following information and choose one action unit for the next step. I will provide you "
+        #     "with the general guidelines, task history, and the available action units below.\n\n")
+        # prompt.append("**General Guidelines**:")
+        # prompt.append(f"{self.guidelines}\n")
+        # prompt.append("**Task History**:")
+        # prompt.append(f"{self.task_context.display()}\n")
+        # prompt.append("**Available Action Units**:")
+        # prompt.append(f"{action_units_formatted}\n")
+        # prompt.append(
+        #     "**TO DO**: \nBased on this information, please choose one and only one action unit for the next step. Please"
+        #     " only answer with the name of the unit, chosen from the list below:")
+        # prompt.append(f"{[unit.name for unit in self.action_units.values()]}")
+        # prompt.append("Your answer:")
+        # prompt = "\n".join(prompt)
+        # response = self.ask(prompt)
+        # return response.strip()
+        return str(self.task_context.current_step + 1)
 
     def execute_action_unit(self, action_unit_name):
         action_unit = self.action_units[action_unit_name]
@@ -254,21 +252,21 @@ class GEOAgent:
             last_step = self.task_context.history[-1]
             stderr, error = last_step["stderr"], last_step["error"]
             # Send code for review
-            reviewer = CodeReviewerAgent("You are a code reviewer in this project.")
+            reviewer = CodeReviewerAgent()
             feedback = reviewer.review_code(
                 self.prepare_prompt(mode="past"),
                 self.task_context.display(mode="last"),
             )
             print(feedback)
             if "approved" in feedback.lower() and not stderr and not error:
-                if not self.action_units[action_unit_name].code_snippet:
-                    self.action_units[action_unit_name].code_snippet = self.task_context.history[-1]['code_snippet']
-                else:
-                    self.action_units[action_unit_name].code_snippet_buffer.append(
-                        self.task_context.history[-1]['code_snippet'])
+                # if not self.action_units[action_unit_name].code_snippet:
+                #     self.action_units[action_unit_name].code_snippet = self.task_context.history[-1]['code_snippet']
+                # else:
+                #     self.action_units[action_unit_name].code_snippet_buffer.append(
+                #         self.task_context.history[-1]['code_snippet'])
                 break
 
-            # Restore state if execution failed and needs correction
+            # Restore state if code rejected and needs correction
             del self.current_exec_state
             start_time = time.time()
             self.current_exec_state = copy.deepcopy(self.backup_exec_state)
@@ -289,18 +287,21 @@ class GEOAgent:
             round_counter += 1
 
         if round_counter >= self.max_rounds:
-            print(f"Exit due to maximum revision attempts {self.max_rounds} reached.")
+            print(f"Maximum revision attempts {self.max_rounds} reached. Use the code from latest attempt without "
+                  f"review.")
         self.merge_revision_into_context()
 
 
     def correct_code(self, feedback):
         formatted_prompt = []
         formatted_prompt.append(self.prepare_prompt(mode="past"))
-        formatted_prompt.append(f"\nThe below step requires correction")
+        formatted_prompt.append(f"\nThe following code is the latest attempt for the current step and requires correction. "
+                                "Previous attempts may have been included in the task history above, but their presence"
+                                " does not indicate they succeeded or failed. You can refer to their execution outputs "
+                                "for context. Only correct the latest code attempt provided below.\n")
         formatted_prompt.append(self.task_context.display(mode="last"))
         formatted_prompt.append(f"\nReviewer's feedback:\n{feedback}\n")
-        formatted_prompt.append(f"Based on the reviewer's feedback, write a corrected version of the code for this "
-                                f"step\n")
+        formatted_prompt.append(f"Based on the reviewer's feedback, write a corrected version of the code\n")
         formatted_prompt.append(CODE_INDUCER)
         prompt = "\n".join(formatted_prompt)
         response = self.ask(prompt)
@@ -321,7 +322,7 @@ class GEOAgent:
         self.check_code_snippet_buffer()
         while True:
             action_unit_name = self.choose_action_unit()
-            if action_unit_name == "task_completed":
+            if action_unit_name == "7":
                 break
             self.execute_action_unit(action_unit_name)
         return self.task_context.history
@@ -335,7 +336,7 @@ class GEOAgent:
 
 
 class CodeReviewerAgent:
-    def __init__(self, role_prompt):
+    def __init__(self, role_prompt="You are a code reviewer in this project."):
         self.role_prompt = role_prompt
 
     def ask(self, prompt):
@@ -346,9 +347,42 @@ class CodeReviewerAgent:
         formatted_prompt.append(prev_context)
         formatted_prompt.append("\n**TO DO: Code Review**\n"
                                 "The following code is the latest attempt for the current step and requires your review. "
-                                "Previous attempts may be included in the task history above, but their presence does "
-                                "not indicate they succeeded or failed. You can refer to their execution outputs for "
-                                "context. Only review the latest code attempt provided below.\n")
+                                "Previous attempts may have been included in the task history above, but their presence"
+                                " does not indicate they succeeded or failed. You can refer to their execution outputs "
+                                "for context. Only review the latest code attempt provided below.\n")
+        formatted_prompt.append(last_context)
+        formatted_prompt.append("\nPlease review the code according to the following criteria:\n"
+                                "1. *Functionality*: Can the code be successfully executed in the current setting?\n"
+                                "2. *Conformance*: Does the code conform to the given instructions?\n"
+                                "Provide suggestions for revision and improvement if necessary.\n"
+                                "*NOTE*:\n"
+                                "1. Your review is not concerned with engineering code quality. The code is a quick "
+                                "demo for a research project, so the standards should not be strict.\n"
+                                "2. If you provide suggestions, please limit them to 1 to 3 key suggestions. Focus on "
+                                "the most important aspects, such as how to solve the execution errors or make the code "
+                                "conform to the instructions.\n\n"
+                                "Return your decision in the format: \"Final Decision: Approved\" or \"Final Decision: "
+                                "Rejected.\"")
+        prompt = "\n".join(formatted_prompt)
+        response = self.ask(prompt)
+        return response
+
+
+class DomainExpertAgent:
+    def __init__(self, role_prompt="You are a domain expert in this biomedical research project."):
+        self.role_prompt = role_prompt
+
+    def ask(self, prompt):
+        return call_openai_gpt(prompt, self.role_prompt)
+
+    def review_code(self, prev_context, last_context):
+        formatted_prompt = []
+        formatted_prompt.append(prev_context)
+        formatted_prompt.append("\n**TO DO: Code Review**\n"
+                                "The following code is the latest attempt for the current step and requires your review. "
+                                "Previous attempts may have been included in the task history above, but their presence"
+                                " does not indicate they succeeded or failed. You can refer to their execution outputs "
+                                "for context. Only review the latest code attempt provided below.\n")
         formatted_prompt.append(last_context)
         formatted_prompt.append("\nPlease review the code according to the following criteria:\n"
                                 "1. *Functionality*: Can the code be successfully executed in the current setting?\n"
@@ -379,21 +413,13 @@ if __name__ == "__main__":
     import tqdm
     from utils.statistics import normalize_trait, read_json_to_dataframe
 
-    all_traits = pd.read_csv("all_traits.csv")["Trait"].tolist()
-    all_traits = [normalize_trait(t) for t in all_traits]
-    one_history_only = [2, 4]
-    need_biomedical_knowledge = [2, 4, 6]
-    input_dir = '/media/techt/DATA/GEO' if os.path.exists('/media/techt/DATA/GEO') else '../DATA/GEO'
 
-    output_root = './output/preprocessed'
-    version = 'gs1'
+    ROLE_PROMPT: str = \
+        """You are a data engineer in a biomedical research team. Your goal is to write code for wrangling biomedical data. 
+In this project, you will focus on wrangling Series data from the GEO database."""
 
-    role_prompt = """You are a statistician in a biomedical research team, and your main goal is to write code to do statistical 
-        analysis on biomedical datasets.
-        In this project, you will explore gene expression datasets to identify the significant genes related to a trait, 
-        optionally controlling for a condition."""
-
-    guidelines = """In this project, your job is to implement statistical models to identify significant genes related 
+    GUIDELINES: str = \
+        """In this project, your job is to implement statistical models to identify significant genes related 
 to traits. 
 There are three types of problems to solve. The steps you should take depend on the problem type. 
 - Unconditional one-step regression. Identify the significant genes related to a trait.
@@ -403,123 +429,172 @@ There are three types of problems to solve. The steps you should take depend on 
 """
 
     TOOLS: str = \
-        """
-        Tools: 
-        In "utils.statistics", there are lots of well-developed helper functions for this project. Please import 
-        and use them when possible. Hereafter I will call it "the library". Below is the source code.
-        {utils_code}
+        """Tools:
+"utils.preprocess" provides lots of well-developed helper functions for this project. Henceforth, it will be referred to as "the library." Please import and use functions from the library when possible. Below is the source code:
+{utils_code}
         """
 
-    SETUPS : str = \
+    SETUPS: str = \
         """
-        Setups:
-        1. All input data are stored in the directory: '{data_root}'.
-        2. The output should be saved to the directory '{output_root}', under a subdirectory named after the trait.
-        3. External knowledge about genes related to each trait is available in a file '{gene_info_path}'.
+Setups:
+1. Path to the raw GEO dataset for preprocessing: {cohort_dir}
+2. Directory to save the preprocessed GEO dataset: {output_dir}
 
-        NOTICE1: Please import all the functions in 'utils.statistics' at the beginning of the code, and feel free to use '*' in the import statement.
-        NOTICE2: The overall preprocessing requires multiple code snippets and each code snippet is based on the execution results of the previous code snippets. 
-        Consequently, the instruction will be divided into multiple STEPS, each STEP requires you to write a code snippet, then the execution result will be given to you for either revision of the current STEP or go to the next STEP.
+NOTICE 1: The overall preprocessing requires multiple code snippets, each based on the execution results of the previous snippets. 
+Consequently, the instructions will be divided into multiple STEPS. Each STEP requires you to write a code snippet, and then the execution result will be given to you for either revision of the current STEP or progression to the next STEP.
 
-        Based on the context, write code to follow the instructions.
+NOTICE 2: All functions and classes in 'utils.preprocess' have been imported at the beginning of the code, so you can directly use their names. 
+Also, the trait name has been assigned to the string variable "trait." To make the code more general, please use the variable instead of the string literal.
+
+Based on the context, write code to follow the instructions.
+"""
+
+    INSTRUCTION_STEP1: str = \
+        """
+        STEP1:
+1. Identify the paths to the soft file and the matrix file, and assign them to the variables 'soft_file' and 'matrix_file'.
+2. Read the matrix file to obtain background information about the dataset and sample characteristics data through the 'get_background_and_clinical_data' function from the library. For the input parameters to the function,
+'background_prefixes' should be a list consisting of strings '!Series_title', '!Series_summary', and '!Series_overall_design'. 'clinical_prefixes' should be a list consisting of '!Sample_geo_accession' and '!Sample_characteristics_ch1'.
+3. Obtain the sample characteristics dictionary from the clinical dataframe via the 'get_unique_values_by_row' function from the utils
+4. Explicitly print out the all the background information and the sample characteristics dictionary. This information is for STEP2 to further write code.
         """
 
-    UNCONDITIONAL_ONE_STEP_PROMPT = """
-    Instruction: Write code to solve the following research question: What are the genetic factors related to the trait 
-    '{trait}'?
-    Based on the context and the following instructions, write code that is elegant and easy to read.
-    1. Select the best input data about the trait into a dataframe, and load the data.
-    2. Remove the columns 'Age' and 'Gender' if either is present.
-    3. Select the data in relevant columns for regression analysis. We need numpy arrays X and Y. Y is the trait data from the column '{trait}', and X is the rest of the data.
-    4. Check whether the feature X shows batch effect. Hint: you may use the 'detect_batch_effect' function from the library.
-    5. Select appropriate models based on whether the dataset has batch effect. If yes, use an LMM (Linear Mixed Model); 
-       Otherwise, use a Lasso model.
-    6. Perform a hyperparameter search on integer powers of 10 from 1e-6 to 1e0 (inclusive). Record the best hyperparameter setting for the chosen model, and the cross-validation performance. Hint: please use the tune_hyperparameters() function from the library.
-    7. Normalize X to have a mean of 0 and standard deviation of 1.
-    8. Train a model with the best hyperparameter on the whole dataset.
-    9. Interpret the trained model to identify the effect of the condition and significant genes. Hint: You may use the 'interpret_result' function from the library, and use the output_dir given.
-    10. Save the model output and cross-validation performance. Hint: you may use the 'save_result' function from the library
-            """
+    INSTRUCTION_STEP2: str = \
+        """
+STEP 2: Dataset Analysis and Questions
 
-    CONDITIONAL_ONE_STEP_PROMPT = """
-    Instruction: Write code to solve the following research question: What are the genetic factors related to the trait 
-    '{trait}' when considering the influence of the condition '{condition}'?
-    Based on the context and the following instructions, write code that is elegant and easy to read.
-    1. Select the best input data about the trait into a dataframe, and load the data.
-    2. We need only one condition from 'Age' and 'Gender'. Remove the redundant column if present.
-    3. Select the data in relevant columns for regression analysis. We need three numpy arrays X, Y and Z. Y is the trait data from the column '{trait}', Z is the condition data from the column '{condition}', and X is the rest of the data.
-    4. Check whether the feature X shows batch effect. Hint: you may use the 'detect_batch_effect' function from the library.
-    5. Select appropriate models based on whether the dataset has batch effect. If yes, use an LMM (Linear Mixed Model); 
-       Otherwise, use a Lasso model.
-    6. Perform a hyperparameter search on integer powers of 10 from 1e-6 to 1e0 (inclusive). Record the best hyperparameter setting for the chosen model, and the cross-validation performance. Hint: please use the tune_hyperparameters() function from the library.
-    7. Normalize the X and Z to have a mean of 0 and standard deviation of 1.
-    8. Train a model with the best hyperparameter on the whole dataset. The model should conduct residualization to account for the confounder Z.
-    9. Interpret the trained model to identify the effect of the condition and significant genes. Hint: You may use the 'interpret_result' function from the library, and use the output_dir given.
-    10. Save the model output and cross-validation performance. Hint: you may use the 'save_result' function from the library
-            """
+As a biomedical research team, we are analyzing datasets to study the association between the human trait '{trait}' and genetic factors, considering the possible influence of age and gender. After searching the GEO database and parsing the matrix file of a series, STEP 1 has provided background information and sample characteristics data. Please review the output from STEP 1 and answer the following questions regarding this dataset:
 
-    TWO_STEP_PROMPT = """
-    Instruction: Write code to solve the following research question: What are the genetic factors related to the trait 
-    '{trait}' when considering the influence of the condition '{condition}'?
-    When we don't have data about the trait and condition from the same group of people, we can still solve the problem by
-    two-step regression. With two datasets for the trait and the condition respectively, we find common gene features among
-    them that are known related to the condition. We then use those those genes to fit a regression model on the condition 
-    dataset, to predict the condition of samples in the trait dataset. Then we can do regression on the trait dataset to 
-    solve the question.
+1. Gene Expression Data Availability
+   - Does this dataset contain gene expression data? (Note: Pure miRNA data is not suitable.)
+     - If YES, set `is_gene_available` to `True`.
+     - If NO, set `is_gene_available` to `False`.
 
-    Below are more detailed instructions. Based on the context and the instructions, write code that is elegant and easy to read.
-    1. Select the best input data about the trait and the condition into two separate dataframe, and load the data and common gene regressors.
-    2. From the trait dataset, remove the columns 'Age' and 'Gender' if either is present.
-    3. From the condition dataframe, select the columns corresponding to the gene regressors as 'X_condition', and the column corresponding to the condition value as 'Y_condition', and convert them to numpy arrays.
-    4. Determine the data type of the condition, which is either 'binary' or 'continuous', by seeing whether the array of condition values has two unique values.
-    ## The first step regression
-    5. Please choose an appropriate regression model for the condition. 
-       - If the condition is a binary variable, then use the LogisticRegression model. Use L1 penalty if 'X_condition' has more columns than rows.
-       - If the condition is a continuous variable, then choose Lasso or LinearRegression depending on whether 'X_condition' has more columns than rows.
-       Normalize 'X_condition' to a mean of 0 and std of 1. With the model you chose, fit the model on 'normalized_X_condition' and 'Y_condition'
-    6. From the trait dataframe, select the columns corresponding to the common gene regressors to get a numpy array, and normalize it to a mean of 0 and std of 1.
-    7. With the model trained in Step 5, predict the condition of the samples in the trait dataframe based on the normalized gene regressors. 
-      If the condition is a continuous variable, use the predict() method of the model to get the predicted values of the condition; otherwise, use the predict_proba() 
-      method and select the column corresponding to the positive label, to get the predicted probability of the condition being true. 
-      Add a column named {condition} to the trait dataframe, storing predicted condition values. Drop the columns about the common gene regressors.
-    ## The second step regression
-    8. From the trait dataframe, select the data in relevant columns for regression analysis. We need three numpy arrays X, Y and Z. Y is the trait data from the column '{trait}', Z is the condition data from the column '{condition}', and X is the rest of the data. We want to analyze and find the genetic factors related to the trait when considering the influence of the condition.
-    9. Check whether the feature X shows batch effect. Hint: you may use the 'detect_batch_effect' function from the library.
-    10. Select appropriate models based on whether the dataset has batch effect. If yes, use an LMM (Linear Mixed Model); 
-       Otherwise, use a Lasso model.
-    11. Perform a hyperparameter search on integer powers of 10 from 1e-6 to 1e0 (inclusive). Record the best hyperparameter setting for the chosen model, and the cross-validation performance. Hint: please use the tune_hyperparameters() function from the library.
-    12. Normalize the X and Z to have a mean of 0 and standard deviation of 1. Hint: you may use the 'normalize_data' function from the library to normalize X and Z in two seperate lines.
-    13. Train a model with the best hyperparameter on the whole dataset. The model should conduct residualization to account for the confounder Z.
-    14. Interpret the trained model to identify the effect of the condition and significant genes. Hint: You may use the 'interpret_result' function from the library, and use the output_dir given.
-    15. Save the model output and cross-validation performance. Hint: you may use the 'save_result' function from the library
-            """
+2. Variable Availability and Data Type Conversion
+   For each of the variables '{trait}', 'age', and 'gender', address the following points:
+
+   **2.1 Data Availability**
+     - Is there human data available for this variable?
+
+   **2.2 Key Identification**
+     - If data is available, identify the key in the sample characteristics dictionary where unique values of this variable are recorded. The key is an integer. The variable information might be explicitly recorded or inferred from the field with biomedical knowledge or understanding of the dataset background.
+
+   **2.3 Data Type Conversion**
+     - Choose an appropriate data type for each variable ('continuous' or 'binary').
+     - If the data type is binary, convert values to 0 and 1.
+     - Write a Python function to convert any given value of the variable to this data type. Typically, a colon (':') separates the header and the value in each cell, so ensure to extract the value after the colon in the function. Unknown values should be converted to `None`.
+     - When data is not explicitly given but can be inferred, carefully observe the unique values in the sample characteristics dictionary and design a heuristic rule to convert those values into the chosen type. If you are 90% sure that some cases should be mapped to certain value, please do that instead of giving `None`. 
+     - Name the functions `convert_trait`, `convert_age`, and `convert_gender`, respectively.
+
+3. If `is_gene_available` is False or `trait_row` is None, it means the dataset is not usable. Then, please save this information and end the task. Hint: Follow the function call format strictly:
+   ```python
+   save_cohort_info(cohort, json_path, is_gene_available, trait_row is not None)
+   ```
+   Otherwise, please continue with the below steps.
+
+4. Selecting Clinical Features
+   - Use the `geo_select_clinical_features` function to obtain the output `selected_clinical_data` from the input dataframe. Follow the function call format strictly:
+     ```python
+     selected_clinical_data = geo_select_clinical_features(clinical_data, '{trait}', trait_row, convert_trait, age_row, convert_age, gender_row, convert_gender)
+     ```
+   - Note: `clinical_data` has been previously defined. Do not comment out the function call.
+
+5. Previewing Selected Clinical Data
+   - Use the `preview_df` function to print a preview of `selected_clinical_data`. Follow the function call format strictly:
+     ```python
+     print(preview_df(selected_clinical_data))
+     ```
+   - Do not comment out the function call.
+
+[Output of STEP 1]
+        """
+
+    INSTRUCTION_STEP3: str = \
+        """
+STEP3:
+1. Use the get_genetic_data function from the library to get the genetic_data from the matrix_file previously defined.
+2. print the first 20 row ids for following step.
+        """
+
+    INSTRUCTION_STEP4: str = \
+        """
+STEP4:
+Given the row headers (from STEP3) of a gene expression dataset in GEO. Based on your biomedical knowledge, are they human gene symbols, or are they some other identifiers that need to be mapped to gene symbols? Your answer should be concluded by starting a new line and strictly following this format:
+requires_gene_mapping = (True or False)
+
+[Output of STEP3]
+        """
+
+    INSTRUCTION_STEP5: str = \
+        """
+STEP5:
+If requires_gene_mapping is True, do the following substeps 1-2; otherwise, skip STEP5.
+    1. Use the 'get_gene_annotation' function from the library to get gene annotation data from the soft file.
+    2. Use the 'preview_df' function from the library to preview the data and print out the results for the following step. Append the printing with a header like "Gene annotation"
+        """
+
+    INSTRUCTION_STEP6: str = \
+        """
+STEP6:
+If requires_gene_mapping is True, do the following 1-3 substeps; otherwise, MUST SKIP the following substeps.
+    1. When analyzing a gene expression dataset, we need to map some identifiers of genes to actual gene symbols. STEP3 prints out some of those identifiers, 
+    and STEP5 prints out part of the gene annotation data converted to a Python dictionary. 
+    Please read the dictionary and decide which key stores the same kind of identifiers as in STEP3, and which key stores the gene symbols. Please strictly follow this format in your answer:
+    identifier_key = 'key_name1'
+    gene_symbol_key = 'key_name2'
+    2. Get the gen mapping with the 'get_gene_mapping' function from the library. 
+    3. Get the gene data with the 'apply_gene_mapping' function from the library. 
+Please DO the following substeps 4-8 anyway:   
+4. Normalize the obtained gene data with the 'normalize_gene_symbols_in_index' function from the library. 
+5. Merge the clinical and genetic data with the 'geo_merge_clinical_genetic_data' function from the library, and assign the merged data to a variable 'merged_data'.
+6. Determine whether the trait '{trait}' and some demographic attributes in the data is severely biased, and remove biased attributes with the 'judge_and_remove_biased_features' function from the library.
+7. Save the cohort information with the 'save_cohort_info' function from the library. Hint: set the 'json_path' variable to '{json_path}', and assuming 'is_trait_biased' indicates whether the trait is biased, use the following code to save the cohort information: save_cohort_info(cohort, json_path, True, True, is_trait_biased, merged_data).
+8. If the trait in the data is not severely biased (regardless of whether the other attributes are biased), save the merged data to a csv file, in the path '{out_data_file}'. Otherwise, you must not save it.
+        """
+
+    all_traits = pd.read_csv("all_traits.csv")["Trait"].tolist()
+    all_traits = [normalize_trait(t) for t in all_traits]
+    one_history_only = ['2', '4']
+    need_biomedical_knowledge = ['2', '4', '6']
+    input_dir = '/media/techt/DATA/GEO' if os.path.exists('/media/techt/DATA/GEO') else '../DATA/GEO'
+
+    output_root = './output/preprocessed'
+    version = 'gs1'
+    version_dir = os.path.join(output_root, version)
 
     utils_code = "".join(open("utils/preprocess.py", 'r').readlines())
-
-    for index, pair in enumerate(all_traits):
+    tools = TOOLS.format(utils_code=utils_code)
+    for index, trait in enumerate(all_traits):
         try:
-            trait, condition = pair
-            # if index < 3: continue
-            # if condition is None or condition in ['Age', 'Gender'] or 'Endometriosis' in [trait, condition]: continue
-            #if condition is not None: continue
-            question = f"\nThe question to solve is: What are the genetic factors related to the trait '{trait}' when considering the influence of the " \
-                       f"condition '{condition}'?"
-            print(trait, condition)
-            # if trait != 'Adrenocortical_Cancer' or condition != 'Anxiety_disorder': continue
-            tools = TOOLS.format(utils_code=utils_code)
-            setups = SETUPS.format(data_root=data_root, output_root=output_root, gene_info_path=gene_info_path)
+            in_trait_dir = os.path.join(input_dir, trait)
+            output_dir = os.path.join(version_dir, trait)
+            os.makedirs(output_dir, exist_ok=True)
+            json_path = os.path.join(output_dir, "cohort_info.json")
+            out_data_file = os.path.join(output_dir, f"{cohort}.csv")
 
-            action_units = [
-                ActionUnit("unconditional one-step regression", UNCONDITIONAL_ONE_STEP_PROMPT.format(trait=trait, condition=condition,
-                                                         )),
-                ActionUnit("conditional one-step regression", CONDITIONAL_ONE_STEP_PROMPT.format(trait=trait, condition=condition,
-                                                         )),
-                ActionUnit("two-step regression", TWO_STEP_PROMPT.format(trait=trait, condition=condition,
-                                                         )),
-                ActionUnit("task_completed", "Task completed, you don't need to write any code.")
-            ]
+            if not os.path.isdir(in_trait_dir):
+                print(f"Trait directory not found: {in_trait_dir}")
+                continue
+            for cohort in os.listdir(in_trait_dir):
+                in_cohort_dir = os.path.join(in_trait_dir, cohort)
+                if not os.path.isdir(in_cohort_dir):
+                    print(f"Cohort directory not found: {in_cohort_dir}")
+                    continue
+                setups = SETUPS.format(in_cohort_dir, output_dir)
 
-            data_scientist = GEOAgent(role_prompt, guidelines + question, tools, setups, action_units)
+
+                action_units = [
+                    ActionUnit("1", INSTRUCTION_STEP1),
+                    ActionUnit("2", INSTRUCTION_STEP2.format(trait=trait)),
+                    ActionUnit("3", INSTRUCTION_STEP3),
+                    ActionUnit("4", INSTRUCTION_STEP4),
+                    ActionUnit("5", INSTRUCTION_STEP5),
+                    ActionUnit("6", INSTRUCTION_STEP6.format(trait=trait, json_path=json_path,
+                                                       out_data_file=out_data_file)),
+                    ActionUnit("7", "Task completed, you don't need to write any code.")
+                ]
+
+            data_scientist = GEOAgent(ROLE_PROMPT, GUIDELINES, tools, setups, action_units)
             task_context = data_scientist.run_task()
         except:
             continue
