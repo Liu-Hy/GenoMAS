@@ -103,7 +103,7 @@ class ActionUnit:
         return f"Name: {self.name}\nInstruction: {self.instruction}"
 
 
-class DataScientistAgent:
+class GEOAgent:
     def __init__(self, role_prompt, guidelines, tools, setups, action_units, max_rounds=2):
         self.role_prompt = role_prompt
         self.guidelines = guidelines
@@ -377,21 +377,16 @@ if __name__ == "__main__":
     import re
     import subprocess
     import tqdm
+    from utils.statistics import normalize_trait, read_json_to_dataframe
 
-    pairs_df = pd.read_csv("trait_condition_pairs.csv")
-    pair_rows = list(pairs_df.iterrows())
-    all_pairs = []
-    seen_traits = set()
-    for i, row in pair_rows:
-        trait, condition = row['Trait'], row['Condition']
-        if trait not in seen_traits:
-            seen_traits.add(trait)
-            all_pairs.append((trait, None))
-        all_pairs.append((trait, condition))
+    all_traits = pd.read_csv("all_traits.csv")["Trait"].tolist()
+    all_traits = [normalize_trait(t) for t in all_traits]
+    one_history_only = [2, 4]
+    need_biomedical_knowledge = [2, 4, 6]
+    input_dir = '/media/techt/DATA/GEO' if os.path.exists('/media/techt/DATA/GEO') else '../DATA/GEO'
 
-    gene_info_path = './trait_related_genes.csv'
-    data_root = '/home/techt/Desktop/a4s/gold_subset'
-    output_root = './output_agent'
+    output_root = './output/preprocessed'
+    version = 'gs1'
 
     role_prompt = """You are a statistician in a biomedical research team, and your main goal is to write code to do statistical 
         analysis on biomedical datasets.
@@ -499,9 +494,9 @@ There are three types of problems to solve. The steps you should take depend on 
     15. Save the model output and cross-validation performance. Hint: you may use the 'save_result' function from the library
             """
 
-    utils_code = "".join(open("utils/statistics.py", 'r').readlines())
+    utils_code = "".join(open("utils/preprocess.py", 'r').readlines())
 
-    for index, pair in enumerate(all_pairs):
+    for index, pair in enumerate(all_traits):
         try:
             trait, condition = pair
             # if index < 3: continue
@@ -524,7 +519,7 @@ There are three types of problems to solve. The steps you should take depend on 
                 ActionUnit("task_completed", "Task completed, you don't need to write any code.")
             ]
 
-            data_scientist = DataScientistAgent(role_prompt, guidelines + question, tools, setups, action_units)
+            data_scientist = GEOAgent(role_prompt, guidelines + question, tools, setups, action_units)
             task_context = data_scientist.run_task()
         except:
             continue

@@ -391,7 +391,7 @@ if __name__ == "__main__":
 
     gene_info_path = './trait_related_genes.csv'
     data_root = '/home/techt/Desktop/a4s/gold_subset'
-    output_root = './output_agent'
+    output_root = './output/regression/ours'
 
     role_prompt = """You are a statistician in a biomedical research team, and your main goal is to write code to do statistical 
         analysis on biomedical datasets.
