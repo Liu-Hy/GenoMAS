@@ -232,29 +232,6 @@ class GEOAgent:
         # return response.strip()
         return str(self.task_context.current_step + 1)
 
-    def execute_action_unit(self, action_unit_name):
-        action_unit = self.action_units[action_unit_name]
-        code_snippet = action_unit.code_snippet
-        if not code_snippet:
-            code_snippet = self.write_initial_code(action_unit)
-
-        stdout, stderr, error = self.run_snippet(code_snippet, self.current_exec_state)
-
-        self.task_context.add_step(
-            debug=False,
-            action_unit_name=action_unit_name,
-            instruction=action_unit.instruction,
-            code_snippet=code_snippet,
-            stdout=stdout,
-            stderr=stderr,
-            error=str(error) if error else None
-        )
-        print(self.task_context.display(mode="last"))
-
-        if stderr or error or not action_unit.code_snippet:
-            self.review_and_correct(action_unit)
-
-
     def run_snippet(self, snippet, namespace):
         stdout = io.StringIO()
         stderr = io.StringIO()
@@ -264,6 +241,62 @@ class GEOAgent:
             return stdout.getvalue(), stderr.getvalue(), None
         except Exception as e:
             return stdout.getvalue(), stderr.getvalue(), e
+
+    def write_initial_code(self, action_unit):
+        code_inducer = CODE_INDUCER2 if action_unit.name == "2" else CODE_INDUCER
+        if action_unit.name not in self.one_history_only:
+            prompt = self.prepare_prompt()
+            prompt += f"\n**TO DO: Programming** \nNow that you've been familiar with the task setups and current status" \
+                      f", please write the code following the instructions:\n\n{action_unit.instruction}\n"
+            prompt = prompt + code_inducer
+            if action_unit.name not in self.need_biomedical_knowledge:
+                response = self.ask(prompt)
+            else:
+                expert = DomainExpertAgent()
+                response = expert.ask(prompt)
+        else:
+            prompt = f"{action_unit.instruction}\n" \
+                     f"{self.task_context.history[-1]['stdout']}\n\n" \
+                     f"{code_inducer}"  # CODE_INDUCER 1 AND 2, TWO TYPES
+            expert = DomainExpertAgent()
+            print(prompt)
+            response = expert.ask(prompt)
+        code = self.parse_code(response)
+        return code
+
+    def send_code_for_review(self, action_unit):
+        formatted_prompt = []
+        if action_unit.name in self.one_history_only:
+            formatted_prompt.append(self.task_context.display(mode="past"))
+            formatted_prompt.append("The detailed task instructions are provided below. Sometimes the record of"
+                                    "previous attempts are also provided")
+        else:
+            formatted_prompt.append(self.prepare_prompt(mode="past"))
+        formatted_prompt.append("\n**TO DO: Code Review**\n"
+                                "The following code is the latest attempt for the current step and requires your review. "
+                                "If previous attempts have been included in the task history above, their presence"
+                                " does not indicate they succeeded or failed, though you can refer to their execution "
+                                "outputs for context. \nOnly review the latest code attempt provided below.\n")
+        formatted_prompt.append(self.task_context.display(mode="last"))
+        formatted_prompt.append("\nPlease review the code according to the following criteria:\n"
+                                "1. *Functionality*: Can the code be successfully executed in the current setting?\n"
+                                "2. *Conformance*: Does the code conform to the given instructions?\n"
+                                "Provide suggestions for revision and improvement if necessary.\n"
+                                "*NOTE*:\n"
+                                "1. Your review is not concerned with engineering code quality. The code is a quick "
+                                "demo for a research project, so the standards should not be strict.\n"
+                                "2. If you provide suggestions, please limit them to 1 to 3 key suggestions. Focus on "
+                                "the most important aspects, such as how to solve the execution errors or make the code "
+                                "conform to the instructions.\n\n"
+                                "Return your decision in the format: \"Final Decision: Approved\" or \"Final Decision: "
+                                "Rejected.\"")
+        prompt = "\n".join(formatted_prompt)
+        if action_unit.name not in self.need_biomedical_knowledge:
+            reviewer = CodeReviewerAgent()
+        else:
+            reviewer = DomainExpertAgent()
+        response = reviewer.ask(prompt)
+        return response
 
     def review_and_correct(self, action_unit):
         round_counter = 0
@@ -307,7 +340,6 @@ class GEOAgent:
                   f"review.")
         self.merge_revision_into_context()
 
-
     def correct_code(self, action_unit, feedback):
         formatted_prompt = []
         if action_unit.name in self.one_history_only:
@@ -334,61 +366,27 @@ class GEOAgent:
         code = self.parse_code(response)
         return code
 
-    def send_code_for_review(self, action_unit):
-        formatted_prompt = []
-        if action_unit.name in self.one_history_only:
-            formatted_prompt.append(self.task_context.display(mode="past"))
-            formatted_prompt.append("The detailed task instructions are provided below. Sometimes the record of"
-                                    "previous attempts are also provided")
-        else:
-            formatted_prompt.append(self.prepare_prompt(mode="past"))
-        formatted_prompt.append("\n**TO DO: Code Review**\n"
-                                "The following code is the latest attempt for the current step and requires your review. "
-                                "If previous attempts have been included in the task history above, their presence"
-                                " does not indicate they succeeded or failed, though you can refer to their execution "
-                                "outputs for context. \nOnly review the latest code attempt provided below.\n")
-        formatted_prompt.append(self.task_context.display(mode="last"))
-        formatted_prompt.append("\nPlease review the code according to the following criteria:\n"
-                                "1. *Functionality*: Can the code be successfully executed in the current setting?\n"
-                                "2. *Conformance*: Does the code conform to the given instructions?\n"
-                                "Provide suggestions for revision and improvement if necessary.\n"
-                                "*NOTE*:\n"
-                                "1. Your review is not concerned with engineering code quality. The code is a quick "
-                                "demo for a research project, so the standards should not be strict.\n"
-                                "2. If you provide suggestions, please limit them to 1 to 3 key suggestions. Focus on "
-                                "the most important aspects, such as how to solve the execution errors or make the code "
-                                "conform to the instructions.\n\n"
-                                "Return your decision in the format: \"Final Decision: Approved\" or \"Final Decision: "
-                                "Rejected.\"")
-        prompt = "\n".join(formatted_prompt)
-        if action_unit.name not in self.need_biomedical_knowledge:
-            reviewer = CodeReviewerAgent()
-        else:
-            reviewer = DomainExpertAgent()
-        response = reviewer.ask(prompt)
-        return response
+    def execute_action_unit(self, action_unit_name):
+        action_unit = self.action_units[action_unit_name]
+        code_snippet = action_unit.code_snippet
+        if not code_snippet:
+            code_snippet = self.write_initial_code(action_unit)
 
-    def write_initial_code(self, action_unit):
-        code_inducer = CODE_INDUCER2 if action_unit.name == "2" else CODE_INDUCER
-        if action_unit.name not in self.one_history_only:
-            prompt = self.prepare_prompt()
-            prompt += f"\n**TO DO: Programming** \nNow that you've been familiar with the task setups and current status" \
-                      f", please write the code following the instructions:\n\n{action_unit.instruction}\n"
-            prompt = prompt + code_inducer
-            if action_unit.name not in self.need_biomedical_knowledge:
-                response = self.ask(prompt)
-            else:
-                expert = DomainExpertAgent()
-                response = expert.ask(prompt)
-        else:
-            prompt = f"{action_unit.instruction}\n" \
-                     f"{self.task_context.history[-1]['stdout']}\n\n" \
-                     f"{code_inducer}"  # CODE_INDUCER 1 AND 2, TWO TYPES
-            expert = DomainExpertAgent()
-            print(prompt)
-            response = expert.ask(prompt)
-        code = self.parse_code(response)
-        return code
+        stdout, stderr, error = self.run_snippet(code_snippet, self.current_exec_state)
+
+        self.task_context.add_step(
+            debug=False,
+            action_unit_name=action_unit_name,
+            instruction=action_unit.instruction,
+            code_snippet=code_snippet,
+            stdout=stdout,
+            stderr=stderr,
+            error=str(error) if error else None
+        )
+        print(self.task_context.display(mode="last"))
+
+        if stderr or error or not action_unit.code_snippet:
+            self.review_and_correct(action_unit)
 
     def run_task(self):
         self.clear_states(context=True, exe_state=True)
