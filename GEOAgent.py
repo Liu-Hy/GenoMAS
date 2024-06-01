@@ -31,8 +31,8 @@ Please fill in the following code template:
 ```python 
 # Initialize variables. Remember to change their values if they are available.
 is_gene_available = False
-trait_row = None  # set to a value if trait is available or can be inferred
-convert_trait = None  # define the function if trait is available or can be inferred
+trait_row = age_row = gender_row = None  # set to different values when applicable
+convert_trait = convert_age = convert_age = None  # define the functions when applicable
 
 your_code_here 
 ```with NO other texts. your_code_here is a placeholder.
@@ -86,7 +86,7 @@ class TaskContext:
             contxt_to_display = self.history[start_id:]
         elif mode == "past":
             contxt_to_display = self.history[start_id:-1]
-        else:
+        elif mode == "last":
             contxt_to_display = self.history[-1:]
         formatted_context = []
         for step in contxt_to_display:
@@ -111,10 +111,13 @@ class TaskContext:
                 formatted_context.append("=" * 50)
         return "\n".join(formatted_context)
 
-    def concatenate_snippets(self, up_to_index=None):
-        if up_to_index is None:
-            up_to_index = self.current_step - 1
-        return "\n".join([step['code_snippet'] for step in self.history[:up_to_index]])
+    def concatenate_snippets(self, mode="all"):
+        assert mode in ["all", "previous"], "Unsupported mode: must be one of 'all', 'previous'."
+        if mode == "all":
+            end_idx = self.current_step
+        elif mode == "previous":
+            end_idx = self.current_step - 1
+        return "\n".join([step['code_snippet'] for step in self.history[:end_idx]])
 
 
 class ActionUnit:
@@ -152,21 +155,25 @@ class GEOAgent:
             del self.current_exec_state
             self.current_exec_state = {}
 
-    def prepare_prompt(self, include_tools=True, mode="all"):
+    def prepare_prompt(self, include_tool_setups=True, mode="all", domain_focus=False):
+        assert mode in ["all", "past", "last"], "Unsupported mode: must be one of 'all', 'past', 'last'."
         formatted_prompt = []
-        if include_tools:
-            formatted_prompt.append("To help you prepare, I will provide you with the following: the task guidelines, "
-                                    "the function tools, the programming setups, and the history of previous steps "
-                                    "taken, including the instructions, code, and execution output of each step.")
+        if (not domain_focus) and (mode != "last"):
+            if include_tool_setups:
+                formatted_prompt.append("To help you prepare, I will provide you with the following: the task guidelines, "
+                                        "the function tools, the programming setups, and the history of previous steps "
+                                        "taken, including the instructions, code, and execution output of each step.")
+            else:
+                formatted_prompt.append("To help you prepare, I will provide you with the following: the task guidelines, "
+                                        "and the history of previous steps taken, including the "
+                                        "instructions, code, and execution output of each step.")
+            formatted_prompt.append(f"**General guidelines**: \n{self.guidelines}\n")
+            if include_tool_setups:
+                formatted_prompt.append(f"**Function tools**: \n{self.tools}\n")
+                formatted_prompt.append(f"**Programming setups**: \n{self.setups}\n")
+            formatted_prompt.append(f"**Task history**: \n{self.task_context.display(mode, domain_focus)}")
         else:
-            formatted_prompt.append("To help you prepare, I will provide you with the following: the task guidelines, "
-                                    "the programming setups, and the history of previous steps taken, including the "
-                                    "instructions, code, and execution output of each step.")
-        formatted_prompt.append(f"**General guidelines**: \n{self.guidelines}\n")
-        if include_tools:
-            formatted_prompt.append(f"**Function tools**: \n{self.tools}\n")
-        formatted_prompt.append(f"**Programming setups**: \n{self.setups}\n")
-        formatted_prompt.append(f"**Task history**: \n{self.task_context.display(mode)}")
+            formatted_prompt.append(self.task_context.display(mode, domain_focus))
 
         return "\n".join(formatted_prompt)
 
@@ -266,21 +273,27 @@ class GEOAgent:
 
     def send_code_for_review(self, action_unit):
         formatted_prompt = []
-        if action_unit.name in self.one_history_only:
-            formatted_prompt.append(self.task_context.display(mode="past"))
+        domain_focus = action_unit.name in self.one_history_only
+        if domain_focus:
             formatted_prompt.append("The detailed task instructions are provided below. Sometimes the record of"
                                     "previous attempts are also provided")
+        formatted_prompt.append(self.prepare_prompt(mode="past", domain_focus=domain_focus))
+        if action_unit.name in self.need_biomedical_knowledge:
+            domain_trigger = "Some tasks may involve understanding the data and making inferences based on biomedical "\
+                             "knowledge. These inferences might require assumptions, which do not need to be fully " \
+                             "validated, though they need to be reasonable. "
         else:
-            formatted_prompt.append(self.prepare_prompt(mode="past"))
+            domain_trigger = "\n"
+
         formatted_prompt.append("\n**TO DO: Code Review**\n"
                                 "The following code is the latest attempt for the current step and requires your review. "
                                 "If previous attempts have been included in the task history above, their presence"
                                 " does not indicate they succeeded or failed, though you can refer to their execution "
                                 "outputs for context. \nOnly review the latest code attempt provided below.\n")
-        formatted_prompt.append(self.task_context.display(mode="last"))
-        formatted_prompt.append("\nPlease review the code according to the following criteria:\n"
+        formatted_prompt.append(self.prepare_prompt(mode="last", domain_focus=domain_focus))
+        formatted_prompt.append(f"\nPlease review the code according to the following criteria:\n"
                                 "1. *Functionality*: Can the code be successfully executed in the current setting?\n"
-                                "2. *Conformance*: Does the code conform to the given instructions?\n"
+                                f"2. *Conformance*: Does the code conform to the given instructions? {domain_trigger}"
                                 "Provide suggestions for revision and improvement if necessary.\n"
                                 "*NOTE*:\n"
                                 "1. Your review is not concerned with engineering code quality. The code is a quick "
@@ -298,6 +311,35 @@ class GEOAgent:
         response = reviewer.ask(prompt)
         return response
 
+    def correct_code(self, action_unit, feedback):
+        code_inducer = CODE_INDUCER2 if action_unit.name == "2" else CODE_INDUCER
+        formatted_prompt = []
+        domain_focus = action_unit.name in self.one_history_only
+        if domain_focus:
+            formatted_prompt.append("The detailed task instructions are provided below. Sometimes the record of"
+                                    "previous attempts are also provided")
+        formatted_prompt.append(self.prepare_prompt(mode="past", domain_focus=domain_focus))
+        formatted_prompt.append(f"\nThe following code is the latest attempt for the current step and requires correction. "
+                                "If previous attempts have been included in the task history above, their presence"
+                                " does not indicate they succeeded or failed, though you can refer to their execution "
+                                "outputs for context. \nOnly correct the latest code attempt provided below.\n")
+        formatted_prompt.append(self.prepare_prompt(mode="last", domain_focus=domain_focus))
+        formatted_prompt.append(f"Use the reviewer's feedback to help debug and identify logical errors in the code. "
+                                f"While the feedback is generally reliable, it might occasionally include errors or "
+                                f"suggest changes that are impractical in the current context. Make corrections where "
+                                f"you agree with the feedback, but retain the original code where you do not.\n")
+        formatted_prompt.append(f"\nReviewer's feedback:\n{feedback}\n")
+        formatted_prompt.append(code_inducer)
+        prompt = "\n".join(formatted_prompt)
+        if action_unit.name not in self.need_biomedical_knowledge:
+            response = self.ask(prompt)
+        else:
+            expert = DomainExpertAgent()
+            response = expert.ask(prompt)
+
+        code = self.parse_code(response)
+        return code
+
     def review_and_correct(self, action_unit):
         round_counter = 0
         while round_counter < self.max_rounds:
@@ -308,7 +350,7 @@ class GEOAgent:
                 action_unit
             )
             print(feedback)
-            if ": approved" in feedback.lower().replace(" ", "") and not stderr and not error:
+            if ":approved" in feedback.lower().replace(" ", "") and not stderr and not error:
                 # if not self.action_units[action_unit_name].code_snippet:
                 #     self.action_units[action_unit_name].code_snippet = self.task_context.history[-1]['code_snippet']
                 # else:
@@ -317,7 +359,7 @@ class GEOAgent:
                 break
 
             self.clear_states(exe_state=True)
-            code_to_repeat = self.task_context.concatenate_snippets()
+            code_to_repeat = self.task_context.concatenate_snippets(mode="previous")
             _, _, _ = self.run_snippet(code_to_repeat, self.current_exec_state)
 
             # Correct the code based on feedback
@@ -339,32 +381,6 @@ class GEOAgent:
             print(f"Maximum revision attempts {self.max_rounds} reached. Use the code from latest attempt without "
                   f"review.")
         self.merge_revision_into_context()
-
-    def correct_code(self, action_unit, feedback):
-        formatted_prompt = []
-        if action_unit.name in self.one_history_only:
-            formatted_prompt.append(self.task_context.display(mode="past"))
-            formatted_prompt.append("The detailed task instructions are provided below. Sometimes the record of"
-                                    "previous attempts are also provided")
-        else:
-            formatted_prompt.append(self.prepare_prompt(mode="past"))
-        formatted_prompt.append(f"\nThe following code is the latest attempt for the current step and requires correction. "
-                                "If previous attempts have been included in the task history above, their presence"
-                                " does not indicate they succeeded or failed, though you can refer to their execution "
-                                "outputs for context. \nOnly correct the latest code attempt provided below.\n")
-        formatted_prompt.append(self.task_context.display(mode="last"))
-        formatted_prompt.append(f"\nReviewer's feedback:\n{feedback}\n")
-        formatted_prompt.append(f"Based on the reviewer's feedback, write a corrected version of the code\n")
-        formatted_prompt.append(CODE_INDUCER)
-        prompt = "\n".join(formatted_prompt)
-        if action_unit.name not in self.need_biomedical_knowledge:
-            response = self.ask(prompt)
-        else:
-            expert = DomainExpertAgent()
-            response = expert.ask(prompt)
-
-        code = self.parse_code(response)
-        return code
 
     def execute_action_unit(self, action_unit_name):
         action_unit = self.action_units[action_unit_name]
@@ -393,7 +409,6 @@ class GEOAgent:
         self.check_code_snippet_buffer()
         while True:
             action_unit_name = self.choose_action_unit()
-            print('h\n' * 10 + action_unit_name)
             if action_unit_name == "8":
                 break
             self.execute_action_unit(action_unit_name)
@@ -403,7 +418,7 @@ class GEOAgent:
                 if is_gene_available is False or trait_row is None:
                     print("Cohort not usable. Early stop triggered")
                     break
-        return self.task_context.history
+        return self.task_context.concatenate_snippets()
 
     @staticmethod
     def parse_code(rsp):
@@ -513,12 +528,12 @@ print(sample_characteristics_dict)
 
     INSTRUCTION_STEP2: str = \
         """
-STEP 2: Dataset Analysis and Questions
+STEP2: Dataset Analysis and Questions
 
 As a biomedical research team, we are analyzing datasets to study the association between the human trait '{trait}' and genetic factors, considering the possible influence of age and gender. After searching the GEO database and parsing the matrix file of a series, STEP 1 has provided background information and sample characteristics data. Please review the output from STEP 1 and answer the following questions regarding this dataset:
 
 1. Gene Expression Data Availability
-   - Does this dataset contain gene expression data? (Note: Pure miRNA data is not suitable.)
+   - Is this dataset likely to contain gene expression data? (Note: Pure miRNA data is not suitable.)
      - If YES, set `is_gene_available` to `True`. Otherwise set it to `False`.
 
 2. Variable Availability and Data Type Conversion
@@ -526,22 +541,25 @@ As a biomedical research team, we are analyzing datasets to study the associatio
 
    **2.1 Data Availability**
      - If human data for this variable is available, identify the key in the sample characteristics dictionary where unique values of this variable are recorded. The key is an integer. The variable information might be explicitly recorded or inferred from the field with biomedical knowledge or understanding of the dataset background.
-     - If you can't find such a key, the data is not available. Or if there is only one unique value under the key, a constant variable is useless in statistics, so we also consider it as not available. 
+     - If you can't find such a key, the data is not available. Constant features are useless in our associative studies. Therefore, if there is only one unique value under the key, consider the variable as not available. Similarly, if you infer the value from places other than the sample characteristics data, like "everyone has the same value for some variable", consider it as not available.
      - Name the keys `trait_row`, `age_row`, and `gender_row`, respectively. Use None to indicate the corresponding data is not available.
 
    **2.3 Data Type Conversion**
      - Choose an appropriate data type for each variable ('continuous' or 'binary').
-     - If the data type is binary, convert values to 0 and 1. For gender data. Convert female to 0 and male to 1.
+     - If the data type is binary, convert values to 0 and 1. For gender data, convert female to 0 and male to 1.
      - Write a Python function to convert any given value of the variable to this data type. Typically, a colon (':') separates the header and the value in each cell, so ensure to extract the value after the colon in the function. Unknown values should be converted to None.
-     - When data is not explicitly given but can be inferred, carefully observe the unique values in the sample characteristics dictionary and design a heuristic rule to convert those values into the chosen type. If you are 90% sure that some cases should be mapped to certain value, please do that instead of giving `None`. 
+     - When data is not explicitly given but can be inferred, carefully observe the unique values in the sample characteristics dictionary, think about what they mean in this dataset, and design a heuristic rule to convert those values into the chosen type. If you are 90% sure that some cases should be mapped to a known value, please do that instead of giving `None`. 
      - Name the functions `convert_trait`, `convert_age`, and `convert_gender`, respectively.
 
-3. If `is_gene_available` is False or `trait_row` is None, it means the dataset is not usable. Then, please save this information by following the function call format strictly
+3. Save Metadata
+   Please save cohort information by following the function call format strictly:
    ```python
-   save_cohort_info(cohort, json_path, is_gene_available, trait_row is not None)
+   save_cohort_info('{cohort}', '{json_path}', is_gene_available, trait_row is not None)
    ```
-   and that's all you can do. Otherwise, the dataset is usable, so you MUST apply the functions you wrote to extract clinical features.
-   To do so, use the `geo_select_clinical_features` function to obtain the output `selected_clinical_data` from the input dataframe, save it to a csv file, and preview it. Follow the function call format strictly:
+   
+4. Clinical Feature Extraction
+   If trait_row is not None, it means clinical data is available, then you MUST DO this substep. Otherwise, you should skip this subskip.
+   Use the `geo_select_clinical_features` function to obtain the output `selected_clinical_data` from the input dataframe, save it to a csv file, and preview it. Follow the function call format strictly:
     ```python
     selected_clinical_data = geo_select_clinical_features(clinical_data, '{trait}', trait_row, convert_trait, age_row, convert_age, gender_row, convert_gender)
     csv_path = '{out_trait_data_file}'
@@ -557,17 +575,17 @@ As a biomedical research team, we are analyzing datasets to study the associatio
     INSTRUCTION_STEP3: str = \
         """
 STEP3:
-1. Use the get_genetic_data function from the library to get the genetic_data from the matrix_file previously defined.
+1. Use the get_genetic_data function from the library to get the gene_data from the matrix_file previously defined.
 2. print the first 20 row ids for following step.
         """
 
     CODE_STEP3: str = \
         """# STEP3
-# 1. Use the get_genetic_data function from the library to get the genetic_data from the matrix_file previously defined.
-genetic_data = get_genetic_data(matrix_file)
+# 1. Use the get_genetic_data function from the library to get the gene_data from the matrix_file previously defined.
+gene_data = get_genetic_data(matrix_file)
 
 # 2. Print the first 20 row ids for the following step.
-print(genetic_data.index[:20])
+print(gene_data.index[:20])
     """
 
     INSTRUCTION_STEP4: str = \
@@ -583,7 +601,7 @@ requires_gene_mapping = (True or False)
         """
 STEP5:
 If requires_gene_mapping is True, do the following substeps 1-2; otherwise, skip STEP5.
-    1. Use the 'get_gene_annotation' function from the library to get gene annotation data from the soft file.
+    1. Use the 'get_gene_annotation' function from the library to get gene annotation data from the soft file
     2. Use the 'preview_df' function from the library to preview the data and print out the results for the following step. Mark the printing with a string like "Gene annotation".
         """
 
@@ -606,8 +624,8 @@ If requires_gene_mapping is True, do the following substeps; otherwise, MUST SKI
     Please read the dictionary and decide which key stores the same kind of identifiers as in STEP3, and which key stores the gene symbols. Please strictly follow this format in your answer:
     identifier_key = 'key_name1'
     gene_symbol_key = 'key_name2'
-    2. Get the gen mapping with the 'get_gene_mapping' function from the library. 
-    3. Get the gene data with the 'apply_gene_mapping' function from the library. 
+    2. Get the dataframe storing the mapping between probe IDs and genes using the 'get_gene_mapping' function from the library. 
+    3. Apply the mapping with the 'apply_gene_mapping' function from the library, and name the resulting gene expression dataframe "gene_data". 
        """
 
     INSTRUCTION_STEP7: str = \
@@ -632,7 +650,7 @@ normalized_gene_data.to_csv(gene_csv_path)
 merged_data = geo_merge_clinical_genetic_data(selected_clinical_data, normalized_gene_data)
 
 # 3. Determine whether the trait and some demographic attributes in the data is severely biased, and remove biased attributes.
-trait_biased, unbiased_merged_data = judge_and_remove_biased_features(merged_data, trait)
+trait_biased, unbiased_merged_data = judge_and_remove_biased_features(merged_data, '{trait}')
 
 # If the trait is not severely biased, save the cohort information and the merged data.
 
@@ -647,36 +665,41 @@ if not trait_biased:
 
     all_traits = pd.read_csv("all_traits.csv")["Trait"].tolist()
     all_traits = [normalize_trait(t) for t in all_traits]
-    all_traits = ["Epilepsy"] #["Adrenocortical_Cancer"] #
     input_dir = '/media/techt/DATA/GEO' if os.path.exists('/media/techt/DATA/GEO') else '../DATA/GEO'
 
     output_root = './output/preprocess/'
-    version = 'gs1'
+    version = 'ours'
     version_dir = os.path.join(output_root, version)
 
     utils_code = "".join(open("utils/preprocess.py", 'r').readlines())
     tools = TOOLS.format(utils_code=utils_code)
     for index, trait in enumerate(all_traits):
-        try:
-            in_trait_dir = os.path.join(input_dir, trait)
-            output_dir = os.path.join(version_dir, trait)
-            os.makedirs(output_dir, exist_ok=True)
-            json_path = os.path.join(output_dir, "cohort_info.json")
+        in_trait_dir = os.path.join(input_dir, trait)
+        if not os.path.isdir(in_trait_dir):
+            print(f"Trait directory not found: {in_trait_dir}")
+            continue
+        output_dir = os.path.join(version_dir, trait)
+        os.makedirs(output_dir, exist_ok=True)
+        out_gene_dir = os.path.join(output_dir, 'gene_data')
+        out_trait_dir = os.path.join(output_dir, 'trait_data')
+        out_log_dir = os.path.join(output_dir, 'log')
+        out_code_dir = os.path.join(output_dir, 'code')
+        for this_dir in [out_gene_dir, out_trait_dir, out_log_dir, out_code_dir]:
+            os.makedirs(this_dir, exist_ok=True)
 
-            if not os.path.isdir(in_trait_dir):
-                print(f"Trait directory not found: {in_trait_dir}")
-                continue
-            cohorts = os.listdir(in_trait_dir)
-            cohorts = ["GSE205661"] # ["GSE143383"]
-            for cohort in cohorts:
+        json_path = os.path.join(output_dir, "cohort_info.json")
+
+        cohorts = os.listdir(in_trait_dir)
+        for cohort in cohorts:
+            try:
                 in_cohort_dir = os.path.join(in_trait_dir, cohort)
                 if not os.path.isdir(in_cohort_dir):
                     print(f"Cohort directory not found: {in_cohort_dir}")
                     continue
                 setups = SETUPS.format(in_cohort_dir=in_cohort_dir, output_dir=output_dir)
                 out_data_file = os.path.join(output_dir, f"{cohort}.csv")
-                out_gene_data_file = os.path.join(output_dir, 'gene', f"{cohort}.csv")
-                out_trait_data_file = os.path.join(output_dir, 'trait', f"{cohort}.csv")
+                out_gene_data_file = os.path.join(out_gene_dir, f"{cohort}.csv")
+                out_trait_data_file = os.path.join(out_trait_dir, f"{cohort}.csv")
 
                 action_units = [
                     ActionUnit("1", INSTRUCTION_STEP1, CODE_STEP1.format(in_cohort_dir=in_cohort_dir)),
@@ -688,14 +711,14 @@ if not trait_biased:
                     ActionUnit("6", INSTRUCTION_STEP6),
                     ActionUnit("7", INSTRUCTION_STEP7.format(trait=trait, cohort=cohort, json_path=json_path,
                                                        out_data_file=out_data_file, out_gene_data_file=out_gene_data_file),
-                               CODE_STEP7.format(cohort=cohort, json_path=json_path,
+                               CODE_STEP7.format(trait=trait, cohort=cohort, json_path=json_path,
                                                        out_data_file=out_data_file, out_gene_data_file=out_gene_data_file)),
                     ActionUnit("8", "Task completed, you don't need to write any code.")
                 ]
 
-            geo_agent = GEOAgent(ROLE_PROMPT, GUIDELINES, tools, setups, action_units)
-            task_context = geo_agent.run_task()
-        except Exception as e:
-            print(e)
-            continue
+                geo_agent = GEOAgent(ROLE_PROMPT, GUIDELINES, tools, setups, action_units)
+                code = geo_agent.run_task()
+            except Exception as e:
+                print(e)
+                continue
 
