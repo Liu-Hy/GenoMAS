@@ -18,6 +18,7 @@ import subprocess
 from utils.statistics import normalize_trait
 from prompts.preprocess import *
 
+max_time = 420
 # Global client variable
 client = None
 def setup_client(deployment="op"):
@@ -28,7 +29,7 @@ def setup_client(deployment="op"):
     if deployment == "az4o":
         client = AzureOpenAI(
             api_key="3cc5dfb43d6547ec9ba435f4ee3ca98d",
-            api_version="2024-05-13",
+            api_version="2023-10-01-preview",
             azure_endpoint="https://haoyang3.openai.azure.com/",
             timeout=timeout,
             max_retries=max_retries
@@ -40,7 +41,10 @@ def setup_client(deployment="op"):
 
 # Define the timeout handler
 def timeout_handler(signum, frame):
-    raise TimeoutError("Processing this cohort took too long!")
+    raise TimeoutError("TimeoutError! Processing this cohort took too long!")
+
+def is_timeout(stderr, error):
+    return (stderr is not None and "TimeoutError!" in str(stderr)) or (error is not None and "TimeoutError!" in str(error))
 
 
 # Set the signal handler for the alarm signal
@@ -300,14 +304,19 @@ class GEOAgent:
     def choose_action_unit(self):
         return str(self.task_context.current_step + 1)
 
-    def run_snippet(self, snippet, namespace):
+    def run_snippet(self, snippet, namespace, cohort_start_time):
         stdout = io.StringIO()
         stderr = io.StringIO()
         try:
+            remaining_time = max_time - (time.time() - cohort_start_time)
+            if remaining_time <= 0:
+                return None, None, "TimeoutError!"
+            signal.alarm(int(remaining_time))
             with redirect_stdout(stdout), redirect_stderr(stderr):
                 exec(snippet, namespace)
             return stdout.getvalue(), stderr.getvalue(), None
         except Exception as e:
+            self.logger.log_message(f"Exception: {e}")
             return stdout.getvalue(), stderr.getvalue(), e
 
     def write_initial_code(self, action_unit):
@@ -401,7 +410,7 @@ class GEOAgent:
         code = self.parse_code(response)
         return code
 
-    def review_and_correct(self, action_unit):
+    def review_and_correct(self, action_unit, cohort_start_time):
         round_counter = 0
         while round_counter < self.max_rounds:
             last_step = self.task_context.history[-1]
@@ -414,13 +423,15 @@ class GEOAgent:
 
             self.clear_states(exe_state=True)
             code_to_repeat = self.task_context.concatenate_snippets(mode="previous")
-            _, _, _ = self.run_snippet(code_to_repeat, self.current_exec_state)
+            _, stderr, error = self.run_snippet(code_to_repeat, self.current_exec_state, cohort_start_time)
+            if is_timeout(stderr, error):
+                return 1
 
             # Correct the code based on feedback
             new_code_snippet = self.correct_code(action_unit, feedback)
-            stdout, stderr, error = self.run_snippet(new_code_snippet, self.current_exec_state)
-            if (stderr is not None and "TimeoutError" in str(stderr)) or (error is not None and "TimeoutError" in str(error)):
-                raise TimeoutError("Processing this cohort took too long!")
+            stdout, stderr, error = self.run_snippet(new_code_snippet, self.current_exec_state, cohort_start_time)
+            if is_timeout(stderr, error):
+                return 1
 
             self.task_context.add_step(
                 debug=True,
@@ -438,15 +449,16 @@ class GEOAgent:
                   f"review.")
         self.merge_revision_into_context()
 
-    def execute_action_unit(self, action_unit_name):
+    def execute_action_unit(self, action_unit_name, cohort_start_time):
         action_unit = self.action_units[action_unit_name]
         code_snippet = action_unit.code_snippet
         if not code_snippet:
             code_snippet = self.write_initial_code(action_unit)
 
-        stdout, stderr, error = self.run_snippet(code_snippet, self.current_exec_state)
-        if (stderr is not None and "TimeoutError" in str(stderr)) or (error is not None and "TimeoutError" in str(error)):
-            raise TimeoutError("Processing this cohort took too long!")
+        stdout, stderr, error = self.run_snippet(code_snippet, self.current_exec_state, cohort_start_time)
+        if is_timeout(stderr, error):
+            return 1
+
 
         self.task_context.add_step(
             debug=False,
@@ -460,16 +472,21 @@ class GEOAgent:
         print(self.task_context.display(mode="last"))
 
         if stderr or error or not action_unit.code_snippet:
-            self.review_and_correct(action_unit)
+            status = self.review_and_correct(action_unit, cohort_start_time)
+            return status
 
     def run_task(self):
         self.clear_states(context=True, exe_state=True)
         self.check_code_snippet_buffer()
+        cohort_start_time = time.time()
         while True:
             action_unit_name = self.choose_action_unit()
             if action_unit_name == "8":
                 break
-            self.execute_action_unit(action_unit_name)
+            status = self.execute_action_unit(action_unit_name, cohort_start_time)
+            if status == 1:
+                print(f"TimeoutError! {max_time}s exceeded, early stopped this cohort.")
+                break
             if action_unit_name == "2":
                 is_gene_available = self.current_exec_state.get("is_gene_available")
                 trait_row = self.current_exec_state.get("trait_row")
@@ -590,7 +607,6 @@ def main():
                 continue
 
             try:
-                signal.alarm(480)  # Set a timeout alarm in seconds
                 in_cohort_dir = os.path.join(in_trait_dir, cohort)
                 if not os.path.isdir(in_cohort_dir):
                     print(f"Cohort directory not found: {in_cohort_dir}")
@@ -643,9 +659,6 @@ def main():
                 logger.finalize()
                 signal.alarm(0)  # Disable the alarm
 
-            except TimeoutError:
-                print(f"Timeout reached for cohort {cohort}. Skipping to the next one.")
-                continue
             except Exception as e:
                 sys.stdout = sys.__stdout__
                 sys.stderr = sys.__stderr__
