@@ -20,14 +20,23 @@ from prompts.preprocess import *
 
 # Global client variable
 client = None
-def setup_client(use_second, api_key="sk-proj-4Vh85J4HjUrEEC6mZLMgT3BlbkFJiuAIWtIjhxG5yvB3X0qz"):
+def setup_client(deployment="op"):
     global client
-    # api_key = os.getenv("OPENAI_API_KEY")
-    # print("api_key:")
-    # print(api_key)
-    if not api_key:
-        raise ValueError("No API key found in environment variables")
-    client = OpenAI(api_key=api_key, organization="org-wDHvtvaEQgDHXGucPh3Bxqr8", timeout=40, max_retries=6)
+    timeout = 40
+    max_retries = 6
+
+    if deployment == "az4o":
+        client = AzureOpenAI(
+            api_key="3cc5dfb43d6547ec9ba435f4ee3ca98d",
+            api_version="2024-05-13",
+            azure_endpoint="https://haoyang3.openai.azure.com/",
+            timeout=timeout,
+            max_retries=max_retries
+        )
+    elif deployment == "op":
+        client = OpenAI(api_key="sk-proj-4Vh85J4HjUrEEC6mZLMgT3BlbkFJiuAIWtIjhxG5yvB3X0qz",
+                        organization="org-wDHvtvaEQgDHXGucPh3Bxqr8",
+                        timeout=timeout, max_retries=max_retries)
 
 # Define the timeout handler
 def timeout_handler(signum, frame):
@@ -502,7 +511,7 @@ def setup_arg_parser():
     parser.add_argument('--cs', type=lambda x: (str(x).lower() == 'true'), default=False, help='Use code snippet.')
     parser.add_argument('--version', type=str, required=True, help='Version string for the current run of experiment.')
     parser.add_argument('--resume', type=lambda x: (str(x).lower() == 'true'), default=True, help='Continue from next cohort.')
-    parser.add_argument('--use_second_api', type=lambda x: (str(x).lower() == 'true'), default=False, help='Use the second API configuration.')
+    parser.add_argument('--deployment', type=str, default="op", choices=["op", "az4o"], help='Select the deployment.')
     return parser
 
 
@@ -537,7 +546,7 @@ def main():
     args = parser.parse_args()
 
     # Set up the client based on the command line argument
-    setup_client(args.use_second_api)
+    setup_client(args.deployment)
 
     all_traits = pd.read_csv("all_traits.csv")["Trait"].tolist()
     all_traits = [normalize_trait(t) for t in all_traits]
