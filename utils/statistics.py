@@ -158,10 +158,10 @@ def detect_batch_effect(X):
     return False
 
 class ResidualizationRegressor:
-    def __init__(self, regression_model_constructor, params=None):
+    def __init__(self, model_constructor, params=None):
         if params is None:
             params = {}
-        self.regression_model = regression_model_constructor(**params)
+        self.regression_model = model_constructor(**params)
         self.beta_Z = None  # Coefficients for regression of Y on Z
         self.beta_X = None  # Coefficients for regression of residual on X
         self.neg_log_p_values = None  # Negative logarithm of p-values

@@ -526,8 +526,9 @@ def main():
 
     all_traits = pd.read_csv("all_traits.csv")["Trait"].tolist()
     all_traits = [normalize_trait(t) for t in all_traits]
-    all_traits = [t for t in all_traits if t not in ["Breast_Cancer", "Epilepsy"]]
-    all_traits = ["Breast_Cancer", "Epilepsy"] + all_traits
+    special_traits = ["Breast_Cancer", "Epilepsy", "Atherosclerosis"]
+    all_traits = [t for t in all_traits if t not in special_traits]
+    all_traits = special_traits + all_traits
     input_dir = '/media/techt/DATA/GEO' if os.path.exists('/media/techt/DATA/GEO') else '../DATA/GEO'
 
     output_root = './output/preprocess/'
@@ -564,7 +565,7 @@ def main():
                     continue
 
             try:
-                signal.alarm(600)  # Set a timeout alarm for 600 seconds
+                signal.alarm(480)  # Set a timeout alarm in seconds
                 in_cohort_dir = os.path.join(in_trait_dir, cohort)
                 if not os.path.isdir(in_cohort_dir):
                     print(f"Cohort directory not found: {in_cohort_dir}")

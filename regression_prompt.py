@@ -31,7 +31,7 @@ client = AzureOpenAI(
 )
 
 
-def call_openai_gpt(prompt):
+def call_openai_gpt_chat(prompt):
     messages = [
         {"role": "system", "content": "You are a helpful assistant."},
         {"role": "user",
@@ -71,7 +71,7 @@ INSTRUCTION_HEAD_TEMPLATE: str = \
     In this project, you will explore gene expression datasets to identify the significant genes related to a trait, 
     optionally controlling for a condition.
 
-    Tools: In "utils.statistics", there are lots of well-written helper functions for this project. Please import and 
+    Tools: In "utils.statistics", there are lots of well-developed helper functions for this project. Please import and 
     use them when possible. Hereafter I will call it "the library". Below is the source code.
     {utils_code}
 

@@ -81,7 +81,11 @@ def main(pred_dir, ref_dir):
                 ref_file = os.path.join(ref_trait_path, filename)
                 pred_file = os.path.join(pred_dir, trait, filename)
                 metrics = calculate_metrics(ref_file, pred_file)
+
+                available_traits = os.listdir('/home/techt/Desktop/AI_for_Science/preprocessed/ours')
+                #if trait in available_traits and (condition in available_traits or condition.lower() == 'None'):
                 results[(trait, condition)] = metrics
+                    #print(metrics)
     categorized_avg_metrics = categorize_and_aggregate(results)
     return results, categorized_avg_metrics
 

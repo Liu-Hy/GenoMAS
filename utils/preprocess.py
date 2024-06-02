@@ -119,14 +119,12 @@ def get_gene_annotation(file_path, prefixes=['^', '!', '#']):
     return gene_metadata[0]
 
 
-def get_gene_mapping(annotation, org_identifier, new_identifier):
-    """Process the gene annotation to get the mapping between gene probes and gene names (or a new gene identifier)."""
-    if org_identifier == new_identifier:
-        mapping_data = annotation.loc[:, [org_identifier]].dropna().rename(columns={org_identifier: 'Gene'})
-        mapping_data['ID'] = mapping_data['Gene'].astype('str')
-    else:
-        mapping_data = annotation.loc[:, [org_identifier, new_identifier]].dropna()
-        mapping_data = mapping_data.rename(columns={new_identifier: 'Gene', org_identifier: 'ID'}).astype({'ID': 'str'})
+def get_gene_mapping(annotation, prob_col, gene_col):
+    """Process the gene annotation to get the mapping between gene names and gene probes.
+    """
+    mapping_data = annotation.loc[:, [prob_col, gene_col]]
+    mapping_data = mapping_data.dropna()
+    mapping_data = mapping_data.rename(columns={gene_col: 'Gene'}).astype({'ID': 'str'})
 
     return mapping_data
 
@@ -174,40 +172,38 @@ def apply_gene_mapping(expression_df, mapping_df):
 
     # Set 'ID' as the index of 'mapping_df' for merging
     mapping_df.set_index('ID', inplace=True)
-    print("mapping df before joining:")
-    print(mapping_df)
+
     # Merge 'mapping_df' with 'expression_df' by their indices
     merged_df = mapping_df.join(expression_df)
-    print("merged_df:")
-    print(merged_df)
+
     # Group by 'Gene' and calculate the mean expression values
     gene_expression_df = merged_df.groupby('Gene').mean().dropna()
 
     return gene_expression_df
 
 
-def normalize_gene_identifiers(gene_identifiers, scope='symbol', batch_size=1000):
-    """Normalize and convert human gene identifiers into gene symbols in batches using the 'mygenes' library"""
+def normalize_gene_symbols(gene_symbols, batch_size=1000):
+    """Normalize human gene symbols in batches using the 'mygenes' library"""
     mg = mygene.MyGeneInfo()
     normalized_genes = {}
 
     # Process in batches
-    for i in range(0, len(gene_identifiers), batch_size):
-        batch = gene_identifiers[i:i + batch_size]
-        results = mg.querymany(batch, scopes=scope, fields='symbol', species='human', verbose=False)
+    for i in range(0, len(gene_symbols), batch_size):
+        batch = gene_symbols[i:i + batch_size]
+        results = mg.querymany(batch, scopes='symbol', fields='symbol', species='human', verbose=False)
 
         # Update the normalized_genes dictionary with results from this batch
         for gene in results:
             normalized_genes[gene['query']] = gene.get('symbol', None)
 
     # Return the normalized symbols in the same order as the input
-    return [normalized_genes.get(identifier) for identifier in gene_identifiers]
+    return [normalized_genes.get(symbol) for symbol in gene_symbols]
 
 
-def normalize_gene_identifiers_in_index(gene_df, scope='symbol'):
-    """Normalize the human gene symbols or identifiers at the index of a dataframe, and replace the index with its normalized version.
+def normalize_gene_symbols_in_index(gene_df):
+    """Normalize the human gene symbols at the index of a dataframe, and replace the index with its normalized version.
     Aggregate rows where the index is normalized to the same gene by averaging the values."""
-    normalized_gene_list = normalize_gene_identifiers(gene_df.index.tolist(), scope)
+    normalized_gene_list = normalize_gene_symbols(gene_df.index.tolist())
     assert len(normalized_gene_list) == len(gene_df.index)
 
     gene_df.index = normalized_gene_list
