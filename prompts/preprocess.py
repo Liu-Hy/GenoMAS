@@ -74,7 +74,7 @@ STEP2: Dataset Analysis and Questions
 As a biomedical research team, we are analyzing datasets to study the association between the human trait '{trait}' and genetic factors, considering the possible influence of age and gender. After searching the GEO database and parsing the matrix file of a series, STEP 1 has provided background information and sample characteristics data. Please review the output from STEP 1 and answer the following questions regarding this dataset:
 
 1. Gene Expression Data Availability
-   - Is this dataset likely to contain gene expression data? (Note: Pure miRNA data is not suitable.)
+   - Is this dataset likely to contain gene expression data? (Note: Pure miRNA data or methylation data are not suitable.)
      - If YES, set `is_gene_available` to `True`. Otherwise set it to `False`.
 
 2. Variable Availability and Data Type Conversion
@@ -162,17 +162,21 @@ STEP6:
 If requires_gene_mapping is True, do the following substeps; otherwise, MUST SKIP them.
     1. When analyzing a gene expression dataset, we need to map some identifiers of genes to actual gene symbols. STEP3 prints out some of those identifiers, 
     and STEP5 prints out part of the gene annotation data converted to a Python dictionary. 
-    Please read the dictionary and decide which key stores the same kind of identifiers as in STEP3, and which key stores the gene symbols. Please strictly follow this format in your answer:
-    identifier_key = 'key_name1'
-    gene_symbol_key = 'key_name2'
-    2. Get the dataframe storing the mapping between probe IDs and genes using the 'get_gene_mapping' function from the library. 
+    Please read the dictionary and decide which key stores the same kind of identifiers as in STEP3, and which key stores the gene symbols, 
+    or a new type of identifier that's common enough to be mapped to gene symbols. 
+    The new type should be one of 'symbol', 'entrezgene', 'ensembl.gene', or other strings that are valid fields in the mygene library.
+    Please strictly follow this format in your answer:
+    org_identifier_key = 'key_name1'
+    new_identifier_key = 'key_name2'
+    new_identifier_type = 'symbol'  # or another field
+    2. Get the dataframe storing the mapping between the original and new gene IDs using the 'get_gene_mapping' function from the library. 
     3. Apply the mapping with the 'apply_gene_mapping' function from the library, and name the resulting gene expression dataframe "gene_data". 
        """
 
 INSTRUCTION_STEP7: str = \
         """
 STEP7:
-1. Normalize the obtained gene data with the 'normalize_gene_symbols_in_index' function from the library. Save the normalized genetic data to a csv file in the path `{out_gene_data_file}`
+1. Normalize the obtained gene data with the 'normalize_gene_identifiers_in_index' function from the library. Save the normalized genetic data to a csv file in the path `{out_gene_data_file}`
 2. Merge the clinical and genetic data with the 'geo_merge_clinical_genetic_data' function from the library, and assign the merged data to a variable 'merged_data'.
 3. Determine whether the trait '{trait}' and some demographic attributes in the data is severely biased, and remove biased attributes with the 'judge_and_remove_biased_features' function from the library.
 4. Save the cohort information with the 'save_cohort_info' function from the library. Hint: set the 'json_path' variable to '{json_path}', and assuming 'is_trait_biased' indicates whether the trait is biased, follow the function call format strictly to save the cohort information: 
@@ -182,8 +186,8 @@ save_cohort_info(cohort, json_path, True, True, is_trait_biased, merged_data).
 
 CODE_STEP7: str = \
         """# STEP7
-# 1. Normalize the obtained gene data with the 'normalize_gene_symbols_in_index' function from the library.
-normalized_gene_data = normalize_gene_symbols_in_index(gene_data)
+# 1. Normalize the obtained gene data with the 'normalize_gene_identifiers_in_index' function from the library.
+normalized_gene_data = normalize_gene_identifiers_in_index(gene_data, new_identifier_type)
 gene_csv_path = '{out_gene_data_file}'
 normalized_gene_data.to_csv(gene_csv_path)
 
