@@ -6,6 +6,10 @@ import mygene
 import re
 import json
 from typing import Callable, Optional, List, Tuple, Dict, Union, Any
+import warnings
+
+# Suppress the FutureWarnings
+warnings.simplefilter(action='ignore', category=FutureWarning)
 
 def geo_get_relevant_filepaths(cohort_dir):
     """Find the file paths of a SOFT file and a matrix file from the given data directory of a cohort.
@@ -485,5 +489,14 @@ def save_cohort_info(cohort: str, info_path: str, is_gene_available: bool, is_tr
             os.remove(temp_path)
         raise
 
-def preview_df(df, n=5):
-    return df.head(n).to_dict(orient='list')
+def preview_df(df, n=5, max_items=200):
+    # Get the dictionary of the first n rows
+    data_dict = df.head(n).to_dict(orient='list')
+
+    # If the dictionary has more than max_items, truncate it
+    if len(data_dict) > max_items:
+        truncated_dict = {k: data_dict[k] for k in list(data_dict.keys())[:max_items]}
+        return truncated_dict
+    else:
+        return data_dict
+

@@ -10,7 +10,7 @@ import argparse
 import shutil
 import signal
 
-from openai import AzureOpenAI
+from openai import AzureOpenAI, OpenAI
 import pandas as pd
 import numpy as np
 import ast
@@ -20,20 +20,14 @@ from prompts.preprocess import *
 
 # Global client variable
 client = None
-def setup_client(use_second_api):
+def setup_client(use_second, api_key="sk-proj-4Vh85J4HjUrEEC6mZLMgT3BlbkFJiuAIWtIjhxG5yvB3X0qz"):
     global client
-    if use_second_api:
-        client = AzureOpenAI(
-            api_key="d4e35aeb201540549739bdbd4f62b957",
-            api_version="2023-10-01-preview",
-            azure_endpoint="https://yijiang2.openai.azure.com/"
-        )
-    else:
-        client = AzureOpenAI(
-            api_key="57983a2e88fa4d6b81205a8d55d9bd46",
-            api_version="2023-10-01-preview",
-            azure_endpoint="https://haoyang2.openai.azure.com/"
-        )
+    # api_key = os.getenv("OPENAI_API_KEY")
+    # print("api_key:")
+    # print(api_key)
+    if not api_key:
+        raise ValueError("No API key found in environment variables")
+    client = OpenAI(api_key=api_key, organization="org-wDHvtvaEQgDHXGucPh3Bxqr8", timeout=40, max_retries=6)
 
 # Define the timeout handler
 def timeout_handler(signum, frame):
@@ -106,10 +100,15 @@ def call_openai_gpt(prompt, sys_prompt=None, logger=None):
         {"role": "user", "content": prompt}
     ]
     start_time = time.time()
-    response = client.chat.completions.create(
-        model="gpt-4",  # Adjust the model name as needed
-        messages=messages
-    )
+    try:
+        response = client.chat.completions.create(
+            model="gpt-4o",  # Adjust the model name as needed
+            messages=messages,
+        )
+    except Exception as e:
+        print(e)
+        return ""
+
     end_time = time.time()
     elapsed_time = end_time - start_time
     tokens_consumed = response.usage.total_tokens
@@ -639,6 +638,8 @@ def main():
                 print(f"Timeout reached for cohort {cohort}. Skipping to the next one.")
                 continue
             except Exception as e:
+                sys.stdout = sys.__stdout__
+                sys.stderr = sys.__stderr__
                 print(e)
                 continue
             finally:

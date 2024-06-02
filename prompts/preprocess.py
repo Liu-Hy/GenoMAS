@@ -39,9 +39,9 @@ INSTRUCTION_STEP1: str = \
         """
         STEP1:
 1. Identify the paths to the soft file and the matrix file, and assign them to the variables 'soft_file' and 'matrix_file'.
-2. Read the matrix file to obtain background information about the dataset and sample characteristics data through the 'get_background_and_clinical_data' function from the library. For the input parameters to the function,
+2. Read the matrix file to obtain background information about the dataset and the clinical dataframe 'clinical_data' through the 'get_background_and_clinical_data' function from the library. For the input parameters to the function,
 'background_prefixes' should be a list consisting of strings '!Series_title', '!Series_summary', and '!Series_overall_design'. 'clinical_prefixes' should be a list consisting of '!Sample_geo_accession' and '!Sample_characteristics_ch1'.
-3. Obtain the sample characteristics dictionary from the clinical dataframe via the 'get_unique_values_by_row' function from the utils
+3. Obtain the sample characteristics dictionary from 'clinical_data' via the 'get_unique_values_by_row' function from the utils
 4. Explicitly print out the all the background information and the sample characteristics dictionary. This information is for STEP2 to further write code.
         """
 
