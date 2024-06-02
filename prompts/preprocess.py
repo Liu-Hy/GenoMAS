@@ -160,17 +160,20 @@ INSTRUCTION_STEP6: str = \
         """
 STEP6:
 If requires_gene_mapping is True, do the following substeps; otherwise, MUST SKIP them.
-    1. When analyzing a gene expression dataset, we need to map some identifiers of genes to actual gene symbols. STEP3 prints out some of those identifiers, 
-    and STEP5 prints out part of the gene annotation data converted to a Python dictionary. 
-    Please read the dictionary and decide which key stores the same kind of identifiers as in STEP3, and which key stores the gene symbols, 
-    or a new type of identifier that's common enough to be mapped to gene symbols. 
-    The new type should be one of 'symbol', 'entrezgene', 'ensembl.gene', or other strings that are valid fields in the mygene library.
-    Please strictly follow this format in your answer:
-    org_identifier_key = 'key_name1'
-    new_identifier_key = 'key_name2'
-    new_identifier_type = 'symbol'  # or another field
-    2. Get the dataframe storing the mapping between the original and new gene IDs using the 'get_gene_mapping' function from the library. 
-    3. Apply the mapping with the 'apply_gene_mapping' function from the library, and name the resulting gene expression dataframe "gene_data". 
+    1. When analyzing a gene expression dataset, we need to map some identifiers of genes to actual gene symbols. 
+       STEP3 prints out some of those identifiers, and STEP5 prints out part of the gene annotation data converted to a Python dictionary.
+       Read the dictionary and identify which key stores the same kind of identifiers as in STEP3, and which key stores the gene symbols or a new type of identifier 
+       that can be mapped to gene symbols (preferably gene symbols if available).
+       The new identifier type should strictly be one of the valid fields in the mygene library (e.g., 'symbol', 'entrezgene', 'ensembl.gene'). 
+       Please strictly follow this format in your answer:
+
+       org_identifier_key = 'key_name1'
+       new_identifier_key = 'key_name2'
+       new_identifier_type = 'symbol'  # or another valid field
+
+    2. Use the 'get_gene_mapping' function to create a dataframe storing the mapping between the original and new gene IDs.
+
+    3. Apply the mapping using the 'apply_gene_mapping' function, and name the resulting gene expression dataframe "gene_data".
        """
 
 INSTRUCTION_STEP7: str = \
