@@ -13,9 +13,7 @@ from openai import AzureOpenAI
 import pandas as pd
 import numpy as np
 import ast
-import re
 import subprocess
-import tqdm
 from utils.statistics import normalize_trait
 from prompts.preprocess import *
 
@@ -301,7 +299,6 @@ class GEOAgent:
                      f"{self.task_context.history[-1]['stdout']}\n\n" \
                      f"{code_inducer}"  # CODE_INDUCER 1 AND 2, TWO TYPES
             expert = DomainExpertAgent(logger=self.logger)
-            print(prompt)
             response = expert.ask(prompt)
         code = self.parse_code(response)
         return code
@@ -370,7 +367,7 @@ class GEOAgent:
         if action_unit.name not in self.need_biomedical_knowledge:
             response = self.ask(prompt)
         else:
-            expert = DomainExpertAgent()
+            expert = DomainExpertAgent(logger=self.logger)
             response = expert.ask(prompt)
 
         code = self.parse_code(response)
@@ -465,6 +462,7 @@ class CodeReviewerAgent:
     def ask(self, prompt):
         return call_openai_gpt(prompt, self.role_prompt, self.logger)
 
+
 class DomainExpertAgent:
     def __init__(self, role_prompt="You are a domain expert in this biomedical research project.", logger=None):
         self.role_prompt = role_prompt
@@ -472,44 +470,6 @@ class DomainExpertAgent:
 
     def ask(self, prompt):
         return call_openai_gpt(prompt, self.role_prompt, self.logger)
-
-
-
-def setup_arg_parser():
-    parser = argparse.ArgumentParser(description="GEO cohort data wrangling experiments with LLM-based agents.")
-    parser.add_argument('--max_rounds', type=int, default=2, help='Maximum number of revision rounds.')
-    parser.add_argument('--de', type=lambda x: (str(x).lower() == 'true'), default=True, help='Include domain expert.')
-    parser.add_argument('--cs', type=lambda x: (str(x).lower() == 'true'), default=False, help='Use code snippet.')
-    parser.add_argument('--version', type=str, required=True, help='Version string for the current run of experiment.')
-    parser.add_argument('--continue', type=lambda x: (str(x).lower() == 'true'), default=True,
-                        help='Continue from next cohort.')
-    return parser
-
-
-def load_last_cohort_info(version_dir):
-    try:
-        with open(os.path.join(version_dir, "last_cohort_info.json"), "r") as f:
-            return json.load(f)
-    except FileNotFoundError:
-        return None
-
-
-def save_last_cohort_info(version_dir, cohort_info):
-    with open(os.path.join(version_dir, "last_cohort_info.json"), "w") as f:
-        json.dump(cohort_info, f)
-
-
-def delete_corrupted_files(output_dir, cohort):
-    out_gene_dir = os.path.join(output_dir, 'gene_data')
-    out_trait_dir = os.path.join(output_dir, 'trait_data')
-    out_code_dir = os.path.join(output_dir, 'code')
-    for this_dir in [output_dir, out_gene_dir, out_trait_dir]:
-        file_path = os.path.join(this_dir, f"{cohort}.csv")
-        if os.path.exists(file_path):
-            os.remove(file_path)
-    code_path = os.path.join(out_code_dir, f"{cohort}.py")
-    if os.path.exists(code_path):
-        os.remove(code_path)
 
 
 def setup_arg_parser():
@@ -540,10 +500,13 @@ def delete_corrupted_files(output_dir, cohort):
     out_gene_dir = os.path.join(output_dir, 'gene_data')
     out_trait_dir = os.path.join(output_dir, 'trait_data')
     out_code_dir = os.path.join(output_dir, 'code')
-    for this_dir in [out_gene_dir, out_trait_dir, out_code_dir]:
+    for this_dir in [output_dir, out_gene_dir, out_trait_dir]:
         file_path = os.path.join(this_dir, f"{cohort}.csv")
         if os.path.exists(file_path):
             os.remove(file_path)
+    code_path = os.path.join(out_code_dir, f"{cohort}.py")
+    if os.path.exists(code_path):
+        os.remove(code_path)
 
 
 def main():
