@@ -402,8 +402,8 @@ def geo_merge_clinical_genetic_data(clinical_df, genetic_df):
     return merged_data
 
 
-def judge_and_remove_biased_features(df, trait, trait_type):
-    assert trait_type in ["binary", "continuous"], f"The trait must be either a binary or a continuous variable!"
+def judge_and_remove_biased_features(df, trait):
+    trait_type = 'binary' if len(df[trait].unique()) == 2 else 'continuous'
     if trait_type == "binary":
         trait_biased = judge_binary_variable_biased(df, trait)
     else:
@@ -430,16 +430,16 @@ def judge_and_remove_biased_features(df, trait, trait_type):
     return trait_biased, df
 
 
-def save_cohort_info(cohort: str, info_path: str, is_available: bool, is_biased: Optional[bool] = None,
-                     df: Optional[pd.DataFrame] = None, note: str = '') -> None:
+def save_cohort_info(cohort: str, info_path: str, is_gene_available: bool, is_trait_available: bool,
+                     is_biased: Optional[bool] = None, df: Optional[pd.DataFrame] = None, note: str = '') -> None:
     """
     Add or update information about the usability and quality of a dataset for statistical analysis.
 
     Parameters:
     cohort (str): A unique identifier for the dataset.
     info_path (str): File path to the JSON file where records are stored.
-    is_available (bool): Indicates whether both the genetic data and trait data are available in the dataset, and can be
-     preprocessed into a dataframe.
+    is_gene_available (bool): Indicates whether the dataset contains genetic data
+    is_trait_available (bool): Indicates whether the dataset contains trait data
     is_biased (bool, optional): Indicates whether the dataset is too biased to be usable.
         Required if `is_available` is True.
     df (pandas.DataFrame, optional): The preprocessed dataset. Required if `is_available` is True.
@@ -448,11 +448,13 @@ def save_cohort_info(cohort: str, info_path: str, is_available: bool, is_biased:
     Returns:
     None: The function does not return a value but updates or creates a record in the specified JSON file.
     """
-    if is_available:
-        assert (df is not None) and (is_biased is not None), "'df' and 'is_biased' should be provided if this cohort " \
-                                                             "is relevant."
+    is_available = is_gene_available and is_trait_available
+    if is_available and (df is None) and (is_biased is None):
+        return
     is_usable = is_available and (not is_biased)
     new_record = {"is_usable": is_usable,
+                  "is_gene_available": is_gene_available,
+                  "is_trait_available": is_trait_available,
                   "is_available": is_available,
                   "is_biased": is_biased if is_available else None,
                   "has_age": "Age" in df.columns if is_available else None,
