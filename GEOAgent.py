@@ -18,13 +18,22 @@ import subprocess
 from utils.statistics import normalize_trait
 from prompts.preprocess import *
 
-# Azure OpenAI client setup
-client = AzureOpenAI(
-    api_key="57983a2e88fa4d6b81205a8d55d9bd46",
-    api_version="2023-10-01-preview",
-    azure_endpoint="https://haoyang2.openai.azure.com/"
-)
-
+# Global client variable
+client = None
+def setup_client(use_second_api):
+    global client
+    if use_second_api:
+        client = AzureOpenAI(
+            api_key="d4e35aeb201540549739bdbd4f62b957",
+            api_version="2023-10-01-preview",
+            azure_endpoint="https://yijiang2.openai.azure.com/"
+        )
+    else:
+        client = AzureOpenAI(
+            api_key="57983a2e88fa4d6b81205a8d55d9bd46",
+            api_version="2023-10-01-preview",
+            azure_endpoint="https://haoyang2.openai.azure.com/"
+        )
 
 # Define the timeout handler
 def timeout_handler(signum, frame):
@@ -489,8 +498,8 @@ def setup_arg_parser():
     parser.add_argument('--de', type=lambda x: (str(x).lower() == 'true'), default=True, help='Include domain expert.')
     parser.add_argument('--cs', type=lambda x: (str(x).lower() == 'true'), default=False, help='Use code snippet.')
     parser.add_argument('--version', type=str, required=True, help='Version string for the current run of experiment.')
-    parser.add_argument('--resume', type=lambda x: (str(x).lower() == 'true'), default=True,
-                        help='Continue from next cohort.')
+    parser.add_argument('--resume', type=lambda x: (str(x).lower() == 'true'), default=True, help='Continue from next cohort.')
+    parser.add_argument('--use_second_api', type=lambda x: (str(x).lower() == 'true'), default=False, help='Use the second API configuration.')
     return parser
 
 
@@ -523,6 +532,9 @@ def delete_corrupted_files(output_dir, cohort):
 def main():
     parser = setup_arg_parser()
     args = parser.parse_args()
+
+    # Set up the client based on the command line argument
+    setup_client(args.use_second_api)
 
     all_traits = pd.read_csv("all_traits.csv")["Trait"].tolist()
     all_traits = [normalize_trait(t) for t in all_traits]
@@ -562,7 +574,8 @@ def main():
                 if last_cohort_info['trait'] == trait and last_cohort_info['cohort'] == cohort:
                     delete_corrupted_files(output_dir, cohort)
                     last_cohort_info = None  # Reset last_cohort_info to avoid skipping further cohorts
-                    continue
+                print(f"Skipped trait {trait} and cohort {cohort} because already processed.")
+                continue
 
             try:
                 signal.alarm(480)  # Set a timeout alarm in seconds
