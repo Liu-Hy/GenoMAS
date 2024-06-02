@@ -8,6 +8,7 @@ import copy
 import time
 import argparse
 import shutil
+import signal
 
 from openai import AzureOpenAI
 import pandas as pd
@@ -23,6 +24,15 @@ client = AzureOpenAI(
     api_version="2023-10-01-preview",
     azure_endpoint="https://haoyang2.openai.azure.com/"
 )
+
+
+# Define the timeout handler
+def timeout_handler(signum, frame):
+    raise TimeoutError("Processing this cohort took too long!")
+
+
+# Set the signal handler for the alarm signal
+signal.signal(signal.SIGALRM, timeout_handler)
 
 CODE_INDUCER = """
 NOTE: 
@@ -178,7 +188,8 @@ class ActionUnit:
 
 
 class GEOAgent:
-    def __init__(self, role_prompt, guidelines, tools, setups, action_units, logger, max_rounds=2, include_domain_expert=True, use_code_snippet=False):
+    def __init__(self, role_prompt, guidelines, tools, setups, action_units, logger, max_rounds=2,
+                 include_domain_expert=True, use_code_snippet=False):
         self.role_prompt = role_prompt
         self.guidelines = guidelines
         self.tools = tools
@@ -553,6 +564,7 @@ def main():
                     continue
 
             try:
+                signal.alarm(600)  # Set a timeout alarm for 600 seconds
                 in_cohort_dir = os.path.join(in_trait_dir, cohort)
                 if not os.path.isdir(in_cohort_dir):
                     print(f"Cohort directory not found: {in_cohort_dir}")
@@ -603,7 +615,11 @@ def main():
                 # Save the current state
                 save_last_cohort_info(version_dir, {'trait': trait, 'cohort': cohort})
                 logger.finalize()
+                signal.alarm(0)  # Disable the alarm
 
+            except TimeoutError:
+                print(f"Timeout reached for cohort {cohort}. Skipping to the next one.")
+                continue
             except Exception as e:
                 print(e)
                 continue
@@ -611,6 +627,7 @@ def main():
                 # Reset stdout and stderr to default
                 sys.stdout = sys.__stdout__
                 sys.stderr = sys.__stderr__
+                signal.alarm(0)  # Ensure the alarm is disabled after processing
 
 
 if __name__ == "__main__":
