@@ -411,6 +411,8 @@ class GEOAgent:
             # Correct the code based on feedback
             new_code_snippet = self.correct_code(action_unit, feedback)
             stdout, stderr, error = self.run_snippet(new_code_snippet, self.current_exec_state)
+            if "TimeoutError" in stderr or "TimeoutError" in error:
+                raise TimeoutError("Processing this cohort took too long!")
 
             self.task_context.add_step(
                 debug=True,
@@ -435,6 +437,8 @@ class GEOAgent:
             code_snippet = self.write_initial_code(action_unit)
 
         stdout, stderr, error = self.run_snippet(code_snippet, self.current_exec_state)
+        if "TimeoutError" in stderr or "TimeoutError" in error:
+            raise TimeoutError("Processing this cohort took too long!")
 
         self.task_context.add_step(
             debug=False,
