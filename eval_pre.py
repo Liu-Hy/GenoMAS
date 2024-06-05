@@ -1,4 +1,5 @@
 import os
+import argparse
 import pandas as pd
 import numpy as np
 
@@ -35,7 +36,7 @@ def evaluate_preprocessing(df1, df2):
         'composite_similarity_correlation': composite_similarity_correlation
     }
 
-def evaluate_preprocess(version1, version2):
+def evaluate_preprocess(version1, version2, subtask="merged"):
     metrics = []
     dir1 = os.path.join("output/preprocess", version1)
     dir2 = os.path.join("output/preprocess", version2)
@@ -44,18 +45,27 @@ def evaluate_preprocess(version1, version2):
         trait_dir = os.path.join(dir2, t)
         if not os.path.isdir(trait_dir):
             continue
-        for file in os.listdir(trait_dir):
-            if file.endswith(".csv"):
-                fpath2 = os.path.join(trait_dir, file)
-                fpath1 = os.path.join(dir1, t, file)
-                if not os.path.isfile(fpath1):
-                    continue
-                df1 = pd.read_csv(fpath1)
-                df2 = pd.read_csv(fpath2)
-                print(f"Evaluation {file}")
-                rs = evaluate_preprocessing(df1, df2)
-                print(rs)
-                metrics.append(rs)
+
+        sub_dir = os.path.join(trait_dir, subtask) if subtask in ["gene", "trait"] else trait_dir
+        if not os.path.isdir(sub_dir):
+            continue
+
+        for file in os.listdir(sub_dir):
+            try:
+                if file.endswith(".csv"):
+                    fpath2 = os.path.join(sub_dir, file)
+                    fpath1 = os.path.join(dir1, t, file) if subtask == "merged" else os.path.join(dir1, t, subtask, file)
+                    if not os.path.isfile(fpath1):
+                        continue
+                    df1 = pd.read_csv(fpath1)
+                    df2 = pd.read_csv(fpath2)
+                    print(f"Evaluation {file}")
+                    rs = evaluate_preprocessing(df1, df2)
+                    print(rs)
+                    metrics.append(rs)
+            except Exception as e:
+                print(e)
+                continue
 
     # Calculate mean for each metric
     mean_metrics = {
@@ -66,3 +76,16 @@ def evaluate_preprocess(version1, version2):
     }
 
     return mean_metrics
+
+
+if __name__ == "__main__":
+    parser = argparse.ArgumentParser(description='Evaluate preprocessing methods.')
+    parser.add_argument('--version1', type=str, help='First version to compare')
+    parser.add_argument('--version2', type=str, help='Second version to compare')
+    parser.add_argument('--subtask', type=str, default='merged', choices=['merged', 'gene', 'trait'],
+                        help='Subtask type: merged (default), gene, or trait')
+
+    args = parser.parse_args()
+
+    mean_metrics = evaluate_preprocess(args.version1, args.version2, args.subtask)
+    print(mean_metrics)
