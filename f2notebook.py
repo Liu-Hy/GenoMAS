@@ -107,7 +107,9 @@ def create_notebook_from_file(file_path):
 
                 # Update the previous_position for the next iteration
                 previous_position = match.end()
-        step_number += 2
+                step_number += 2
+            else:
+                break
 
     # If there is remaining content after the last predefined step, add it as the last cell
     if previous_position < len(content):
