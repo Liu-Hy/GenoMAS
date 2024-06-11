@@ -10,27 +10,43 @@ def create_notebook_from_python_file(file_path, output_directory):
     nb = nbf.v4.new_notebook()
     cells = []
 
-    step_code_blocks = []
     current_code_block = []
+    inside_code_block = False
+    step_marker = ""
 
     for line in lines:
-        if line.startswith("# STEP") or line.startswith("# Initialize variables"):
+        if line.startswith("# STEP") or line.startswith("# Initialize variables") or line.startswith("requires_gene_mapping ="):
+            # End the previous code block if it exists
             if current_code_block:
-                step_code_blocks.append(current_code_block)
+                if step_marker:
+                    cells.append(nbf.v4.new_markdown_cell(step_marker))
+                cells.append(nbf.v4.new_code_cell(''.join(current_code_block)))
                 current_code_block = []
+                inside_code_block = False
+
+            # Set the step marker
             if line.startswith("# STEP"):
                 step_number = line.strip().split("# STEP")[1].strip()
-                cells.append(nbf.v4.new_markdown_cell(f"## Step {step_number}"))
+                step_marker = f"## Step {step_number}"
+                inside_code_block = True
             elif line.startswith("# Initialize variables"):
-                cells.append(nbf.v4.new_markdown_cell("## Step 2: Initialize Variables"))
-        current_code_block.append(line)
+                step_marker = "## Step 2"
+                inside_code_block = True
+            elif line.startswith("requires_gene_mapping ="):
+                step_marker = "## Step 4"
+                current_code_block.append(line)
+                inside_code_block = True
 
+            continue
+
+        if inside_code_block:
+            current_code_block.append(line)
+
+    # Add the last code block
     if current_code_block:
-        step_code_blocks.append(current_code_block)
-
-    for block in step_code_blocks:
-        code = ''.join(block)
-        cells.append(nbf.v4.new_code_cell(code))
+        if step_marker:
+            cells.append(nbf.v4.new_markdown_cell(step_marker))
+        cells.append(nbf.v4.new_code_cell(''.join(current_code_block)))
 
     nb['cells'] = cells
 
