@@ -407,6 +407,9 @@ def geo_merge_clinical_genetic_data(clinical_df, genetic_df):
 
 
 def judge_and_remove_biased_features(df, trait):
+    if len(df.columns) <= 4:
+        print(f"No gene data in the dataframe")
+        return False, df
     trait_type = 'binary' if len(df[trait].unique()) == 2 else 'continuous'
     if trait_type == "binary":
         trait_biased = judge_binary_variable_biased(df, trait)
