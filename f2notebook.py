@@ -23,14 +23,14 @@ print("Background Information:")
 print(background_info)
 print("Sample Characteristics Dictionary:")
 print(sample_characteristics_dict)
-""",
+    """,
     3: """# STEP3
 # 1. Use the get_genetic_data function from the library to get the gene_data from the matrix_file previously defined.
 gene_data = get_genetic_data(matrix_file)
 
 # 2. Print the first 20 row ids for the following step.
 print(gene_data.index[:20])
-""",
+    """,
     5: """# STEP5
 # 1. Use the 'get_gene_annotation' function from the library to get gene annotation data from the soft file.
 gene_annotation = get_gene_annotation(soft_file)
@@ -38,7 +38,7 @@ gene_annotation = get_gene_annotation(soft_file)
 # 2. Use the 'preview_df' function from the library to preview the data and print out the results.
 print("Gene annotation preview:")
 print(preview_df(gene_annotation))
-""",
+    """,
     7: """# STEP7
 # 1. Normalize the obtained gene data with the 'normalize_gene_symbols_in_index' function from the library.
 normalized_gene_data = normalize_gene_symbols_in_index(gene_data)
@@ -60,7 +60,7 @@ if not trait_biased:
     # 5. If the trait is not severely biased, save the merged data to a csv file.
     csv_path = '{out_data_file}'
     unbiased_merged_data.to_csv(csv_path)
-"""
+    """
 }
 
 
@@ -129,7 +129,7 @@ def create_notebook_from_file(file_path):
 
 
 # Path to the directory containing the Python files
-directory_path = '/path/to/python/files'
+directory_path = 'code'
 
 # Process each file in the directory
 for filename in os.listdir(directory_path):
