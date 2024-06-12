@@ -2,6 +2,11 @@ import nbformat as nbf
 import glob
 import os
 
+def remove_trailing_empty_lines(code_block):
+    while code_block and code_block[-1].strip() == '':
+        code_block.pop()
+    return code_block
+
 def create_notebook_from_python_file(file_path, output_directory):
     with open(file_path, 'r') as file:
         lines = file.readlines()
@@ -20,33 +25,37 @@ def create_notebook_from_python_file(file_path, output_directory):
             if current_code_block:
                 if step_marker:
                     cells.append(nbf.v4.new_markdown_cell(step_marker))
-                cells.append(nbf.v4.new_code_cell(''.join(current_code_block)))
+                cleaned_code_block = remove_trailing_empty_lines(current_code_block)
+                cells.append(nbf.v4.new_code_cell(''.join(cleaned_code_block)))
                 current_code_block = []
                 inside_code_block = False
 
             # Set the step marker
             if line.startswith("# STEP"):
                 step_number = line.strip().split("# STEP")[1].strip()
-                step_marker = f"## Step {step_number}"
+                step_marker = f"### Step {step_number}"
                 inside_code_block = True
             elif line.startswith("# Initialize variables"):
-                step_marker = "## Step 2"
+                step_marker = "### Step 2"
                 inside_code_block = True
             elif line.startswith("requires_gene_mapping ="):
-                step_marker = "## Step 4"
+                step_marker = "### Step 4"
                 current_code_block.append(line)
                 inside_code_block = True
 
             continue
 
         if inside_code_block:
+            if step_marker == "### Step 1" and "../DATA/" in line:
+                line = line.replace("../DATA/", "/media/techt/DATA/")
             current_code_block.append(line)
 
     # Add the last code block
     if current_code_block:
         if step_marker:
             cells.append(nbf.v4.new_markdown_cell(step_marker))
-        cells.append(nbf.v4.new_code_cell(''.join(current_code_block)))
+        cleaned_code_block = remove_trailing_empty_lines(current_code_block)
+        cells.append(nbf.v4.new_code_cell(''.join(cleaned_code_block)))
 
     nb['cells'] = cells
 
