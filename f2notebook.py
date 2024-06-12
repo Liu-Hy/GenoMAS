@@ -48,6 +48,10 @@ def create_notebook_from_python_file(file_path, output_directory):
         if inside_code_block:
             if step_marker == "### Step 1" and "../DATA/" in line:
                 line = line.replace("../DATA/", "/media/techt/DATA/")
+            if "is_trait_biased" in line:
+                line = line.replace("is_trait_biased", "trait_biased")
+            if "output/preprocess/gs2" in line:
+                line = line.replace("output/preprocess/gs2", "preprocessed")
             current_code_block.append(line)
 
     # Add the last code block
