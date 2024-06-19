@@ -390,8 +390,8 @@ if __name__ == "__main__":
         all_pairs.append((trait, condition))
 
     gene_info_path = './trait_related_genes.csv'
-    data_root = '/home/techt/Desktop/a4s/gold_subset'
-    output_root = './output/regression/ours'
+    data_root = '/home/techt/Desktop/a4s/old_output/preprocess/gs1'
+    output_root = './output9/regression/ours'
 
     role_prompt = """You are a statistician in a biomedical research team, and your main goal is to write code to do statistical 
         analysis on biomedical datasets.

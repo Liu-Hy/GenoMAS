@@ -2,7 +2,13 @@ import pandas as pd
 import os
 import json
 import ast
+import argparse
 from utils.statistics import *
+
+parser = argparse.ArgumentParser(description='Process some integers.')
+parser.add_argument('--version', type=str, help='Specify the version.')
+
+args = parser.parse_args()
 
 pairs = pd.read_csv("trait_condition_pairs.csv")
 
@@ -36,7 +42,7 @@ for trait in all_traits:
         else:
             model_constructor = Lasso
 
-        param_values = [1e-6, 1e-5, 1e-4, 1e-3, 1e-2, 1e-1, 1]
+        param_values = [1e-6, 1e-4, 1e-2, 1]
         best_config, best_performance = tune_hyperparameters(model_constructor, param_values, X, Y, trait_data.columns, trait, gene_info_path, condition)
         model = ResidualizationRegressor(model_constructor, best_config)
         normalized_X, _ = normalize_data(X)
@@ -53,8 +59,8 @@ for trait in all_traits:
 
 for i, (index, row) in enumerate(pairs.iterrows()):
     try:
+        print(i)
         trait, condition = row['Trait'], row['Condition']
-        if trait != 'Adrenocortical_Cancer' or condition != 'Anxiety_disorder': continue
         output_dir = os.path.join(output_root, trait)
         os.makedirs(output_dir, exist_ok=True)
 
@@ -110,7 +116,7 @@ for i, (index, row) in enumerate(pairs.iterrows()):
         else:
             model_constructor = Lasso
 
-        param_values = [1e-6, 1e-5, 1e-4, 1e-3, 1e-2, 1e-1, 1]
+        param_values = [1e-6, 1e-4, 1e-2, 1]
         best_config, best_performance = tune_hyperparameters(model_constructor, param_values, X, Y, trait_data.columns, trait, gene_info_path, condition, Z)
 
         model = ResidualizationRegressor(model_constructor, best_config)

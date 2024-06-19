@@ -2,6 +2,17 @@ import nbformat as nbf
 import glob
 import os
 
+# Mapping of step numbers to their respective headings
+step_headings = {
+    "1": "Initial Data Loading",
+    "2": "Dataset Analysis and Clinical Feature Extraction",
+    "3": "Gene Data Extraction",
+    "4": "Gene Identifier Review",
+    "5": "Gene Annotation (Conditional)",
+    "6": "Gene Identifier Mapping",
+    "7": "Data Normalization and Merging"
+}
+
 def remove_trailing_empty_lines(code_block):
     while code_block and code_block[-1].strip() == '':
         code_block.pop()
@@ -30,23 +41,28 @@ def create_notebook_from_python_file(file_path, output_directory):
                 current_code_block = []
                 inside_code_block = False
 
-            # Set the step marker
+            # Set the step marker with the appropriate heading
             if line.startswith("# STEP"):
                 step_number = line.strip().split("# STEP")[1].strip()
-                step_marker = f"### Step {step_number}"
+                step_heading = step_headings.get(step_number, "Unknown Step")
+                step_marker = f"### Step {step_number}: {step_heading}"
                 inside_code_block = True
             elif line.startswith("# Initialize variables"):
-                step_marker = "### Step 2"
+                step_number = "2"
+                step_heading = step_headings.get(step_number, "Unknown Step")
+                step_marker = f"### Step {step_number}: {step_heading}"
                 inside_code_block = True
             elif line.startswith("requires_gene_mapping ="):
-                step_marker = "### Step 4"
+                step_number = "4"
+                step_heading = step_headings.get(step_number, "Unknown Step")
+                step_marker = f"### Step {step_number}: {step_heading}"
                 current_code_block.append(line)
                 inside_code_block = True
 
             continue
 
         if inside_code_block:
-            if step_marker == "### Step 1" and "../DATA/" in line:
+            if step_marker.startswith("### Step 1") and "../DATA/" in line:
                 line = line.replace("../DATA/", "/media/techt/DATA/")
             if "is_trait_biased" in line:
                 line = line.replace("is_trait_biased", "trait_biased")
@@ -74,7 +90,7 @@ def create_notebook_from_python_file(file_path, output_directory):
 
 # Define input and output directories
 input_base_dir = 'output/preprocess/gs2'
-output_base_dir = 'code'
+output_base_dir = 'code2'
 
 # Process all Python files in the input directory
 for trait_name in os.listdir(input_base_dir):

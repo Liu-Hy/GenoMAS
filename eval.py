@@ -86,6 +86,7 @@ def main(pred_dir, ref_dir):
                 #if trait in available_traits and (condition in available_traits or condition.lower() == 'None'):
                 results[(trait, condition)] = metrics
                     #print(metrics)
+                # print(len(results))
     categorized_avg_metrics = categorize_and_aggregate(results)
     return results, categorized_avg_metrics
 

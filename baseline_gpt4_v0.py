@@ -172,7 +172,7 @@ for i, (index, row) in enumerate(pairs.iterrows()):
         trait, condition = row['Trait'], row['Condition']
         nm_trait = normalize_trait(trait)
         nm_condition = normalize_trait(condition)
-        trait_dir = os.path.join('/home/techt/Desktop/a4s/gold_subset', nm_trait)
+        trait_dir = os.path.join('//gold_subset', nm_trait)
         output_dir = os.path.join('./output2', nm_trait)
         os.makedirs(output_dir, exist_ok=True)
         utils_code = "".join(open("./utils.py", 'r').readlines())
@@ -193,7 +193,7 @@ for i, (index, row) in enumerate(pairs.iterrows()):
         else:
             if trait in ['Inflammatory_Disorders', 'Lung_Cancer'] and condition in ['Inflammatory_Disorders', 'Lung_Cancer']:
                 continue
-            condition_dir = os.path.join('/home/techt/Desktop/a4s/gold_subset', nm_condition)
+            condition_dir = os.path.join('//gold_subset', nm_condition)
             trait_cohort_id, _ = filter_and_rank_cohorts(os.path.join(trait_dir, 'cohort_info.json'))
             condition_cohort_id, _ = filter_and_rank_cohorts(os.path.join(condition_dir, 'cohort_info.json'))
             trait_data_path = os.path.join(trait_dir, trait_cohort_id + '.csv')

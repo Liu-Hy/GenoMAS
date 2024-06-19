@@ -191,14 +191,14 @@ normalized_gene_data.to_csv(gene_csv_path)
 merged_data = geo_merge_clinical_genetic_data(selected_clinical_data, normalized_gene_data)
 
 # 3. Determine whether the trait and some demographic attributes in the data is severely biased, and remove biased attributes.
-trait_biased, unbiased_merged_data = judge_and_remove_biased_features(merged_data, '{trait}')
+is_trait_biased, unbiased_merged_data = judge_and_remove_biased_features(merged_data, '{trait}')
 
 # If the trait is not severely biased, save the cohort information and the merged data.
 
 # 4. Save the cohort information.
 save_cohort_info('{cohort}', '{json_path}', True, True, is_trait_biased, merged_data)
 
-if not trait_biased:
+if not is_trait_biased:
     # 5. If the trait is not severely biased, save the merged data to a csv file.
     csv_path = '{out_data_file}'
     unbiased_merged_data.to_csv(csv_path)
