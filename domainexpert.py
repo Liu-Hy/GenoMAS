@@ -28,20 +28,20 @@ from langchain.indexes import VectorstoreIndexCreator
 
 from langchain_openai import AzureChatOpenAI
 from langchain_openai import AzureOpenAIEmbeddings
-
-os.environ['PYTHONNUMBUFFER'] = '1'
-os.environ['OPENAI_API_TYPE'] ='azure'
-os.environ['OPENAI_API_VERSION'] ='2023-10-01-preview'
-os.environ['OPENAI_API_KEY'] ="1b9af3abe2b34c56abe2e2f0c4f8a60b"
-os.environ['AZURE_OPENAI_ENDPOINI'] ="https://tiancheng.openai.azure.com/"
-
-loader = TextLoader('---')
-embeddings = AzureOpenAIEmbeddings(model="ada002",
-openai_api_type='azure',azure_endpoint='https://tiancheng.openai.azure.com/',openai_api_key='1b9af3abe2b34c56abe2e2f0c4f8a60b',chunk_size=1)
+def init_rag():
+    os.environ['PYTHONNUMBUFFER'] = '1'
+    os.environ['OPENAI_API_TYPE'] ='azure'
+    os.environ['OPENAI_API_VERSION'] ='2023-10-01-preview'
+    os.environ['OPENAI_API_KEY'] ="1b9af3abe2b34c56abe2e2f0c4f8a60b"
+    os.environ['AZURE_OPENAI_ENDPOINI'] ="https://tiancheng.openai.azure.com/"
+    loader = TextLoader('---')
+    embeddings = AzureOpenAIEmbeddings(model="ada002",
+    openai_api_type='azure',azure_endpoint='https://tiancheng.openai.azure.com/',openai_api_key='1b9af3abe2b34c56abe2e2f0c4f8a60b',chunk_size=1)
 #import pdb;pdb.set_trace()
-
-index = VectorstoreIndexCreator(embedding=embeddings).from_loaders([loader])
-print(index)
-llm=AzureChatOpenAI(azure_deployment='gpt4o',azure_endpoint='https://tiancheng.openai.azure.com/',temperature=0)
-result=index.query('---',llm=llm)
-print(result)
+    index = VectorstoreIndexCreator(embedding=embeddings).from_loaders([loader])
+#print(index)
+def query_rag(query):
+    llm=AzureChatOpenAI(azure_deployment='gpt4o',azure_endpoint='https://tiancheng.openai.azure.com/',temperature=0)
+    result=index.query(query,llm=llm)
+    #print(result)
+    return result
