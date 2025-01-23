@@ -5,6 +5,10 @@
 /code/
 /archive/
 /TAIS_failure_cases/
+/prompts_safer/
+try.ipynb
+try3.py
+try4.py
 
 # Below are from templates about Python, Pycharm, and VSCode.
 # See https://plugins.jetbrains.com/plugin/7495--ignore
@@ -12,6 +16,11 @@
 !.vscode/settings.json
 !.vscode/tasks.json
 !.vscode/launch.json
+regression_gold_standard.ipynb
+regression_gold_standard_random.ipynb
+regression_prompt.py
+new_clean_data.ipynb
+
 !.vscode/extensions.json
 !.vscode/*.code-snippets
 .history/
@@ -122,3 +131,5 @@ dmypy.json
 .pyre/
 .pytype/
 cython_debug/
+
+
