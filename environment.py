@@ -69,13 +69,14 @@ class Environment:
                         self.message_queue.append(new_message)
         return self.agents[role].task_context.concatenate_snippets()
 
-    async def run(self, questions: List[Tuple[str, str]], in_data_root: str, output_root: str, version: str, gene_info_file: str) -> Optional[str]:
+    async def run(self, questions: List[Tuple[str, str]], in_data_root: str, output_root: str, version: str,
+                  gene_info_file: str) -> Optional[str]:
         """Run the multi-agent system"""
         GEO_root = os.path.join(in_data_root, 'GEO')
         TCGA_root = os.path.join(in_data_root, 'TCGA')
         out_prep_version_dir = os.path.join(output_root, 'preprocess', version)
         out_stat_version_dir = os.path.join(output_root, 'regress', version)
-        
+
         self.start_time = time.time()
         for (trt, condition) in questions:
             if (trt, condition) in load_completed_tasks(out_stat_version_dir):
