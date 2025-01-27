@@ -1,6 +1,7 @@
 import ast
 import json
 import os
+import traceback
 
 
 def extract_function_code(file_path, function_names):
@@ -63,6 +64,7 @@ def load_completed_tasks(version_dir):
         with open(file_path, "r") as file:
             return {tuple(task) for task in json.load(file)}
     except json.JSONDecodeError:
+        traceback.print_exc()
         return set()
 
 

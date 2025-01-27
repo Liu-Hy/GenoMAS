@@ -37,6 +37,7 @@ class Environment:
         self.agents[agent.role] = agent
 
     async def run_task(self, role: Role) -> Optional[str]:
+        self.message_queue.clear()
         self.agents[role].clear_states()
         initial_message = await self.agents[Role.PI].assign_task(role)
         if initial_message:
@@ -70,7 +71,7 @@ class Environment:
         return self.agents[role].task_context.concatenate_snippets()
 
     async def run(self, questions: List[Tuple[str, str]], in_data_root: str, output_root: str, version: str,
-                  gene_info_file: str) -> Optional[str]:
+                  gene_info_file: str):
         """Run the multi-agent system"""
         GEO_root = os.path.join(in_data_root, 'GEO')
         TCGA_root = os.path.join(in_data_root, 'TCGA')
@@ -87,11 +88,6 @@ class Environment:
                 traits.append(condition)
 
             for trait in traits:
-                geo_trait_dir = os.path.join(GEO_root, trait)
-                if not os.path.isdir(geo_trait_dir):
-                    self.logger.error(f"GEO input trait directory not found: {geo_trait_dir}, skipped.")
-                    continue
-
                 out_prep_trait_dir = os.path.join(out_prep_version_dir, trait)
                 out_gene_dir = os.path.join(out_prep_trait_dir, 'gene_data')
                 out_clinical_dir = os.path.join(out_prep_trait_dir, 'clinical_data')
@@ -100,7 +96,11 @@ class Environment:
                     os.makedirs(this_dir, exist_ok=True)
                 json_path = os.path.join(out_prep_trait_dir, "cohort_info.json")
 
-                cohorts = os.listdir(geo_trait_dir) + ['TCGA']
+                geo_trait_dir = os.path.join(GEO_root, trait)
+                if os.path.isdir(geo_trait_dir):
+                    cohorts = os.listdir(geo_trait_dir) + ['TCGA']
+                else:
+                    cohorts = ['TCGA']
                 for cohort in cohorts:
                     if cohort != 'TCGA':
                         geo_cohort_dir = os.path.join(geo_trait_dir, cohort)
@@ -126,7 +126,7 @@ class Environment:
                             out_clinical_data_file=out_clinical_data_file,
                             json_path=json_path,
                         )
-                        self.agents[Role.GEO_AGENT].update_path_config(path_config)
+                        self.agents[Role.GEO_AGENT].set_path_config(path_config)
                         code = await self.run_task(Role.GEO_AGENT)
                         with open(out_code_file, "w") as cf:
                             cf.write(code)
@@ -141,7 +141,7 @@ class Environment:
                             json_path=json_path,
                         )
                         self.agents[Role.TCGA_AGENT].set_path_config(path_config)
-                        code = self.run_task(Role.TCGA_AGENT)
+                        code = await self.run_task(Role.TCGA_AGENT)
                         with open(out_code_file, "w") as cf:
                             cf.write(code)
 
@@ -149,8 +149,8 @@ class Environment:
             path_config = StatisticianPathConfig(trait=trait, condition=condition,
                                                  in_data_root=out_prep_version_dir, gene_info_file=gene_info_file,
                                                  output_root=out_stat_version_dir)
-            self.agents[Role.STATISTICIAN_AGENT].update_path_config(path_config)
-            self.run_task(Role.STATISTICIAN_AGENT)
+            self.agents[Role.STATISTICIAN_AGENT].set_path_config(path_config)
+            await self.run_task(Role.STATISTICIAN_AGENT)
             add_completed_task((trt, condition), out_stat_version_dir)
 
         return None

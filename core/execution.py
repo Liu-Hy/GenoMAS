@@ -8,6 +8,10 @@ from contextlib import redirect_stdout
 from dataclasses import dataclass
 from typing import Dict, Optional
 
+# Add project root to Python path
+project_root = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+sys.path.append(project_root)
+
 from utils.config import GLOBAL_MAX_TIME
 
 

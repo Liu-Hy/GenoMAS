@@ -4,7 +4,7 @@ import os
 
 import pandas as pd
 
-from agents import PIAgent, GEOAgent, CodeReviewerAgent, DomainExpertAgent, TCGAAgent, StatisticianAgent
+from agents import PIAgent, GEOAgent, TCGAAgent, StatisticianAgent, CodeReviewerAgent, DomainExpertAgent
 from core.context import ActionUnit
 from environment import Environment
 from prompts import *
@@ -45,9 +45,6 @@ async def main():
     tcga_root = os.path.join(in_data_root, 'TCGA')
     output_root = './output/'
     version = args.version
-    out_version_dir = os.path.join(output_root, version)
-
-    os.makedirs(out_version_dir, exist_ok=True)
     log_file = os.path.join(output_root, f"log_{version}.txt")
     logger = Logger(log_file=log_file, max_msg_length=10000)
 

@@ -31,8 +31,8 @@ class MultiStepProgrammingAgent(BaseAgent):
         self.max_retractions = args.max_retract
         self.remaining_retractions = args.max_retract
 
-    def update_path_config(self, path_config: PathConfig):
-        """Update path configuration and related prompts for a new cohort."""
+    def set_path_config(self, path_config: PathConfig):
+        """Set up path configuration and related prompts for a new cohort."""
         self.setups = MULTI_STEP_SETUPS.format(path_setup=path_config.get_setup_prompt())
         self.executor.set_setup_code(path_config.get_setup_code())
 
