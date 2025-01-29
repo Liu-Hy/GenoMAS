@@ -322,6 +322,12 @@ class OpenAIClient(LLMClient):
 
     async def generate_completion(self, messages: List[Dict[str, str]]) -> Dict[str, Any]:
         try:
+            if 'o1' in self.model_name.lower() and messages[0]["role"] == "system":
+                # OpenAI has changed the role for system prompt. New models not backward compatible. Handle it.
+                if 'o1-mini' in self.model_name.lower():
+                    messages[0]["role"] = "assistant"
+                else:
+                    messages[0]["role"] = "developer"
             response = await self.client.chat.completions.create(
                 model=self.model_name,
                 messages=messages,
