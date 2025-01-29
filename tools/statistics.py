@@ -396,7 +396,7 @@ def cross_validation(
             }
 
         pred_genes = interpret_result(model, var_names, trait, condition)["Variable"]
-        ref_genes = get_known_related_genes(gene_info_path, feature=trait)
+        ref_genes = get_known_related_genes(gene_info_path, trait)
         var_genes = [v for v in var_names if v not in [trait, condition]]
         ref_genes = [r for r in ref_genes if r in var_genes]
         performance["selection"] = evaluate_gene_selection(pred_genes, ref_genes)
