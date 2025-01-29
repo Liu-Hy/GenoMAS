@@ -490,18 +490,18 @@ def tune_hyperparameters(
     return best_config, best_performance
 
 
-def get_known_related_genes(file_path, feature):
-    """Read a csv file into a dataframe about gene-trait association, and get the gene symbols related to a given
-    trait"""
-    related_gene_df = pd.read_csv(file_path)
-    related_gene_df = related_gene_df.loc[:, ['Trait', 'Related_Genes']].set_index('Trait')
-    if feature not in related_gene_df.index:
-        print(f"The gene info file does not contain genes related to the feature '{feature}'.")
-        return None
-    feature_related_genes = ast.literal_eval(related_gene_df.loc[feature].tolist()[0])
-    # feature_related_genes = [gn.strip() for gn in feature_related_genes if isinstance(gn, str)]
+def get_known_related_genes(file_path, entity):
+    """Read a JSON file recording gene-trait association, and get the gene symbols related to a given
+    phenotypic entity"""
+    with open(file_path, "r") as f:
+        data = json.load(f)
 
-    return feature_related_genes
+    if entity not in data:
+        print(f"The gene info file does not contain genes related to the entity '{entity}'.")
+        return []
+    related_genes = data[entity]['related_genes']
+        
+    return related_genes
 
 
 def get_gene_regressors(trait, condition, trait_df, condition_df, gene_info_path):
@@ -532,12 +532,6 @@ def get_gene_regressors(trait, condition, trait_df, condition_df, gene_info_path
             return None
 
     return gene_regressors
-
-
-def normalize_trait(trait):
-    trait = '_'.join(trait.split())
-    normalized_trait = ''.join(trait.split("'"))
-    return normalized_trait
 
 
 def interpret_result(model: ResidualizationRegressor, var_names: List[str], trait: str, condition=None,

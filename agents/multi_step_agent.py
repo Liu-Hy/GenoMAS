@@ -35,6 +35,7 @@ class MultiStepProgrammingAgent(BaseAgent):
         """Set up path configuration and related prompts for a new cohort."""
         self.setups = MULTI_STEP_SETUPS.format(path_setup=path_config.get_setup_prompt())
         self.executor.set_setup_code(path_config.get_setup_code())
+        self.task_context.set_setup_code(path_config.get_setup_code())
 
     def prepare_prompt(self, mode="all", domain_focus=False):
         assert mode in ["all", "past", "last"], "Unsupported mode: must be one of 'all', 'past', 'last'."

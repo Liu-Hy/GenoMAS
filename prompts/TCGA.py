@@ -42,7 +42,7 @@ pipeline standardizes the preprocessing steps while maintaining data quality and
 
 TCGA_DATA_LOADING_PROMPT: str = \
 """
-1. Review the following subdirectories from the TCGA Xena dataset root directory ('tcga_root_dir'). Select the 
+1. Review the following subdirectories from the TCGA Xena dataset root directory (`tcga_root_dir`). Select the 
    subdirectory whose name contains either synonymous or highly overlapping phenotypic terms to our target trait, as 
    this subdirectory likely contains relevant trait data. If multiple options exist, choose the most specific match. 
    If no suitable directory is found, we need to skip this trait and mark the task as completed. Subdirectories are 
@@ -96,9 +96,9 @@ TCGA_FEATURE_ENGINEERING_PROMPT: str = \
 
 2. Normalize gene symbols in the obtained gene expression data using synonym information from the NCBI Gene database. 
    Remove data of unrecognized gene symbols, and average the expression values of gene symbols that are mapped to the 
-   same standard symbol. Save the normalized data as a CSV file to 'out_gene_data_file'
+   same standard symbol. Save the normalized data as a CSV file to `out_gene_data_file`
 
-3. Link the clinical and genetic data on sample IDs, and assign the linked data to a variable 'linked_data'.
+3. Link the clinical and genetic data on sample IDs, and assign the linked data to a variable `linked_data`.
 
 3. Handle missing values in the linked data systematically. We remove samples with missing trait values, remove genes 
    features with >20% missing values, remove samples with >5% missing genes, and then impute remaining missing values. 
@@ -109,8 +109,8 @@ TCGA_FEATURE_ENGINEERING_PROMPT: str = \
    tolerable, and we simply remove them.
 
 5. Conduct final quality validation and save relevant information about the linked cohort data using the
-   'validate_and_save_cohort_info' function from the library. You may optionally take notes about anything that is 
+   `validate_and_save_cohort_info` function from the library. You may optionally take notes about anything that is 
    worthy of attention about the dataset.
 
-6. If the linked data is usable, save it as a CSV file to 'out_data_file'. Otherwise, you must not save it.
+6. If the linked data is usable, save it as a CSV file to `out_data_file`. Otherwise, you must not save it.
 """

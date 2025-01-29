@@ -8,38 +8,19 @@ from agents import PIAgent, GEOAgent, TCGAAgent, StatisticianAgent, CodeReviewer
 from core.context import ActionUnit
 from environment import Environment
 from prompts import *
-from tools.statistics import normalize_trait
+from utils.utils import normalize_trait
 from utils.config import setup_arg_parser
 from utils.llm import get_llm_client
 from utils.logger import Logger
-from utils.utils import extract_function_code
+from utils.utils import extract_function_code, get_question_pairs
 
 
 async def main():
     parser = setup_arg_parser()
     args = parser.parse_args()
-    client = get_llm_client(args)
-
-    pairs_df = pd.read_csv("./metadata/trait_condition_pairs.csv")
-    pair_rows = list(pairs_df.iterrows())
-    all_pairs = []
-    seen_traits = set()
-    for i, row in pair_rows:
-        trait, condition = row['Trait'], row['Condition']
-        if trait not in seen_traits:
-            seen_traits.add(trait)
-            all_pairs.append((trait, None))
-        all_pairs.append((trait, condition))
-
-    gene_info_file = './metadata/trait_related_genes.csv'
-
-    # Load traits with special ordering
-    with open("./metadata/all_traits.json", "r") as f:
-        all_traits = json.load(f)
-    all_traits = [normalize_trait(t) for t in all_traits]
-    special_traits = ["Breast_Cancer", "Epilepsy", "Atherosclerosis"]
-    all_traits = [t for t in all_traits if t not in special_traits]
-    all_traits = special_traits + all_traits
+    
+    task_info_file = './metadata/task_info.json'
+    all_pairs = get_question_pairs(task_info_file)
 
     in_data_root = '/media/techt/DATA' if os.path.exists('/media/techt/DATA') else '../DATA'
     tcga_root = os.path.join(in_data_root, 'TCGA')
@@ -47,6 +28,7 @@ async def main():
     version = args.version
     log_file = os.path.join(output_root, f"log_{version}.txt")
     logger = Logger(log_file=log_file, max_msg_length=10000)
+    client = get_llm_client(args, logger)
 
     prep_tool_file = "./tools/preprocess.py"
     with open(prep_tool_file, 'r') as file:
@@ -143,7 +125,7 @@ async def main():
 
     env = Environment(logger=logger, agents=agents, args=args)
 
-    await env.run(all_pairs, in_data_root, output_root, version, gene_info_file)
+    await env.run(all_pairs, in_data_root, output_root, version, task_info_file)
 
 
 if __name__ == "__main__":

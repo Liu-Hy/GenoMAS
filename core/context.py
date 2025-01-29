@@ -56,6 +56,10 @@ class TaskContext:
         self.history: List[Step] = []
         self.current_step = 0
         self.debug_step = 0
+        self.setup_code = None
+
+    def set_setup_code(self, setup_code: str):
+        self.setup_code = setup_code
 
     def add_step(self, step_type: StepType, **kwargs):
         """Add a new step to history"""
@@ -88,12 +92,15 @@ class TaskContext:
         self.history = [step for step in self.history if step.type == StepType.REGULAR]
         self.debug_step = 0
 
-    def concatenate_snippets(self, end_step: Optional[int] = None) -> str:
+    def concatenate_snippets(self, end_step: Optional[int] = None, include_setup: bool = False) -> str:
         """Concatenate code snippets up to specified step"""
         if end_step is None:
             end_step = self.current_step
 
-        snippets = []
+        if include_setup:
+            snippets = [self.setup_code]
+        else:
+            snippets = []
         for step in self.history:
             if step.type == StepType.REGULAR and step.index <= end_step:
                 snippets.append(step.code)

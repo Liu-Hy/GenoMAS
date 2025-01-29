@@ -157,7 +157,7 @@ async def main():
 
                 # Save the current state
                 save_last_cohort_info(out_version_dir, {'trait': trait, 'cohort': cohort})
-                logger.save()
+                logger.summarize()
 
             except asyncio.TimeoutError:
                 logger.error(f"Timeout error occurred while processing trait {trait}, cohort {cohort}")

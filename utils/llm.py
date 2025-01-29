@@ -286,7 +286,7 @@ class LLMClient(ABC):
         error_msg = f"{type(e).__name__} in {provider_name} API call: {str(e)}\n{traceback.format_exc()}"
 
         if hasattr(self, 'logger') and self.logger:
-            self.logger.log_message(error_msg)
+            self.logger.error(error_msg)
         else:
             print(error_msg)
 

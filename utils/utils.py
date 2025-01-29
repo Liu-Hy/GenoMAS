@@ -2,7 +2,35 @@ import ast
 import json
 import os
 import traceback
+from typing import List, Optional
 
+
+def normalize_trait(trait):
+    trait = '_'.join(trait.split())
+    normalized_trait = ''.join(trait.split("'"))
+    return normalized_trait
+
+def normalize_gene_symbols(gene_symbols: List[str]) -> List[Optional[str]]:
+    """Use gene synonym information extracted from the NCBI Gene database to normalize gene symbols in a list, and
+    return a list of normalized symbols. Unmatched symbols are converted to None.
+    """
+    with open("./metadata/gene_synonym.json", "r") as f:
+        synonym_dict = json.load(f)
+    return [synonym_dict.get(g) for g in gene_symbols]
+
+def get_question_pairs(file_path):
+    """
+    Reads a JSON metadata file and returns a list of trait-condition pairs as questions.
+    """
+    with open(file_path, 'r') as f:
+        task_info = json.load(f)
+        all_traits = sorted(list(task_info.keys()))
+        all_pairs = []
+        for trait in all_traits:
+            all_pairs.append((trait, None))
+            for condition in task_info[trait]['conditions']:
+                all_pairs.append((trait, condition))
+        return all_pairs
 
 def extract_function_code(file_path, function_names):
     """
@@ -72,9 +100,10 @@ def add_completed_task(task, version_dir):
     """
     Add a single completed task to the JSON file.
     """
-    file_path = os.path.join(version_dir, "completed_tasks.json")
-    completed_tasks = load_completed_tasks(file_path)
+    completed_tasks = load_completed_tasks(version_dir)
     completed_tasks.add(task)
 
+    os.makedirs(version_dir, exist_ok=True)
+    file_path = os.path.join(version_dir, "completed_tasks.json")
     with open(file_path, "w") as file:
         json.dump([list(task) for task in completed_tasks], file)

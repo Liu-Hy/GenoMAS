@@ -153,6 +153,7 @@ class Environment:
             await self.run_task(Role.STATISTICIAN_AGENT)
             add_completed_task((trt, condition), out_stat_version_dir)
 
+        self.logger.summarize()
         return None
 
     def clear_states(self):

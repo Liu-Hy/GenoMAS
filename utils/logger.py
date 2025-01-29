@@ -82,7 +82,7 @@ class Logger(logging.Logger):
 
         self.info(base_log)
 
-    def save(self):
+    def summarize(self):
         """Write final summary statistics to the log file"""
         end_time = time.time()
         total_duration = end_time - self.start_time

@@ -377,14 +377,15 @@ def download_trait_data(dataset_inf, key_word, base_dir, checkpoint_path, max_do
 
 
 def read_keywords() -> List[str]:
-    """Read trait keywords from new_task.csv.
+    """Read trait keywords from metadata 'task_info'.
     
     Returns a list of traits to search in GEO database.
     """
-    file_path = "../metadata/all_traits.json"
+    file_path = "../metadata/task_info.json"
     try:
         with open(file_path, "r") as f:
-            return json.load(f)
+            task_info = json.load(f)
+            return sorted(list(task_info.keys()))
     except Exception as e:
         logger.error(f"Error reading keywords file: {str(e)}\n{traceback.format_exc()}")
         return []
@@ -393,7 +394,7 @@ def read_keywords() -> List[str]:
 if __name__ == '__main__':
     """Search and download GEO datasets for each trait.
     
-    Reads traits from new_task.csv, searches GEO database,
+    Reads traits from the metadata, searches GEO database,
     and downloads relevant datasets with checkpointing.
     """
     key_word = read_keywords()
@@ -425,7 +426,7 @@ if __name__ == '__main__':
                         continue
 
                     trait_downloaded_sizes = download_trait_data(dataset_inf=data_info, key_word=keyword,
-                                                                 base_dir='/media/techt/DATA/GEO_10_per_trait_19',
+                                                                 base_dir='/media/techt/DATA/GEO_test',
                                                                  checkpoint_path=checkpoint_path,
                                                                  max_download_per_trait=10)
                     sample_sizes.extend(trait_downloaded_sizes)

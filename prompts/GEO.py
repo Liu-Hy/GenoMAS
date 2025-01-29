@@ -71,12 +71,12 @@ pipeline standardizes the preprocessing steps while maintaining data quality and
 GEO_DATA_LOADING_PROMPT: str = \
 """
 1. Identify the paths to the SOFT file and the matrix file inside the cohort directory by string matching.
-2. Obtain dataset background information and the clinical dataframe 'clinical_data' from the matrix file. Extract 
+2. Obtain dataset background information and the clinical dataframe `clinical_data` from the matrix file. Extract 
    relevant text lines by prefix matching. For background information, use prefixes '!Series_title', '!Series_summary', 
    and '!Series_overall_design'; for clinical data, use prefixes '!Sample_geo_accession' and 
    '!Sample_characteristics_ch1'.
 3. To have a quick overview of the clinical features and their values, create a Python dictionary storing the unique 
-   values of each row (feature) of 'clinical_data'. To prevent overwhelming output, limit the number of unique values 
+   values of each row (feature) of `clinical_data`. To prevent overwhelming output, limit the number of unique values 
    shown per feature to a reasonable threshold.
 4. Explicitly print out all the background information and the sample characteristics dictionary.
 """
@@ -85,7 +85,7 @@ GEO_FEATURE_ANALYSIS_EXTRACTION_PROMPT: str = \
 """
 As a biomedical research team, we are analyzing datasets to study the association between the human trait and genetic 
 factors, considering the possible influence of age and gender. (The trait is defined above in Setups and assigned to the
-Python variable 'trait'.) After searching the GEO database and parsing the matrix file of a series, we have obtained
+Python variable `trait`.) After searching the GEO database and parsing the matrix file of a series, we have obtained
 background information and sample characteristics data. Please review the output from a previous step and answer the 
 following questions regarding this dataset:
 
@@ -95,7 +95,7 @@ following questions regarding this dataset:
      - If YES, set `is_gene_available` to `True`. Otherwise set it to `False`.
 
 2. Variable Availability and Data Type Conversion
-   For each of the variables '{trait}', 'age', and 'gender', address the following points:
+   For each of the variables `trait`, 'age', and 'gender', address the following points:
 
    **2.1 Data Availability**
      - If human data for this variable is available, identify the key in the sample characteristics dictionary where 
@@ -170,7 +170,7 @@ GEO_GENE_IDENTIFIER_MAPPING_PROMPT: str = \
 2. Get a gene mapping dataframe by extracting the two columns from the gene annotation dataframe, corresponding to the 
    gene identifier and the gene symbol respectively. 
 3. Convert probe-level measurements to gene expression data by applying the gene mapping, and name the resulting gene 
-   expression dataframe as 'gene_data'. We handle the many-to-many relation between probes and genes in this way: for 
+   expression dataframe as `gene_data`. We handle the many-to-many relation between probes and genes in this way: for 
    each probe that maps to multiple genes, we divide its expression value equally among those genes, then sum up all 
    probe values for each gene.
 """
@@ -179,8 +179,8 @@ GEO_DATA_NORMALIZATION_LINKING_PROMPT: str = \
 """
 1. Normalize gene symbols in the obtained gene expression data using synonym information from the NCBI Gene database. 
    Remove data of unrecognized gene symbols, and average the expression values of gene symbols that are mapped to the 
-   same standard symbol. Save the normalized data as a CSV file to 'out_gene_data_file'
-2. Link the clinical and genetic data on sample IDs, and assign the linked data to a variable 'linked_data'.
+   same standard symbol. Save the normalized data as a CSV file to `out_gene_data_file`
+2. Link the clinical and genetic data on sample IDs, and assign the linked data to a variable `linked_data`.
 3. Handle missing values in the linked data systematically. We remove samples with missing trait values, remove genes 
    features with >20% missing values, remove samples with >5% missing genes, and then impute remaining missing values. 
    We impute gender with the mode, and impute other features with the mean.
@@ -188,9 +188,9 @@ GEO_DATA_NORMALIZATION_LINKING_PROMPT: str = \
    the trait is severely biased to validate the usability of the dataset later. Biased demographic features are 
    tolerable, and we simply remove them.
 5. Conduct final quality validation and save relevant information about the linked cohort data using the
-   'validate_and_save_cohort_info' function from the library. You may optionally take notes about anything that is 
+   `validate_and_save_cohort_info` function from the library. You may optionally take notes about anything that is 
    worthy of attention about the dataset.
-6. If the linked data is usable, save it as a CSV file to 'out_data_file'. Otherwise, you must not save it.
+6. If the linked data is usable, save it as a CSV file to `out_data_file`. Otherwise, you must not save it.
 """
 
 
