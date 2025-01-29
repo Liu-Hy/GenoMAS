@@ -465,7 +465,7 @@ class BaseAgent:
             return response["content"]
         except Exception as e:
             error_msg = f"Non-transient LLM API Error - {type(e).__name__}: {str(e)}\n{traceback.format_exc()}"
-            self.logger.log_message(error_msg)
+            self.logger.error(error_msg)
             return ""
 
     def create_timeout_message(self, context: str) -> Message:

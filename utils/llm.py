@@ -42,32 +42,41 @@ MODEL_INFO = {
     },
     'novita': {
         'llama3.1': {
-            'input_price': 0.0003,
-            'output_price': 0.0003,
+            'input_price': 0.05,
+            'output_price': 0.05,
             'size': '8B',
             'api_name': 'meta-llama/llama-3.1-8b-instruct'
         },
         'llama3.2': {
-            'input_price': 0.0002,
-            'output_price': 0.0002,
+            'input_price': 0.03,
+            'output_price': 0.05,
             'size': '3B',
             'api_name': 'meta-llama/llama-3.2-3b-instruct'
         },
         'llama3.2:1b': {
-            'input_price': 0.0001,
-            'output_price': 0.0001,
+            'input_price': 0.02,
+            'output_price': 0.02,
             'size': '1B',
             'api_name': 'meta-llama/llama-3.2-1b-instruct'
         },
         'llama3.3': {
-            'input_price': 0.001,
-            'output_price': 0.001,
+            'input_price': 0.39,
+            'output_price': 0.39,
             'size': '70B',
             'api_name': 'meta-llama/llama-3.3-70b-instruct'
         }
     },
     'deepseek': {
-        'deepseek-chat': {'input_price': 0.14, 'output_price': 0.28}
+        'deepseek-v3': {
+            'input_price': 0.07, 
+            'output_price': 0.27,
+            'api_name': 'deepseek-chat'
+        },
+        'deepseek-r1': {
+            'input_price': 0.14, 
+            'output_price': 0.55,
+            'api_name': 'deepseek-reasoner'
+        }
     }
 }
 
@@ -522,8 +531,9 @@ class DeepSeekClient(LLMClient):
     async def generate_completion(self, messages: List[Dict[str, str]]) -> Dict[str, Any]:
         """Generate completion using DeepSeek's API."""
         try:
+            model_name = MODEL_INFO['deepseek'][self.model_name]['api_name']
             response = await self.client.chat.completions.create(
-                model=self.model_name,
+                model=model_name,
                 messages=messages,
                 **self.config.extra_message_params or {}
             )
