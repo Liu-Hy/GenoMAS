@@ -97,10 +97,10 @@ async def main():
 
     stat_action_units = [
         ActionUnit("Unconditional One-step Regression",
-                   UNCONDITIONAL_ONE_STEP_PROMPT),
+                   UNCONDITIONAL_ONE_STEP_PROMPT, UNCONDITIONAL_ONE_STEP_CODE),
         ActionUnit("Conditional One-step Regression",
-                   CONDITIONAL_ONE_STEP_PROMPT),
-        ActionUnit("Two-step Regression", TWO_STEP_PROMPT),
+                   CONDITIONAL_ONE_STEP_PROMPT, CONDITIONAL_ONE_STEP_CODE),
+        ActionUnit("Two-step Regression", TWO_STEP_PROMPT, TWO_STEP_CODE),
         ActionUnit("TASK COMPLETED", TASK_COMPLETED_PROMPT)
     ]
 

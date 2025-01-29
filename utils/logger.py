@@ -24,6 +24,9 @@ class Logger(logging.Logger):
         # Set up handler based on whether log_file is provided
         formatter = logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s')
         if self.log_file:
+            log_dir = os.path.dirname(self.log_file)
+            if log_dir:
+                os.makedirs(log_dir, exist_ok=True)
             handler = logging.FileHandler(self.log_file, mode='w')
         else:
             handler = logging.StreamHandler()

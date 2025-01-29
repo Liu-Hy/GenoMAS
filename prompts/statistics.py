@@ -45,6 +45,30 @@ Based on the context and the following instructions, write code that is elegant 
     library.
 """
 
+UNCONDITIONAL_ONE_STEP_CODE: str = \
+"""
+trait_data, _, _ = select_and_load_cohort(in_data_root, trait, is_two_step=False)
+trait_data = trait_data.drop(columns=['Age', 'Gender'], errors="ignore")
+
+Y = trait_data[trait].values
+X = trait_data.drop(columns=[trait]).values
+
+has_batch_effect = detect_batch_effect(X)
+if has_batch_effect:
+    model_constructor = LMM
+else:
+    model_constructor = Lasso
+
+param_values = [1e-6, 1e-5, 1e-4, 1e-3, 1e-2, 1e-1, 1]
+best_config, best_performance = tune_hyperparameters(model_constructor, param_values, X, Y, trait_data.columns, trait, gene_info_file, condition)
+model = ResidualizationRegressor(model_constructor, best_config)
+normalized_X, _ = normalize_data(X)
+model.fit(normalized_X, Y)
+
+var_names = trait_data.columns.tolist()
+significant_genes = interpret_result(model, var_names, trait, condition)
+save_result(significant_genes, best_performance, output_root, trait)
+"""
 
 CONDITIONAL_ONE_STEP_PROMPT = \
 """
@@ -71,7 +95,35 @@ Based on the context and the following instructions, write code that is elegant 
    library.
 """
 
+CONDITIONAL_ONE_STEP_CODE: str = \
+"""
+trait_data, _, _ = select_and_load_cohort(in_data_root, trait, condition, is_two_step=False)
+redundant_col = 'Age' if condition == 'Gender' else 'Gender'
+if redundant_col in trait_data.columns:
+    trait_data = trait_data.drop(columns=[redundant_col])
 
+Y = trait_data[trait].values
+Z = trait_data[condition].values
+X = trait_data.drop(columns=[trait, condition]).values
+
+has_batch_effect = detect_batch_effect(X)
+if has_batch_effect:
+    model_constructor = LMM
+else:
+    model_constructor = Lasso
+
+param_values = [1e-6, 1e-5, 1e-4, 1e-3, 1e-2, 1e-1, 1]
+best_config, best_performance = tune_hyperparameters(model_constructor, param_values, X, Y, trait_data.columns, trait, gene_info_file, condition, Z)
+
+model = ResidualizationRegressor(model_constructor, best_config)
+normalized_X, _ = normalize_data(X)
+normalized_Z, _ = normalize_data(Z)
+model.fit(normalized_X, Y, normalized_Z)
+
+var_names = trait_data.columns.tolist()
+significant_genes = interpret_result(model, var_names, trait, condition)
+save_result(significant_genes, best_performance, output_root, trait, condition)
+"""
 
 TWO_STEP_PROMPT = \
 """
@@ -131,3 +183,63 @@ read.
    library.
 """
 
+TWO_STEP_CODE: str = \
+"""
+trait_data, condition_data, regressors = select_and_load_cohort(in_data_root, trait, condition, is_two_step=True, gene_info_path=gene_info_file)
+trait_data = trait_data.drop(columns=['Age', 'Gender'], errors='ignore')
+if regressors is None:
+    print(f'No gene regressors for trait {trait} and condition {condition}')
+    continue
+
+print("Common gene regressors for condition and trait", regressors)
+X_condition = condition_data[regressors].values
+Y_condition = condition_data[condition].values
+
+condition_type = 'binary' if len(np.unique(Y_condition)) == 2 else 'continuous'
+
+if condition_type == 'binary':
+    if X_condition.shape[1] > X_condition.shape[0]:
+        model = LogisticRegression(penalty='l1', solver='liblinear', random_state=42)
+    else:
+        model = LogisticRegression()
+else:
+    if X_condition.shape[1] > X_condition.shape[0]:
+        model = Lasso()
+    else:
+        model = LinearRegression()
+
+normalized_X_condition, _ = normalize_data(X_condition)
+model.fit(normalized_X_condition, Y_condition)
+
+regressors_in_trait = trait_data[regressors].values
+normalized_regressors_in_trait, _ = normalize_data(regressors_in_trait)
+if condition_type == 'binary':
+    predicted_condition = model.predict_proba(normalized_regressors_in_trait)[:, 1]
+else:
+    predicted_condition = model.predict(normalized_regressors_in_trait)
+
+trait_data[condition] = predicted_condition
+trait_data = trait_data.drop(columns=regressors)
+
+Y = trait_data[trait].values
+Z = trait_data[condition].values
+X = trait_data.drop(columns=[trait, condition]).values
+
+has_batch_effect = detect_batch_effect(X)
+if has_batch_effect:
+    model_constructor = LMM
+else:
+    model_constructor = Lasso
+
+param_values = [1e-6, 1e-5, 1e-4, 1e-3, 1e-2, 1e-1, 1]
+best_config, best_performance = tune_hyperparameters(model_constructor, param_values, X, Y, trait_data.columns, trait, gene_info_file, condition, Z)
+
+model = ResidualizationRegressor(model_constructor, best_config)
+normalized_X, _ = normalize_data(X)
+normalized_Z, _ = normalize_data(Z)
+model.fit(normalized_X, Y, normalized_Z)
+
+var_names = trait_data.columns.tolist()
+significant_genes = interpret_result(model, var_names, trait, condition)
+save_result(significant_genes, best_performance, output_root, trait, condition)
+"""
