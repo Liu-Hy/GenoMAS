@@ -90,7 +90,7 @@ class BaseAgent:
         self.memory.clear()
         self.start_time = time.time()
         if hasattr(self, 'task_context'):
-            self.task_context = TaskContext()
+            self.task_context.preserve_first_n_steps(0)
         if hasattr(self, 'executor'):
             self.executor.clear_namespace()
         if hasattr(self, 'task_completed'):

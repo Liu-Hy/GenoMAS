@@ -222,17 +222,9 @@ class MultiStepProgrammingAgent(BaseAgent):
         if step < 0 or step >= self.task_context.current_step:
             raise ValueError(f"Invalid step number for retraction: {step}")
 
-        # Get the regular step to validate it's not a debug step
-        try:
-            self.task_context.get_regular_step(step)
-        except ValueError as e:
-            raise ValueError(f"Cannot retract to debug step: {step}")
-
         # Truncate history to keep only steps 1 to step-1
         # The next step (step N) will be added with the new action unit
-        self.task_context.clear_debug_steps()
-        self.task_context.current_step = step - 1
-        self.task_context.history = self.task_context.history[:step - 1]
+        self.task_context.preserve_first_n_steps(step - 1)
 
         # Reset executor namespace and re-execute code up to step-1
         prev_result = await self.executor.reset_and_execute_to_step(

@@ -91,6 +91,11 @@ class TaskContext:
         """Remove all debug steps from history"""
         self.history = [step for step in self.history if step.type == StepType.REGULAR]
         self.debug_step = 0
+    
+    def preserve_first_n_steps(self, n: int):
+        self.clear_debug_steps()
+        self.current_step = n
+        self.history = self.history[:n]
 
     def concatenate_snippets(self, end_step: Optional[int] = None, include_setup: bool = False) -> str:
         """Concatenate code snippets up to specified step"""
