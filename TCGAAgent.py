@@ -20,7 +20,7 @@ from utils.llm import LLMClient, get_llm_client
 from utils.path_config import TCGAPathConfig
 from utils.utils import extract_function_code
 
-GLOBAL_MAX_TIME = 600.0  # 1000000.0
+GLOBAL_MAX_TIME = 420.0  # 1000000.0
 
 
 class Role(Enum):
@@ -1106,7 +1106,7 @@ def setup_arg_parser():
                         help='Maximum number of times allowed to retract to previous steps')
     parser.add_argument('--plan', type=lambda x: (str(x).lower() == 'true'), default=True,
                         help='Enable context-aware planning. Use "true" or "false".')
-    parser.add_argument('--max-time', type=float, default=600,
+    parser.add_argument('--max-time', type=float, default=420,
                         help='Maximum time (in seconds) allowed for the task')
     return parser
 

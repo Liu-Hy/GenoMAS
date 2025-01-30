@@ -100,17 +100,17 @@ TCGA_FEATURE_ENGINEERING_PROMPT: str = \
 
 3. Link the clinical and genetic data on sample IDs, and assign the linked data to a variable `linked_data`.
 
-3. Handle missing values in the linked data systematically. We remove samples with missing trait values, remove genes 
+4. Handle missing values in the linked data systematically. We remove samples with missing trait values, remove genes 
    features with >20% missing values, remove samples with >5% missing genes, and then impute remaining missing values. 
    We impute gender with the mode, and impute other features with the mean.
 
-4. Determine whether the trait and some demographic features in the dataset are severely biased. We determine whether 
+5. Determine whether the trait and some demographic features in the dataset are severely biased. We determine whether 
    the trait is severely biased to validate the usability of the dataset later. Biased demographic features are 
    tolerable, and we simply remove them.
 
-5. Conduct final quality validation and save relevant information about the linked cohort data using the
+6. Conduct final quality validation and save relevant information about the linked cohort data using the
    `validate_and_save_cohort_info` function from the library. You may optionally take notes about anything that is 
    worthy of attention about the dataset.
 
-6. If the linked data is usable, save it as a CSV file to `out_data_file`. Otherwise, you must not save it.
+7. If the linked data is usable, save it as a CSV file to `out_data_file`. Otherwise, you must not save it.
 """

@@ -22,6 +22,6 @@ def setup_arg_parser():
                         help='Maximum number of times allowed to retract to previous steps')
     parser.add_argument('--plan', type=lambda x: (str(x).lower() == 'true'), default=True,
                         help='Enable context-aware planning. Use "true" or "false".')
-    parser.add_argument('--max-time', type=float, default=600,
+    parser.add_argument('--max-time', type=float, default=420,
                         help='Maximum time (in seconds) allowed for the task')
     return parser

@@ -38,14 +38,15 @@ class Environment:
 
     async def run_task(self, role: Role) -> Optional[str]:
         self.message_queue.clear()
-        self.agents[role].clear_states()
+        actor = self.agents[role]
+        actor.clear_states()
         initial_message = await self.agents[Role.PI].assign_task(role)
         if initial_message:
             self.message_queue.append(initial_message)
         while self.message_queue:
             # Check global timeout
-            if time.time() - self.start_time > GLOBAL_MAX_TIME:
-                self.logger.error(f"TimeoutError! {GLOBAL_MAX_TIME}s exceeded, early stopped this cohort.")
+            if time.time() - actor.start_time > actor.max_time:
+                self.logger.error(f"TimeoutError! {actor.max_time}s exceeded, early stopped this task.")
                 break
 
             current_message = self.message_queue.pop(0)
@@ -55,9 +56,9 @@ class Environment:
             )
 
             # Let valid receivers observe and act
-            for role in valid_receivers:
-                if role in self.agents:
-                    new_message = await self.agents[role].act(current_message)
+            for receiver_role in valid_receivers:
+                if receiver_role in self.agents:
+                    new_message = await self.agents[receiver_role].act(current_message)
                     if new_message:
                         if not MessageType.is_request(new_message):
                             msg_preview = '\n'.join(new_message.content.splitlines()[-50:])
@@ -68,7 +69,7 @@ class Environment:
                             self.message_queue.clear()
                             break
                         self.message_queue.append(new_message)
-        return self.agents[role].task_context.concatenate_snippets()
+        return actor.task_context.concatenate_snippets(include_setup=True)
 
     async def run(self, questions: List[Tuple[str, str]], in_data_root: str, output_root: str, version: str,
                   gene_info_file: str):
@@ -161,4 +162,4 @@ class Environment:
         for agent in self.agents.values():
             agent.clear_states()
         self.message_queue.clear()
-        self.start_time = None
+        self.start_time = time.time()
