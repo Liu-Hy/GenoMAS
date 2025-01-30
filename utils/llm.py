@@ -14,9 +14,9 @@ from google.generativeai.types import RequestOptions, HarmCategory, HarmBlockThr
 from ollama import AsyncClient as AsyncLlama
 from openai import AsyncOpenAI, RequestOptions
 
-DEFAULT_MAX_RETRIES = 4
-DEFAULT_TIMEOUT_PER_RETRY = 30  # seconds # 30
-DEFAULT_TIMEOUT_PER_MESSAGE = 120  # 60
+DEFAULT_MAX_RETRIES = 3
+DEFAULT_TIMEOUT_PER_RETRY = 30  # seconds
+DEFAULT_TIMEOUT_PER_MESSAGE = DEFAULT_MAX_RETRIES * DEFAULT_TIMEOUT_PER_RETRY
 
 # Model configurations
 MODEL_INFO = {
@@ -151,45 +151,49 @@ class ModelConfig:
         # Get API key suffix based on config index
         key_suffix = f"_{api_index}" if api_index is not None else ""
 
+        # Allow more time for reasoning models
+        openai_scaler = 2.0 if ('o1' in model.lower() and 'mini' not in model.lower()) else 1.0
+        deepseek_scaler = 2.0 if 'r1' in model.lower() else 1.0
+
         # Provider-specific configurations
         provider_configs = {
             'openai': {
-                'max_retries': 4,
-                'timeout_per_retry': 30.0,
-                'timeout_per_message': 120.0,
+                'max_retries': 3,
+                'timeout_per_retry': 30.0 * openai_scaler,
+                'timeout_per_message': 90.0 * openai_scaler,
                 'organization': os.getenv(f'OPENAI_ORGANIZATION{key_suffix}'),
                 'api_key': os.getenv(f'OPENAI_API_KEY{key_suffix}')
             },
             'anthropic': {
-                'max_retries': 4,
+                'max_retries': 3,
                 'timeout_per_retry': 30.0,
-                'timeout_per_message': 120.0,
+                'timeout_per_message': 90.0,
                 'api_key': os.getenv(f'ANTHROPIC_API_KEY{key_suffix}')
             },
             'google': {
-                'max_retries': 4,
+                'max_retries': 3,
                 'timeout_per_retry': 30.0,
-                'timeout_per_message': 120.0,
+                'timeout_per_message': 90.0,
                 'api_key': os.getenv(f'GOOGLE_API_KEY{key_suffix}')
             },
             'meta': {
-                'max_retries': 4,
+                'max_retries': 3,
                 'timeout_per_retry': 30.0,
-                'timeout_per_message': 120.0,
+                'timeout_per_message': 90.0,
                 'extra_message_params': {
                     'num_ctx': 20000,  # Set to ensure sufficient context; may be GPU-intensive
                 }
             },
             'novita': {
-                'max_retries': 4,
+                'max_retries': 3,
                 'timeout_per_retry': 30.0,
-                'timeout_per_message': 120.0,
+                'timeout_per_message': 90.0,
                 'api_key': os.getenv(f'NOVITA_API_KEY{key_suffix}')
             },
             'deepseek': {
-                'max_retries': 4,
-                'timeout_per_retry': 60.0,
-                'timeout_per_message': 240.0,
+                'max_retries': 3,
+                'timeout_per_retry': 30.0 * deepseek_scaler,
+                'timeout_per_message': 90.0 * deepseek_scaler,
                 'api_key': os.getenv(f'DEEPSEEK_API_KEY{key_suffix}')
             }
         }

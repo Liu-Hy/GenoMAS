@@ -32,6 +32,12 @@ def get_question_pairs(file_path):
                 all_pairs.append((trait, condition))
         return all_pairs
 
+def check_slow_inference(model: str) -> bool:
+    """
+    Checks if the model is a slow inference model.
+    """
+    return any(marker in model.lower() for marker in ['o1-', '-r1']) and 'mini' not in model.lower()
+
 def extract_function_code(file_path, function_names):
     """
     Extracts the code of specific functions from a Python file.

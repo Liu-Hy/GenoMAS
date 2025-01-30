@@ -12,13 +12,15 @@ from utils.utils import normalize_trait
 from utils.config import setup_arg_parser
 from utils.llm import get_llm_client
 from utils.logger import Logger
-from utils.utils import extract_function_code, get_question_pairs
+from utils.utils import extract_function_code, get_question_pairs, check_slow_inference
 
 
 async def main():
     parser = setup_arg_parser()
     args = parser.parse_args()
-    
+
+    if check_slow_inference(args.model):
+        args.max_time = args.max_time * 3
     task_info_file = './metadata/task_info.json'
     all_pairs = get_question_pairs(task_info_file)
 
