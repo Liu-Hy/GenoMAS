@@ -40,13 +40,13 @@ async def main():
                  "domain_focus": PREPROCESS_TOOLS.format(tools_code=geo_selected_code)}
     # Create agents once
     geo_action_units = [
-        ActionUnit("Initial Data Loading", GEO_DATA_LOADING_PROMPT),
+        ActionUnit("Initial Data Loading", GEO_DATA_LOADING_PROMPT, GEO_DATA_LOADING_CODE),
         ActionUnit("Dataset Analysis and Clinical Feature Extraction", GEO_FEATURE_ANALYSIS_EXTRACTION_PROMPT),
-        ActionUnit("Gene Data Extraction", GEO_GENE_DATA_EXTRACTION_PROMPT),
+        ActionUnit("Gene Data Extraction", GEO_GENE_DATA_EXTRACTION_PROMPT, GEO_GENE_DATA_EXTRACTION_CODE),
         ActionUnit("Gene Identifier Review", GEO_GENE_IDENTIFIER_REVIEW_PROMPT),
-        ActionUnit("Gene Annotation", GEO_GENE_ANNOTATION_PROMPT),
+        ActionUnit("Gene Annotation", GEO_GENE_ANNOTATION_PROMPT, GEO_GENE_ANNOTATION_CODE),
         ActionUnit("Gene Identifier Mapping", GEO_GENE_IDENTIFIER_MAPPING_PROMPT),
-        ActionUnit("Data Normalization and Linking", GEO_DATA_NORMALIZATION_LINKING_PROMPT),
+        ActionUnit("Data Normalization and Linking", GEO_DATA_NORMALIZATION_LINKING_PROMPT, GEO_DATA_NORMALIZATION_LINKING_CODE),
         ActionUnit("TASK COMPLETED", TASK_COMPLETED_PROMPT)
     ]
 
