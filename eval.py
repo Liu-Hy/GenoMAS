@@ -3,7 +3,7 @@ import os
 import pandas as pd
 import json
 import numpy as np
-from utils.statistics import evaluate_gene_selection
+from tools.statistics import evaluate_gene_selection
 
 def calculate_metrics(ref_file, pred_file):
     assert os.path.exists(ref_file), "Reference file does not exist"
@@ -70,8 +70,10 @@ def average_metrics(metrics_list):
 
 def main(pred_dir, ref_dir):
     results = {}
-    for trait in os.listdir(ref_dir):
-        ref_trait_path = os.path.join(ref_dir, trait)
+    pred_dir_path = os.path.join('output', 'regress', pred_dir)
+    ref_dir_path = os.path.join('output', 'regress', ref_dir)
+    for trait in os.listdir(ref_dir_path):
+        ref_trait_path = os.path.join(ref_dir_path, trait)
         if not os.path.isdir(ref_trait_path):
             continue
         for filename in os.listdir(ref_trait_path):
@@ -79,11 +81,9 @@ def main(pred_dir, ref_dir):
                 parts = filename.split('_')
                 condition = '_'.join(parts[3:])[:-5]
                 ref_file = os.path.join(ref_trait_path, filename)
-                pred_file = os.path.join(pred_dir, trait, filename)
+                pred_file = os.path.join(pred_dir_path, trait, filename)
                 metrics = calculate_metrics(ref_file, pred_file)
 
-                available_traits = os.listdir('/home/techt/Desktop/AI_for_Science/preprocessed/ours')
-                #if trait in available_traits and (condition in available_traits or condition.lower() == 'None'):
                 results[(trait, condition)] = metrics
                     #print(metrics)
                 # print(len(results))

@@ -203,7 +203,10 @@ class MultiStepProgrammingAgent(BaseAgent):
     def get_default_planning_response(self) -> str:
         """Generate default planning response that follows predefined order"""
         action_names = list(self.action_units.keys())
-        next_action = action_names[self.task_context.current_step]
+        if self.task_context.current_step < len(action_names):
+            next_action = action_names[self.task_context.current_step]
+        else:
+            next_action = action_names[-1]
         return json.dumps({
             "action": next_action,
             "retract": False,
@@ -319,7 +322,10 @@ class MultiStepProgrammingAgent(BaseAgent):
             self.logger.error(f"Failed to parse planning response: {e}\nOriginal content: {content}")
             # Default to next action in sequence as fallback
             action_names = list(self.action_units.keys())
-            next_action = action_names[self.task_context.current_step]
+            if self.task_context.current_step < len(action_names):
+                next_action = action_names[self.task_context.current_step]
+            else:
+                next_action = action_names[-1]
             return next_action, False, None, "Error in parsing response, using default next action"
 
     def parse_code_review_response(self, content: str) -> bool:

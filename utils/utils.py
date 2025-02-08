@@ -1,6 +1,7 @@
 import ast
 import json
 import os
+import re
 import traceback
 from typing import List, Optional
 
@@ -34,9 +35,16 @@ def get_question_pairs(file_path):
 
 def check_slow_inference(model: str) -> bool:
     """
-    Checks if the model is a slow inference model.
+    Checks if the model is a slow inference model by parsing the model name.
     """
-    return any(marker in model.lower() for marker in ['o1-', '-r1']) and 'mini' not in model.lower()
+    # Convert to lowercase first, then split into alphanumeric substrings
+    substrings = re.findall(r'[a-z0-9]+', model.lower())
+    
+    # Check conditions
+    has_slow_marker = any(s in ['o1', 'o3', 'r1'] for s in substrings)
+    has_mini = 'mini' in substrings
+    
+    return has_slow_marker and not has_mini
 
 def extract_function_code(file_path, function_names):
     """

@@ -82,37 +82,46 @@ class DatasetValidator:
 
 def main():
     parser = argparse.ArgumentParser(description='Dataset validation tool')
-    parser.add_argument('--dataset', required=True, help='Path to dataset directory')
-    parser.add_argument('--generate', action='store_true', help='Generate manifest file')
-    parser.add_argument('--validate', action='store_true', help='Validate dataset against manifest')
-    parser.add_argument('--manifest', default='manifest.json', help='Path to manifest file')
+    parser.add_argument('--data-dir', required=True, help='Path to data directory containing input datasets')
+    parser.add_argument('--generate', action='store_true', help='Generate manifest files')
+    parser.add_argument('--validate', action='store_true', help='Validate datasets against manifest files')
     
     args = parser.parse_args()
-    validator = DatasetValidator(args.dataset)
+    data_path = Path(args.data_dir)
+    datasets = ['TCGA', 'GEO']
     
-    if args.generate:
-        print(f"Generating manifest file: {args.manifest}")
-        validator.generate_manifest(args.manifest)
-        print("Manifest generation complete")
+    for dataset in datasets:
+        dataset_path = data_path / dataset
+        if not dataset_path.exists():
+            print(f"Warning: {dataset} directory not found at {dataset_path}")
+            continue
+            
+        manifest_path = f"{dataset.lower()}_manifest.json"
+        validator = DatasetValidator(dataset_path)
         
-    if args.validate:
-        print("Validating dataset...")
-        result = validator.validate_dataset(args.manifest)
-        
-        if result["is_valid"]:
-            print("Dataset is valid!")
-        else:
-            print("Dataset validation failed!")
-            if result["missing_files"]:
-                print("\nMissing files:")
-                for file in result["missing_files"]:
-                    print(f"  - {file}")
-            if result["errors"]:
-                print("\nErrors:")
-                for error in result["errors"]:
-                    print(f"  - {error}")
+        if args.generate:
+            print(f"\nGenerating manifest file for {dataset}: {manifest_path}")
+            validator.generate_manifest(manifest_path)
+            print(f"{dataset} manifest generation complete")
+            
+        if args.validate:
+            print(f"\nValidating {dataset} dataset...")
+            result = validator.validate_dataset(manifest_path)
+            
+            if result["is_valid"]:
+                print(f"{dataset} dataset is valid!")
+            else:
+                print(f"{dataset} dataset validation failed!")
+                if result["missing_files"]:
+                    print("\nMissing files:")
+                    for file in result["missing_files"]:
+                        print(f"  - {file}")
+                if result["errors"]:
+                    print("\nErrors:")
+                    for error in result["errors"]:
+                        print(f"  - {error}")
 
 if __name__ == "__main__":
     main()
-# Example Usage: python validator.py --dataset /path/to/dataset --generate
-#                python validator.py --dataset /path/to/dataset --validate
+# Example Usage: python validator.py --data-dir /path/to/data --generate
+#                python validator.py --data-dir /path/to/data --validate

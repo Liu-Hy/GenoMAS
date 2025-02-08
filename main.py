@@ -19,11 +19,16 @@ async def main():
     parser = setup_arg_parser()
     args = parser.parse_args()
 
-    if check_slow_inference(args.model):
-        args.max_time = args.max_time * 3
+    model = args.model
+    scaler = 1.0
+    if check_slow_inference(model):
+        scaler = 6.0 if ('deepseek' in model.lower() and '671b' in model.lower()) else 3.0
+    elif ('deepseek' in model.lower() and 'v3' in model.lower()):
+        scaler = 3.0
+    args.max_time = args.max_time * scaler
     task_info_file = './metadata/task_info.json'
     all_pairs = get_question_pairs(task_info_file)
-
+    # Detect the path containing downloaded input data. Change to yours.
     in_data_root = '/media/techt/DATA' if os.path.exists('/media/techt/DATA') else '../DATA'
     tcga_root = os.path.join(in_data_root, 'TCGA')
     output_root = './output/'
@@ -42,13 +47,13 @@ async def main():
                  "domain_focus": PREPROCESS_TOOLS.format(tools_code=geo_selected_code)}
     # Create agents once
     geo_action_units = [
-        ActionUnit("Initial Data Loading", GEO_DATA_LOADING_PROMPT, GEO_DATA_LOADING_CODE),
+        ActionUnit("Initial Data Loading", GEO_DATA_LOADING_PROMPT),
         ActionUnit("Dataset Analysis and Clinical Feature Extraction", GEO_FEATURE_ANALYSIS_EXTRACTION_PROMPT),
-        ActionUnit("Gene Data Extraction", GEO_GENE_DATA_EXTRACTION_PROMPT, GEO_GENE_DATA_EXTRACTION_CODE),
+        ActionUnit("Gene Data Extraction", GEO_GENE_DATA_EXTRACTION_PROMPT),
         ActionUnit("Gene Identifier Review", GEO_GENE_IDENTIFIER_REVIEW_PROMPT),
-        ActionUnit("Gene Annotation", GEO_GENE_ANNOTATION_PROMPT, GEO_GENE_ANNOTATION_CODE),
+        ActionUnit("Gene Annotation", GEO_GENE_ANNOTATION_PROMPT),
         ActionUnit("Gene Identifier Mapping", GEO_GENE_IDENTIFIER_MAPPING_PROMPT),
-        ActionUnit("Data Normalization and Linking", GEO_DATA_NORMALIZATION_LINKING_PROMPT, GEO_DATA_NORMALIZATION_LINKING_CODE),
+        ActionUnit("Data Normalization and Linking", GEO_DATA_NORMALIZATION_LINKING_PROMPT),
         ActionUnit("TASK COMPLETED", TASK_COMPLETED_PROMPT)
     ]
 
@@ -99,10 +104,10 @@ async def main():
 
     stat_action_units = [
         ActionUnit("Unconditional One-step Regression",
-                   UNCONDITIONAL_ONE_STEP_PROMPT, UNCONDITIONAL_ONE_STEP_CODE),
+                   UNCONDITIONAL_ONE_STEP_PROMPT),
         ActionUnit("Conditional One-step Regression",
-                   CONDITIONAL_ONE_STEP_PROMPT, CONDITIONAL_ONE_STEP_CODE),
-        ActionUnit("Two-step Regression", TWO_STEP_PROMPT, TWO_STEP_CODE),
+                   CONDITIONAL_ONE_STEP_PROMPT),
+        ActionUnit("Two-step Regression", TWO_STEP_PROMPT),
         ActionUnit("TASK COMPLETED", TASK_COMPLETED_PROMPT)
     ]
 

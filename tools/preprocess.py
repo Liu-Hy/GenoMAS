@@ -5,7 +5,6 @@ import os
 import re
 from typing import Callable, Optional, List, Tuple, Dict, Union, Any
 
-import mygene
 import pandas as pd
 
 
