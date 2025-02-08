@@ -30,6 +30,7 @@ pip install -r requirements.txt
 ```
 
 ### 3. Run the code
+Modify `in_data_root` in `main.py` to set input data path on different devices.\
 Run an experiment like this:
 ```bash
 python main.py --version 1 --model gemini-2.0-flash-002 --api 1

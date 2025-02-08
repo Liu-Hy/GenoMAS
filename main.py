@@ -28,7 +28,7 @@ async def main():
     args.max_time = args.max_time * scaler
     task_info_file = './metadata/task_info.json'
     all_pairs = get_question_pairs(task_info_file)
-    # Detect the path containing downloaded input data. Change to yours.
+    # Set the path containing input data on different devices. Change to yours.
     in_data_root = '/media/techt/DATA' if os.path.exists('/media/techt/DATA') else '../DATA'
     tcga_root = os.path.join(in_data_root, 'TCGA')
     output_root = './output/'
