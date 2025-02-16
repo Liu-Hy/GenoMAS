@@ -5,7 +5,6 @@ ollama
 python-dotenv
 backoff
 dill
-mygene
 nbconvert
 nbformat
 numpy
@@ -17,3 +16,5 @@ sparse_lmm
 statsmodels
 tqdm
 biopython
+psutil
+pynvml

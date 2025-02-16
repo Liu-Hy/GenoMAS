@@ -46,6 +46,15 @@ def check_slow_inference(model: str) -> bool:
     
     return has_slow_marker and not has_mini
 
+def check_recent_openai_model(model: str) -> bool:
+    """
+    Checks if the model is a recent OpenAI model (with updated system prompt role) by parsing the model name.
+    """
+    substrings = re.findall(r'[a-z0-9]+', model.lower())
+    has_recent_marker = any(s in ['o1', 'o3'] for s in substrings)
+    
+    return has_recent_marker
+
 def extract_function_code(file_path, function_names):
     """
     Extracts the code of specific functions from a Python file.

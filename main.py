@@ -12,6 +12,7 @@ from utils.utils import normalize_trait
 from utils.config import setup_arg_parser
 from utils.llm import get_llm_client
 from utils.logger import Logger
+from utils.resource_monitor import ResourceMonitor
 from utils.utils import extract_function_code, get_question_pairs, check_slow_inference
 
 
@@ -34,6 +35,10 @@ async def main():
     output_root = './output/'
     version = args.version
     log_file = os.path.join(output_root, f"log_{version}.txt")
+    
+    # Initialize resource monitor with 60-second interval
+    ResourceMonitor(log_interval=60).start()
+    
     logger = Logger(log_file=log_file, max_msg_length=10000)
     client = get_llm_client(args, logger)
 

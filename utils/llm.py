@@ -15,13 +15,21 @@ from google.generativeai.types import RequestOptions, HarmCategory, HarmBlockThr
 from ollama import AsyncClient as AsyncOllama
 from openai import AsyncOpenAI, RequestOptions
 
-from .utils import check_slow_inference
+from .utils import check_slow_inference, check_recent_openai_model
 
 DEFAULT_MAX_RETRIES = 3
 DEFAULT_TIMEOUT_PER_RETRY = 30  # seconds
 DEFAULT_TIMEOUT_PER_MESSAGE = DEFAULT_MAX_RETRIES * DEFAULT_TIMEOUT_PER_RETRY
 
-# Model configurations
+"""Model configurations and pricing.
+
+Important:
+    - The cost printed in the log is only for reference. Please track actual costs in your LLM provider platform.
+    - For inference models (e.g., 'o1'), cost estimation is typically much lower than actual cost since hidden thinking 
+      tokens are charged at output token rates.
+    - Pricing information is accurate as of 2025-02-15 but subject to change. Please update monthly.
+"""
+
 MODEL_INFO = {
     'openai': {
         'o1-2024-12-17': {'input_price': 15.0, 'output_price': 60.0},
@@ -92,7 +100,7 @@ MODEL_INFO = {
             'api_name': 'meta-llama/llama-3.2-1b-instruct'
         },
     },
-    # DeepSeek official API constantly has long latency and/or internal errors recently (Jan 2025). Be careful.
+    # Warning: DeepSeek official API has experienced frequent latency issues and internal errors since January 2025.
     'deepseek': {
         'deepseek-v3': {
             'input_price': 0.07,
@@ -348,8 +356,8 @@ class OpenAIClient(LLMClient):
 
     async def generate_completion(self, messages: List[Dict[str, str]]) -> Dict[str, Any]:
         try:
-            if 'o1' in self.model_name.lower() and messages[0]["role"] == "system":
-                # OpenAI has changed the role for system prompt. New models not backward compatible. Handle it.
+            # The role for system prompt has changed from 'system' to 'developer' in recent OpenAI models.
+            if check_recent_openai_model(self.model_name) and messages[0]["role"] == "system":
                 if 'o1-mini' in self.model_name.lower():
                     messages[0]["role"] = "assistant"
                 else:
