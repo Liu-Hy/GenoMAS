@@ -1,9 +1,11 @@
 import argparse
-import os
-import pandas as pd
 import json
+import os
+
 import numpy as np
-from tools.statistics import evaluate_gene_selection
+
+from utils.utils import evaluate_gene_selection
+
 
 def calculate_metrics(ref_file, pred_file):
     assert os.path.exists(ref_file), "Reference file does not exist"
@@ -13,41 +15,53 @@ def calculate_metrics(ref_file, pred_file):
 
     # Initialize all metrics with 0
     # If the 'pred_file' does not exist, it indicates the agent's regression code fails to run on this question
-    metrics = {'precision': 0, 'precision_at_50': 0, 'recall': 0, 'f1': 0, 'jaccard': 0, 'jaccard2': 0,
-               'success': 0}
-    metrics["cv_performance"] = ref["cv_performance"]
-    for section in metrics["cv_performance"]:
-        for m in metrics["cv_performance"][section]:
-            metrics["cv_performance"][section][m] = 0
+    metrics = {'success': 0.0,
+               'precision': 0.0,
+               'recall': 0.0,
+               'f1': 0.0,
+               'trait_pred_accuracy': 0.0,
+               'trait_pred_f1': 0.0, }
 
     if os.path.exists(pred_file):
         with open(pred_file, 'r') as file:
             result = json.load(file)
-        metrics["cv_performance"] = result["cv_performance"]
         pred_genes = result["significant_genes"]["Variable"]
         metrics.update(evaluate_gene_selection(pred_genes, ref_genes))
-        metrics['success'] = 1
+
+        # Optionally, record performance on trait prediction.
+        try:
+            metrics['trait_pred_accuracy'] = result["cv_performance"]["prediction"]["accuracy"]
+        except KeyError:
+            pass
+        try:
+            metrics['trait_pred_f1'] = result["cv_performance"]["prediction"]["f1"]
+        except KeyError:
+            pass
+
+        metrics['success'] = 100.0
 
     return metrics
 
+
 def categorize_and_aggregate(results):
-    categorized_results = {'unconditional one-step': [], 'conditional one-step': [], 'two-step': []}
+    categorized_results = {'Unconditional one-step': [], 'Conditional one-step': [], 'Two-step': []}
     for pair, metrics in results.items():
         condition = pair[1]
         if condition is None or condition.lower() == "none":
-            category = 'unconditional one-step'
+            category = 'Unconditional one-step'
         elif condition.lower() in ["age", "gender"]:
-            category = 'conditional one-step'
+            category = 'Conditional one-step'
         else:
-            category = 'two-step'
+            category = 'Two-step'
         categorized_results[category].append(metrics)
 
     aggregated_metrics = {}
     for category, metrics_list in categorized_results.items():
         aggregated_metrics[category] = average_metrics(metrics_list)
-    aggregated_metrics['overall'] = average_metrics(
+    aggregated_metrics['Overall'] = average_metrics(
         [metric for sublist in categorized_results.values() for metric in sublist])
     return aggregated_metrics
+
 
 def average_metrics(metrics_list):
     if not metrics_list:
@@ -55,16 +69,8 @@ def average_metrics(metrics_list):
 
     avg_metrics = {}
     for metric in metrics_list[0]:
-        if isinstance(metrics_list[0][metric], dict):  # metric == "cv_performance"
-            avg_metrics[metric] = {}
-            for submetric in metrics_list[0][metric]:  # submetric in ["selection", "prediction"]
-                avg_metrics[metric][submetric] = {}
-                for subsubmetric in metrics_list[0][metric][submetric]:
-                    avg_metrics[metric][submetric][subsubmetric] = np.round(np.mean(
-                        [p[metric][submetric][subsubmetric] for p in metrics_list if
-                         subsubmetric in p[metric][submetric]]), 2)
-        else:
-            avg_metrics[metric] = np.round(np.mean([p[metric] for p in metrics_list]), 2)
+        avg_metrics[metric] = np.round(np.mean([p[metric] for p in metrics_list]), 2)
+
     return avg_metrics
 
 
@@ -72,11 +78,11 @@ def main(pred_dir, ref_dir):
     results = {}
     pred_dir_path = os.path.join('output', 'regress', pred_dir)
     ref_dir_path = os.path.join('output', 'regress', ref_dir)
-    for trait in os.listdir(ref_dir_path):
+    for trait in sorted(os.listdir(ref_dir_path)):
         ref_trait_path = os.path.join(ref_dir_path, trait)
         if not os.path.isdir(ref_trait_path):
             continue
-        for filename in os.listdir(ref_trait_path):
+        for filename in sorted(os.listdir(ref_trait_path)):
             if filename.startswith('significant_genes') and filename.endswith('.json'):
                 parts = filename.split('_')
                 condition = '_'.join(parts[3:])[:-5]
@@ -85,22 +91,18 @@ def main(pred_dir, ref_dir):
                 metrics = calculate_metrics(ref_file, pred_file)
 
                 results[(trait, condition)] = metrics
-                    #print(metrics)
-                # print(len(results))
     categorized_avg_metrics = categorize_and_aggregate(results)
     return results, categorized_avg_metrics
 
+
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="Evaluate model performance in variable selection")
-    parser.add_argument("-p", "--pred_dir", type=str, required=True, help="Path to the prediction directory")
-    parser.add_argument("-r", "--ref_dir", type=str, required=True, help="Path to the reference directory")
+    parser.add_argument("-p", "--pred-dir", type=str, required=True, help="Path to the prediction directory")
+    parser.add_argument("-r", "--ref-dir", type=str, required=True, help="Path to the reference directory")
     args = parser.parse_args()
 
-    results, aggregated_results = main(args.pred_dir, args.ref_dir)
-    # print("Individual Metrics:")
-    # for path, metrics in results.items():
-    #     print(f"{path}: {metrics}")
+    results, categorized_avg_metrics = main(args.pred_dir, args.ref_dir)
 
     print("\nAggregated Metrics by Category and Overall:")
-    for category, metrics in aggregated_results.items():
+    for category, metrics in categorized_avg_metrics.items():
         print(f"{category}: \n{metrics}")
