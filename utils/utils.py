@@ -3,7 +3,7 @@ import json
 import os
 import re
 import traceback
-from typing import List, Optional
+from typing import List, Optional, Dict
 
 
 def normalize_trait(trait):
@@ -130,3 +130,61 @@ def add_completed_task(task, version_dir):
     file_path = os.path.join(version_dir, "completed_tasks.json")
     with open(file_path, "w") as file:
         json.dump([list(task) for task in completed_tasks], file)
+
+
+def gene_precision(pred: List[str], ref: List[str]) -> float:
+    """
+    Calculate precision of predicted genes against reference set.
+    """
+    if len(pred):
+        precision = sum([p in ref for p in pred]) / len(pred)
+    else:
+        if len(ref):
+            precision = 0
+        else:
+            precision = 1
+    return precision
+
+
+def gene_recall(pred: List[str], ref: List[str]) -> float:
+    """
+    Calculate recall of predicted genes against reference set.
+    """
+    if len(ref):
+        recall = sum([p in pred for p in ref]) / len(ref)
+    else:
+        if len(pred):
+            recall = 0
+        else:
+            recall = 1
+    return recall
+
+
+def gene_f1(pred: List[str], ref: List[str]) -> float:
+    """
+    Calculate F1 score between predicted and reference gene sets.
+    """
+    prec = gene_precision(pred, ref)
+    rec = gene_recall(pred, ref)
+    if prec + rec == 0:  # Prevent division by zero
+        return 0
+    f1 = 2 * (prec * rec) / (prec + rec)
+    return f1
+
+
+def evaluate_gene_selection(pred: List[str], ref: List[str]) -> Dict[str, float]:
+    """
+    Evaluate the performance of predicted gene selection against a reference set.
+
+    Args:
+        pred (List[str]): List of predicted gene symbols.
+        ref (List[str]): List of reference (ground truth) gene symbols.
+
+    Returns:
+        Dict[str, float]: Dictionary containing precision, recall, F1 score, and Jaccard similarity.
+    """
+    return {
+        'precision': gene_precision(pred, ref) * 100,
+        'recall': gene_recall(pred, ref) * 100,
+        'f1': gene_f1(pred, ref) * 100,
+    }
