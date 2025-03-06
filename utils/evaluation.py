@@ -46,13 +46,36 @@ def gsea_enrichment_score(ranked_genes: List[str], ref_genes: List[str]) -> floa
 
     return max_enrichment
 
-def compute_auroc_auprc_full(pred_genes: List[str], ref_genes: List[str], all_genes: List[str]):
+def compute_auroc_auprc_full(pred_genes: List[str],
+                                    ref_genes: List[str],
+                                    all_genes: List[str]) -> (float, float):
+    """
+    Compute AUROC/AUPRC by assigning a strictly descending score
+    to each predicted gene (based on its index in pred_genes) and
+    zero to all unselected genes.
+    """
     pred_set = set(pred_genes)
     ref_set = set(ref_genes)
 
-    y_true = np.array([1 if g in ref_set else 0 for g in all_genes], dtype=int)
-    y_score = np.array([1 if g in pred_set else 0 for g in all_genes], dtype=float)
+    top_len = len(pred_genes)
+    # Build a dictionary: gene -> score
+    # If you already have actual coefficients, you could fill them in here instead.
+    gene_scores = {}
+    for i, g in enumerate(pred_genes):
+        # Highest score for the 1st gene in pred_genes, second-highest for the 2nd, etc.
+        # i=0 => rank = top_len; i=1 => rank = top_len-1, etc.
+        gene_scores[g] = float(top_len - i)
 
+    # Now assign score=0 to all other genes in all_genes
+    for g in all_genes:
+        if g not in gene_scores:
+            gene_scores[g] = 0.0
+
+    # Build arrays for scikit-learn
+    y_true = np.array([1 if g in ref_set else 0 for g in all_genes], dtype=int)
+    y_score = np.array([gene_scores[g] for g in all_genes], dtype=float)
+
+    # Handle edge cases where all positives or all negatives
     if np.all(y_true == 0) or np.all(y_true == 1):
         return float('nan'), float('nan')
 
@@ -60,10 +83,11 @@ def compute_auroc_auprc_full(pred_genes: List[str], ref_genes: List[str], all_ge
     auprc = average_precision_score(y_true, y_score)
     return auroc, auprc
 
-def compute_auroc_auprc_approx(pred_genes: List[str], ref_genes: List[str], n_genes: int = 20000):
+def compute_auroc_auprc_approx(pred_genes: List[str], ref_genes: List[str],
+                               n_genes: int = 20000):
     """
     Approximate AUROC/AUPRC if we only know which genes are predicted vs. not,
-    and assume all unselected genes share the same (zero) score.
+    and assume all unselected genes share the same (zero) score
     """
     pred_set = set(pred_genes)
     ref_set = set(ref_genes)
@@ -75,29 +99,27 @@ def compute_auroc_auprc_approx(pred_genes: List[str], ref_genes: List[str], n_ge
         pred_set = set(pred_genes)
         top_len = n_genes
 
-    missed = ref_set - pred_set
-    n_missed = len(missed)
-
     scores = np.zeros(n_genes, dtype=float)
     labels = np.zeros(n_genes, dtype=int)
 
-    # Assign descending scores for predicted genes
+    # Give descending scores to the predicted genes
     for i, g in enumerate(pred_genes):
-        scores[i] = float(top_len - i)  # or simply 1.0
+        scores[i] = float(top_len - i)
         labels[i] = 1 if g in ref_set else 0
 
-    bottom_len = n_genes - top_len
-    if bottom_len < 0:
-        return float('nan'), float('nan')
+    # All other genes are 0.  No random sprinkling of 'missed' positives.
+    # This means if a true positive wasn't predicted, it simply won't appear
+    # in these top-len indices as '1'.
 
-    if bottom_len > 0 and n_missed > 0:
-        import random
-        idx_missed = random.sample(range(top_len, top_len + bottom_len),
-                                   k=min(n_missed, bottom_len))
-        for j in idx_missed:
-            labels[j] = 1
+    # Now the *number* of positive labels in labels might be smaller
+    # than the real total # of positives, but we can't fix that without
+    # full knowledge or a custom approach.
 
     if len(ref_set) == 0 or len(ref_set) == n_genes:
+        return float('nan'), float('nan')
+
+    # Edge cases
+    if np.all(labels == 0) or np.all(labels == 1):
         return float('nan'), float('nan')
 
     auroc = roc_auc_score(labels, scores)
@@ -111,9 +133,9 @@ def evaluate_gene_selection(pred: List[str],
                             do_gsea: bool = True) -> Dict[str, float]:
     """
     Evaluate the performance of predicted gene selection against a reference set,
-    now with:
+    with:
       - Precision, Recall, F1
-      - AUROC, AUPRC
+      - AUROC, AUPRC (via a ranking-based approach)
       - Simple GSEA-ES (if do_gsea=True)
     """
 
@@ -122,44 +144,55 @@ def evaluate_gene_selection(pred: List[str],
     recall_val = gene_recall(pred, ref)
     f1_val = gene_f1(pred, ref)
 
-    # Compute AUROC / AUPRC
+    # Compute AUROC / AUPRC: use our new ranking-based function if all_genes is given
     if all_genes is not None:
         auroc_val, auprc_val = compute_auroc_auprc_full(pred, ref, all_genes)
     else:
+        # If you have NO list of all genes, you can still do your approximate approach,
+        # but you might want to remove the random assignment from that function:
         auroc_val, auprc_val = compute_auroc_auprc_approx(pred, ref, n_genes)
 
     # Compute a GSEA-like enrichment score, if requested
     if do_gsea:
-        ranked_list = []
-        if all_genes is not None:
+        # If we have all_genes, let's create a ranking by sorting them by the assigned score.
+        es_val = float('nan')
+        if all_genes is not None and len(all_genes) > 0:
+            # We'll re-use the same scoring logic to create a fully ordered list
+            # from highest to lowest rank.
+            # Build the same gene_scores dict used in compute_auroc_auprc_full:
+
             pred_set = set(pred)
-            tail = [g for g in all_genes if g not in pred_set]
-            ranked_list = list(pred) + tail
+            top_len = len(pred)
+            gene_scores = {}
+            for i, g in enumerate(pred):
+                gene_scores[g] = float(top_len - i)
+            for g in all_genes:
+                if g not in gene_scores:
+                    gene_scores[g] = 0.0
+
+            # Sort all_genes by descending score
+            ranked_list = sorted(all_genes, key=lambda x: gene_scores[x], reverse=True)
+
+            es_val = gsea_enrichment_score(ranked_list, ref)
         else:
+            # If we don't have all_genes, revert to the old logic
             tail_count = n_genes - len(pred)
             if tail_count >= 0:
                 dummy_genes = [f"UNK_{i}" for i in range(tail_count)]
                 ranked_list = list(pred) + dummy_genes
+                es_val = gsea_enrichment_score(ranked_list, ref)
             else:
-                # Inconsistent edge case: predicted more genes than total
-                # We'll just store NaN and skip the GSEA
-                pass
-
-        if len(ranked_list) == 0:
-            es_val = float('nan')
-        else:
-            es_val = gsea_enrichment_score(ranked_list, ref)
-
+                es_val = float('nan')
     else:
         es_val = float('nan')
-    
-    print("AUROC:", auroc_val, "AUPRC:", auprc_val, "GSEA-ES:", es_val)
+
+    # print("AUROC:", auroc_val, "AUPRC:", auprc_val, "GSEA-ES:", es_val)
 
     return {
         'precision': precision_val * 100.0,
         'recall':    recall_val * 100.0,
         'f1':        f1_val * 100.0,
         'auroc':     auroc_val,
-        'auprc':     auprc_val,
+        #'auprc':     auprc_val,
         'gsea_es':   es_val
     }

@@ -18,3 +18,4 @@ tqdm
 biopython
 psutil
 pynvml
+mygene

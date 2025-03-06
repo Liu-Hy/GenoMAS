@@ -106,8 +106,7 @@ read.
    If the condition is a continuous variable, use the predict() method of the model to get the predicted values of the 
    condition; otherwise, use the predict_proba() method and select the column corresponding to the positive label, to 
    get the predicted probability of the condition being true. 
-   Add a column named `condition` to the trait dataframe, storing predicted condition values. Drop the columns about the
-   common gene regressors.
+   Add a column named `condition` to the trait dataframe, storing predicted condition values.
 ## The second step regression
 8. From the trait dataframe, select the data in relevant columns for regression analysis. We need three numpy arrays X, 
    Y and Z. Y is the trait data from the column `trait`, Z is the condition data from the column `condition`, and X 

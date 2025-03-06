@@ -1,9 +1,8 @@
-import ast
 import itertools
 import json
 import os
 import warnings
-from typing import Callable, Optional, List, Tuple, Dict, Union, Any
+from typing import Callable, Optional, List, Tuple, Dict, Any
 
 import numpy as np
 import pandas as pd
@@ -18,7 +17,7 @@ warnings.simplefilter('ignore', ConvergenceWarning)
 
 def read_json_to_dataframe(json_file: str) -> pd.DataFrame:
     """
-    Reads a JSON file and converts it into a pandas DataFrame.
+    Reads a JSON file storing cohort information, and converts it into a pandas DataFrame.
 
     Args:
     json_file (str): The path to the JSON file containing the data.
@@ -31,27 +30,29 @@ def read_json_to_dataframe(json_file: str) -> pd.DataFrame:
     return pd.DataFrame.from_dict(data, orient='index').reset_index().rename(columns={'index': 'cohort_id'})
 
 
-def filter_and_rank_cohorts(json_file: str, condition: Union[str, None] = None) -> Tuple[
-    Union[str, None], pd.DataFrame]:
+def filter_and_rank_cohorts(json_file: str, condition: Optional[str] = None) -> Tuple[
+    Optional[str], pd.DataFrame]:
     """
-    Reads a JSON file, filters cohorts based on usability and an optional condition, then ranks them by sample size.
+    Reads a JSON file storing cohort information, filters cohorts based on usability and an optional condition, then
+    ranks them by sample size.
 
     Args:
     json_file (str): The path to the JSON file containing the data.
-    condition (str, optional): An additional condition for filtering. If None, only 'is_usable' is considered.
+    condition (str, optional): A specific attribute that needs to be available in the cohort. If None, only filters
+                               cohorts by the 'is_usable' flag.
 
     Returns:
-    Tuple: A tuple containing the best cohort ID (str or None if no suitable cohort is found) and
+    Tuple: A tuple containing the best cohort ID (str or None if no suitable cohort is found), and
            the filtered and ranked DataFrame.
     """
     df = read_json_to_dataframe(json_file)
     if df.empty:
         return None, df
     if condition:
-        if condition.lower() in ['age', 'gender']:
-            condition = 'has_' + condition.lower()
-        assert condition in ['has_age', 'has_gender']
-        filtered_df = df[(df['is_usable'] == True) & (df[condition] == True)]
+        condition = condition.lower()
+        assert condition in ['age', 'gender']
+        condition_available = 'has_' + condition
+        filtered_df = df[(df['is_usable'] == True) & (df[condition_available] == True)]
     else:
         filtered_df = df[df['is_usable'] == True]
     ranked_df = filtered_df.sort_values(by='sample_size', ascending=False)
@@ -83,7 +84,7 @@ def select_and_load_cohort(data_root: str, trait: str, condition=None, is_two_st
 
     """
     trait_dir = os.path.join(data_root, trait)
-    if not condition:
+    if (not condition) or condition in ['Age', 'Gender']:
         is_two_step = False
     if not is_two_step:
         trait_cohort_id, trait_info_df = filter_and_rank_cohorts(os.path.join(trait_dir, 'cohort_info.json'), condition)
@@ -94,13 +95,14 @@ def select_and_load_cohort(data_root: str, trait: str, condition=None, is_two_st
             return trait_data, None, None
     else:
         assert gene_info_path is not None, "A path to gene information file must be specified for two-step regression"
-        condition_dir = os.path.join(data_root, condition)
         trait_cohort_id, trait_info_df = filter_and_rank_cohorts(os.path.join(trait_dir, 'cohort_info.json'), None)
+        condition_dir = os.path.join(data_root, condition)
         condition_cohort_id, condition_info_df = filter_and_rank_cohorts(
             os.path.join(condition_dir, 'cohort_info.json'), None)
         if trait_cohort_id is None or condition_cohort_id is None:
             print(
-                f"No available data for either the trait or the condition, best cohorts being '{trait_cohort_id}' and '{condition_cohort_id}'")
+                f"No available data, best cohorts being '{trait_cohort_id}' for the trait '{trait}' and "
+                f"'{condition_cohort_id}' for the condition '{condition}'")
             return None, None, None
         merged_df = pd.merge(trait_info_df.assign(key=1), condition_info_df.assign(key=1), on='key').drop(columns='key')
         merged_df['sample_product'] = merged_df['sample_size_x'] * merged_df['sample_size_y']
@@ -112,15 +114,25 @@ def select_and_load_cohort(data_root: str, trait: str, condition=None, is_two_st
             condition_data = pd.read_csv(condition_data_path, index_col=0).astype('float')
             gene_regressors = get_gene_regressors(trait, condition, trait_data, condition_data, gene_info_path)
             if gene_regressors:
+                print(
+                    f"Found {len(gene_regressors)} candidate genes that can be used in two-step regression analysis, such as {gene_regressors[:10]}.")
                 return trait_data, condition_data, gene_regressors
         print(f"No available cohorts with common regressors for the trait '{trait}' and the condition '{condition}'")
         return None, None, None
 
 
-def normalize_data(X_train, X_test=None):
-    """This function computes the mean and standard deviation of the feature matrix (X_train) and uses these statistics
-    to normalize X_train. If provided, it can also normalize a separate test feature matrix (X_test) using the same
-    statistics. """
+def normalize_data(X_train: np.ndarray, X_test: Optional[np.ndarray] = None) -> Tuple[np.ndarray, Optional[np.ndarray]]:
+    """
+    Normalize features by centering and scaling using training set statistics.
+
+    Args:
+        X_train (np.ndarray): Training feature matrix of shape (n_samples, n_features).
+        X_test (np.ndarray, optional): Test feature matrix of shape (n_samples, n_features).
+
+    Returns:
+        Tuple[np.ndarray, Optional[np.ndarray]]: Normalized training features and test features (if provided).
+        For features with zero standard deviation, no scaling is applied.
+    """
     mean = np.mean(X_train, axis=0)
     std = np.std(X_train, axis=0)
 
@@ -128,27 +140,25 @@ def normalize_data(X_train, X_test=None):
     std_no_zero = np.where(std == 0, 1, std)
 
     X_train_normalized = (X_train - mean) / std_no_zero
-    # Set normalized values to 0 where std was 0
-    X_train_normalized[:, std == 0] = 0
 
     if X_test is not None:
         X_test_normalized = (X_test - mean) / std_no_zero
-        X_test_normalized[:, std == 0] = 0
     else:
         X_test_normalized = None
 
     return X_train_normalized, X_test_normalized
 
 
-def detect_batch_effect(X):
+def detect_batch_effect(X: np.ndarray) -> bool:
     """
-    Detect potential batch effects in a dataset using eigenvalues of XX^T after centering the data.
+    Detect potential batch effects in a dataset by analyzing eigenvalue distribution of the covariance matrix.
+    A large gap between consecutive eigenvalues may indicate presence of batch effects.
 
     Args:
-    X (numpy.ndarray): A feature matrix with shape (n_samples, n_features).
+        X (np.ndarray): Feature matrix with shape (n_samples, n_features).
 
     Returns:
-    bool: True if a potential batch effect is detected, False otherwise.
+        bool: True if a potential batch effect is detected based on eigenvalue gap threshold, False otherwise.
     """
     n_samples, n_features = X.shape
     X_centered = X - X.mean(axis=0)
@@ -163,7 +173,7 @@ def detect_batch_effect(X):
     # Check for large gaps in the eigenvalues
     for i in range(len(normalized_ev) - 1):
         gap = normalized_ev[i] - normalized_ev[i + 1]
-        if gap > 200 / n_samples:  # You may need to adjust this threshold. 200
+        if gap > 200 / n_samples:  # Empirically the best threshold for this project.
             return True
 
     return False
@@ -253,7 +263,10 @@ class ResidualizationRegressor:
         return self.p_values
 
 
-def gene_jaccard(pred, ref):
+def gene_jaccard(pred: List[str], ref: List[str]) -> float:
+    """
+    Calculate Jaccard similarity between predicted and reference gene sets.
+    """
     p = set(pred)
     r = set(ref)
     if len(p.union(r)):
@@ -263,27 +276,10 @@ def gene_jaccard(pred, ref):
     return iou
 
 
-def gene_jaccard2(pred, ref):
-    min_len = min(len(pred), len(ref))
-    p = set(pred[:min_len])
-    r = set(ref[:min_len])
-    if len(p.union(r)):
-        iou = len(p.intersection(r)) / len(p.union(r))
-    else:
-        iou = 0
-    return iou
-
-
-def gene_precision_at_50(pred, ref):
-    pred_top = pred[:50]
-    if len(pred_top) > 0:
-        precision = sum([p in ref for p in pred_top]) / len(pred_top)
-    else:
-        precision = 0
-    return precision
-
-
-def gene_precision(pred, ref):
+def gene_precision(pred: List[str], ref: List[str]) -> float:
+    """
+    Calculate precision of predicted genes against reference set.
+    """
     if len(pred):
         precision = sum([p in ref for p in pred]) / len(pred)
     else:
@@ -291,7 +287,10 @@ def gene_precision(pred, ref):
     return precision
 
 
-def gene_recall(pred, ref):
+def gene_recall(pred: List[str], ref: List[str]) -> float:
+    """
+    Calculate recall of predicted genes against reference set.
+    """
     if len(ref):
         recall = sum([p in pred for p in ref]) / len(ref)
     else:
@@ -299,7 +298,10 @@ def gene_recall(pred, ref):
     return recall
 
 
-def gene_f1(pred, ref):
+def gene_f1(pred: List[str], ref: List[str]) -> float:
+    """
+    Calculate F1 score between predicted and reference gene sets.
+    """
     prec = gene_precision(pred, ref)
     rec = gene_recall(pred, ref)
     if prec + rec == 0:  # Prevent division by zero
@@ -308,7 +310,17 @@ def gene_f1(pred, ref):
     return f1
 
 
-def evaluate_gene_selection(pred: List[str], ref: List[str]):
+def evaluate_gene_selection(pred: List[str], ref: List[str]) -> Dict[str, float]:
+    """
+    Evaluate the performance of predicted gene selection against a reference set.
+
+    Args:
+        pred (List[str]): List of predicted gene symbols.
+        ref (List[str]): List of reference (ground truth) gene symbols.
+
+    Returns:
+        Dict[str, float]: Dictionary containing precision, recall, F1 score, and Jaccard similarity.
+    """
     return {
         'precision': gene_precision(pred, ref) * 100,
         'recall': gene_recall(pred, ref) * 100,
@@ -481,11 +493,15 @@ def tune_hyperparameters(
             best_prediction_score = current_prediction_score
             best_performance["prediction"] = results["prediction"]
 
-        current_selection_score = results["selection"]["f1"]
+        current_selection_score = results["selection"]["precision"]
         if current_selection_score > best_selection_score:
             best_selection_score = current_selection_score
             best_config = current_params
             best_performance["selection"] = results["selection"]
+
+    # If no parameter results in any correct gene matches, use a default value.
+    if best_selection_score <= 0:
+        best_config[param] = 0.1
 
     return best_config, best_performance
 
@@ -500,36 +516,36 @@ def get_known_related_genes(file_path, entity):
         print(f"The gene info file does not contain genes related to the entity '{entity}'.")
         return []
     related_genes = data[entity]['related_genes']
-        
+
     return related_genes
 
 
-def get_gene_regressors(trait, condition, trait_df, condition_df, gene_info_path):
-    """Find the appropriate genes for two-step regression. Compare the indices of two dataframes to find the genes
-    in common, and select those that are known to be related to a trait"""
-    gene_regressors = None
+def get_gene_regressors(trait: str, condition: str, trait_df: pd.DataFrame, condition_df: pd.DataFrame,
+                        gene_info_path: str) -> List[str]:
+    """
+    Find genes suitable for two-step regression analysis by identifying genes that are:
+    1. Present in both trait and condition datasets
+    2. Known to be related to the condition based on prior knowledge
+
+    Args:
+        trait (str): Name of the target trait.
+        condition (str): Name of the condition being analyzed.
+        trait_df (pd.DataFrame): DataFrame containing gene expression data for the trait.
+        condition_df (pd.DataFrame): DataFrame containing gene expression data for the condition.
+        gene_info_path (str): Path to JSON file containing known gene-trait associations.
+
+    Returns:
+        List[str]: List of gene symbols that can be used as regressors in two-step analysis.
+        Returns empty list if no suitable genes are found.
+    """
+    gene_regressors = []
     related_genes = get_known_related_genes(gene_info_path, condition)
-    if not related_genes:
-        return None
     genes_in_trait_data = set(trait_df.columns) - {'Age', 'Gender', trait}
-    genes_in_condition_data = set(condition_df.columns) - {'Age', 'Gender', trait}
+    genes_in_condition_data = set(condition_df.columns) - {'Age', 'Gender', condition}
 
     common_genes_across_data = genes_in_trait_data.intersection(genes_in_condition_data)
-    if len(common_genes_across_data) == 0:
-        # print("The trait and condition datasets have no genes in common. Please try other datasets")
-        return None
-    else:
-        ##print(
-        ## f"The trait and condition datasets have {len(common_genes_across_data)} genes in common, such as {list(common_genes_across_data)[:10]}.")
-        common_genes = [g for g in related_genes if g in common_genes_across_data]
-        if len(common_genes) > 0:
-            gene_regressors = list(common_genes)[:10]
-            # print(
-            # f"Found {len(common_genes)} candidate genes that can be used in two-step regression analysis, such as {gene_regressors[:10]}.")
-        else:
-            # print(
-            # f"The condition and trait datasets have common genes, but among them we didn't find indicator genes for the condition")
-            return None
+    if len(common_genes_across_data) != 0 and len(related_genes) != 0:
+        gene_regressors = [g for g in related_genes if g in common_genes_across_data]
 
     return gene_regressors
 

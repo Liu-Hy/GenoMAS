@@ -4,7 +4,7 @@ import os
 
 import numpy as np
 
-from utils.utils import evaluate_gene_selection
+from utils.evaluation import evaluate_gene_selection
 
 
 def calculate_metrics(ref_file, pred_file):
@@ -16,11 +16,13 @@ def calculate_metrics(ref_file, pred_file):
     # Initialize all metrics with 0
     # If the 'pred_file' does not exist, it indicates the agent's regression code fails to run on this question
     metrics = {'success': 0.0,
-               'precision': 0.0,
-               'recall': 0.0,
-               'f1': 0.0,
-               'trait_pred_accuracy': 0.0,
-               'trait_pred_f1': 0.0, }
+               'precision': np.nan,
+               'recall': np.nan,
+               'f1': np.nan,
+               'auroc': np.nan,
+               'gsea_es': np.nan,
+               'trait_pred_accuracy': np.nan,
+               'trait_pred_f1': np.nan}
 
     if os.path.exists(pred_file):
         with open(pred_file, 'r') as file:
@@ -69,7 +71,7 @@ def average_metrics(metrics_list):
 
     avg_metrics = {}
     for metric in metrics_list[0]:
-        avg_metrics[metric] = np.round(np.mean([p[metric] for p in metrics_list]), 2)
+        avg_metrics[metric] = float(np.round(np.nanmean([p[metric] for p in metrics_list]), 2))
 
     return avg_metrics
 

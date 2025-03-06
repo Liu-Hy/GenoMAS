@@ -147,7 +147,7 @@ class Environment:
                             cf.write(code)
 
                     add_completed_task((trait, cohort), out_prep_version_dir)
-            path_config = StatisticianPathConfig(trait=trait, condition=condition,
+            path_config = StatisticianPathConfig(trait=trt, condition=condition,
                                                  in_data_root=out_prep_version_dir, gene_info_file=gene_info_file,
                                                  output_root=out_stat_version_dir)
             self.agents[Role.STATISTICIAN_AGENT].set_path_config(path_config)
