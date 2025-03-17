@@ -25,8 +25,8 @@ DEFAULT_TIMEOUT_PER_MESSAGE = DEFAULT_MAX_RETRIES * DEFAULT_TIMEOUT_PER_RETRY
 
 Important:
     - The cost printed in the log is only for reference. Please track actual costs in your LLM provider platform.
-    - For inference models (e.g., 'o1'), cost estimation is typically much lower than actual cost since hidden thinking 
-      tokens are charged at output token rates.
+    - For inference models (e.g., 'o1'), cost estimation can be much lower than actual cost since hidden thinking tokens
+      are charged at output token rates.
     - Pricing information is accurate as of 2025-02-15 but subject to change. Please update monthly.
 """
 
@@ -39,6 +39,7 @@ MODEL_INFO = {
         'gpt-4o-mini-2024-07-18': {'input_price': 0.15, 'output_price': 0.60}
     },
     'anthropic': {
+        'claude-3-7-sonnet-20250219': {'input_price': 3.0, 'output_price': 15.0},
         'claude-3-5-sonnet-20241022': {'input_price': 3.0, 'output_price': 15.0},
         'claude-3-5-haiku-20241022': {'input_price': 0.8, 'output_price': 4.0}
     },
