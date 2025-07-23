@@ -1,4 +1,4 @@
-# GenoAgent
+# GenoMAS
 
 
 ## What is this?
@@ -10,7 +10,7 @@ This repo has two main parts:
    - A Jupyter Notebook-style workflow where agents can plan, write code, execute, observe, and debug to solve tasks in multiple steps
    - Users can define custom agents with specific roles, guidelines, tools, and action units
 
-2. An implementation of GenoAgent using this framework for the automated analysis of gene expression datasets. The input are datasets downloaded from GEO and TCGA, and the output are the identified significant genes related to a trait when considering the influence of a condition, for a list of around 1K (trait, condition) pairs.
+2. An implementation of GenoMAS using this framework for the automated analysis of gene expression datasets. The input are datasets downloaded from GEO and TCGA, and the output are the identified significant genes related to a trait when considering the influence of a condition, for a list of around 1K (trait, condition) pairs.
 
 ## How to use it?
 
