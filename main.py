@@ -10,7 +10,7 @@ from environment import Environment
 from prompts import *
 from utils.utils import normalize_trait
 from utils.config import setup_arg_parser
-from utils.llm import get_llm_client
+from utils.llm import get_llm_client, get_role_specific_args
 from utils.logger import Logger
 from utils.resource_monitor import ResourceMonitor
 from utils.utils import extract_function_code, get_question_pairs, check_slow_inference
@@ -22,7 +22,7 @@ async def main():
 
     model = args.model
     scaler = 1.0
-    if check_slow_inference(model):
+    if check_slow_inference(model, args.thinking):
         scaler = 6.0 if ('deepseek' in model.lower() and '671b' in model.lower()) else 3.0
     elif ('deepseek' in model.lower() and 'v3' in model.lower()):
         scaler = 3.0
@@ -40,7 +40,14 @@ async def main():
     ResourceMonitor(log_interval=60).start()
     
     logger = Logger(log_file=log_file, max_msg_length=10000)
-    client = get_llm_client(args, logger)
+    
+    # Role-specific clients
+    pi_client = get_llm_client(get_role_specific_args(args, 'pi'), logger)
+    statistician_client = get_llm_client(get_role_specific_args(args, 'statistician'), logger)
+    data_engineer_client = get_llm_client(get_role_specific_args(args, 'data-engineer'), logger)
+    code_reviewer_client = get_llm_client(get_role_specific_args(args, 'code-reviewer'), logger)
+    domain_expert_client = get_llm_client(get_role_specific_args(args, 'domain-expert'), logger)
+    planning_client = get_llm_client(get_role_specific_args(args, 'planning'), logger)
 
     prep_tool_file = "./tools/preprocess.py"
     with open(prep_tool_file, 'r') as file:
@@ -63,14 +70,15 @@ async def main():
     ]
 
     geo_agent = GEOAgent(
-        client=client,
+        client=data_engineer_client,
         logger=logger,
         role_prompt=GEO_ROLE_PROMPT,
         guidelines=GEO_GUIDELINES,
         tools=geo_tools,
         setups='',
         action_units=geo_action_units,
-        args=args
+        args=args,
+        planning_client=planning_client
     )
 
     tcga_selected_code = extract_function_code(prep_tool_file, ["tcga_get_relevant_filepaths",
@@ -90,14 +98,15 @@ async def main():
     ]
 
     tcga_agent = TCGAAgent(
-        client=client,
+        client=data_engineer_client,
         logger=logger,
         role_prompt=TCGA_ROLE_PROMPT,
         guidelines=TCGA_GUIDELINES,
         tools=tcga_tools,
         setups='',
         action_units=tcga_action_units,
-        args=args
+        args=args,
+        planning_client=planning_client
     )
 
     stat_tool_file = "./tools/statistics.py"
@@ -116,23 +125,24 @@ async def main():
         ActionUnit("TASK COMPLETED", TASK_COMPLETED_PROMPT)
     ]
 
-    statistician = StatisticianAgent(client=client,
+    statistician = StatisticianAgent(client=statistician_client,
                                      logger=logger,
                                      role_prompt=STATISTICIAN_ROLE_PROMPT,
                                      guidelines=STATISTICIAN_GUIDELINES,
                                      tools=stat_tools,
                                      setups='',
                                      action_units=stat_action_units,
-                                     args=args
+                                     args=args,
+                                     planning_client=planning_client
                                      )
 
     agents = [
-        PIAgent(client=client, logger=logger, args=args),
+        PIAgent(client=pi_client, logger=logger, args=args),
         geo_agent,
         tcga_agent,
         statistician,
-        CodeReviewerAgent(client=client, logger=logger, args=args),
-        DomainExpertAgent(client=client, logger=logger, args=args)
+        CodeReviewerAgent(client=code_reviewer_client, logger=logger, args=args),
+        DomainExpertAgent(client=domain_expert_client, logger=logger, args=args)
     ]
 
     env = Environment(logger=logger, agents=agents, args=args)

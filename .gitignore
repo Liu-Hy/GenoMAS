@@ -9,6 +9,9 @@
 try.ipynb
 try3.py
 try4.py
+main_bm.py
+f2notebook.py
+runnb.py
 
 # Below are from templates about Python, Pycharm, and VSCode.
 # See https://plugins.jetbrains.com/plugin/7495--ignore
@@ -133,4 +136,3 @@ dmypy.json
 cython_debug/
 
 
-/mainbm.py

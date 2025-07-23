@@ -108,8 +108,11 @@ class TaskContext:
             snippets = []
         for step in self.history:
             if step.type == StepType.REGULAR and step.index <= end_step:
-                snippets.append(step.code)
-        return "\n".join(snippets)
+                # Prepend each snippet with a header showing step number and action name
+                header = f"# Step {step.index}: {step.action_name}"
+                formatted_snippet = f"{header}\n{step.code}"
+                snippets.append(formatted_snippet)
+        return "\n\n".join(snippets)
 
     def merge_revision(self):
         """Merge the latest debug step into the main step"""

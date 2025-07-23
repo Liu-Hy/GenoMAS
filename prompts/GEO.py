@@ -81,27 +81,6 @@ GEO_DATA_LOADING_PROMPT: str = \
 4. Explicitly print out all the background information and the sample characteristics dictionary.
 """
 
-GEO_DATA_LOADING_CODE: str = \
-"""# STEP1
-from tools.preprocess import *
-# 1. Identify the paths to the SOFT file and the matrix file
-soft_file, matrix_file = geo_get_relevant_filepaths(in_cohort_dir)
-
-# 2. Read the matrix file to obtain background information and sample characteristics data
-background_prefixes = ['!Series_title', '!Series_summary', '!Series_overall_design']
-clinical_prefixes = ['!Sample_geo_accession', '!Sample_characteristics_ch1']
-background_info, clinical_data = get_background_and_clinical_data(matrix_file, background_prefixes, clinical_prefixes)
-
-# 3. Obtain the sample characteristics dictionary from the clinical dataframe
-sample_characteristics_dict = get_unique_values_by_row(clinical_data)
-
-# 4. Explicitly print out all the background information and the sample characteristics dictionary
-print("Background Information:")
-print(background_info)
-print("Sample Characteristics Dictionary:")
-print(sample_characteristics_dict)
-"""
-
 GEO_FEATURE_ANALYSIS_EXTRACTION_PROMPT: str = \
 """
 As a biomedical research team, we are analyzing datasets to study the association between the human trait and genetic 
@@ -163,15 +142,6 @@ GEO_GENE_DATA_EXTRACTION_PROMPT: str = \
 2. Print the first 20 row IDs (gene or probe identifiers) to verify the data structure.
 """
 
-GEO_GENE_DATA_EXTRACTION_CODE: str = \
-"""# STEP3
-# 1. Use the get_genetic_data function from the library to get the gene_data from the matrix_file previously defined.
-gene_data = get_genetic_data(matrix_file)
-
-# 2. Print the first 20 row IDs (gene or probe identifiers) for future observation.
-print(gene_data.index[:20])
-"""
-
 GEO_GENE_IDENTIFIER_REVIEW_PROMPT: str = \
 """
 Observe the gene identifiers in the gene expression data given in a previous step. Based on your biomedical knowledge,
@@ -188,16 +158,6 @@ GEO_GENE_ANNOTATION_PROMPT: str = \
    and read it into a dataframe.
 2. Preview the gene annotation dataframe by displaying the column names and their first few values as a Python 
    dictionary. This will help identify which columns contain the gene identifiers and gene symbols for mapping.
-"""
-
-GEO_GENE_ANNOTATION_CODE: str = \
-"""# STEP5
-# 1. Use the 'get_gene_annotation' function from the library to get gene annotation data from the SOFT file.
-gene_annotation = get_gene_annotation(soft_file)
-
-# 2. Use the 'preview_df' function from the library to preview the data and print out the results.
-print("Gene annotation preview:")
-print(preview_df(gene_annotation))
 """
 
 GEO_GENE_IDENTIFIER_MAPPING_PROMPT: str = \
@@ -231,27 +191,4 @@ GEO_DATA_NORMALIZATION_LINKING_PROMPT: str = \
    `validate_and_save_cohort_info` function from the library. You may optionally take notes about anything that is 
    worthy of attention about the dataset.
 6. If the linked data is usable, save it as a CSV file to `out_data_file`. Otherwise, you must not save it.
-"""
-
-GEO_DATA_NORMALIZATION_LINKING_CODE: str = \
-"""# STEP7
-# 1. Normalize the obtained gene data with the 'normalize_gene_symbols_in_index' function from the library.
-normalized_gene_data = normalize_gene_symbols_in_index(gene_data)
-normalized_gene_data.to_csv(out_gene_data_file)
-
-# 2. Link the clinical and genetic data with the 'geo_link_clinical_genetic_data' function from the library.
-linked_data = geo_link_clinical_genetic_data(selected_clinical_data, normalized_gene_data)
-
-# 3. Handle missing values in the linked data
-linked_data = handle_missing_values(linked_data, trait)
-
-# 4. Determine whether the trait and some demographic features are severely biased, and remove biased features.
-is_trait_biased, unbiased_linked_data = judge_and_remove_biased_features(linked_data, trait)
-
-# 5. Conduct quality check and save the cohort information.
-is_usable = validate_and_save_cohort_info(True, cohort, json_path, True, True, is_trait_biased, linked_data)
-
-# 6. If the linked data is usable, save it as a CSV file to 'out_data_file'.
-if is_usable:
-    unbiased_linked_data.to_csv(out_data_file)
 """

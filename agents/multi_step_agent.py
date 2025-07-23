@@ -1,5 +1,6 @@
 import argparse
 import json
+import time
 from typing import Dict, List, Optional, Tuple
 
 from core.context import ActionUnit, TaskContext, StepType
@@ -16,9 +17,10 @@ class MultiStepProgrammingAgent(BaseAgent):
     def __init__(self, role: Role, client: LLMClient, logger: Logger, role_prompt: str, guidelines: str,
                  tools: Dict[str, str],
                  setups: str,
-                 action_units: List[ActionUnit], args: argparse.Namespace):
+                 action_units: List[ActionUnit], args: argparse.Namespace,
+                 planning_client: Optional[LLMClient] = None):
         super().__init__(role, client, logger, role_prompt=role_prompt, guidelines=guidelines, tools=tools,
-                         setups=setups, action_units=action_units, args=args)
+                         setups=setups, action_units=action_units, args=args, planning_client=planning_client)
         self.max_rounds = args.max_rounds
         self.review_round = 0
         self.task_context = TaskContext()
@@ -30,6 +32,17 @@ class MultiStepProgrammingAgent(BaseAgent):
         self.enable_planning = args.plan
         self.max_retractions = args.max_retract
         self.remaining_retractions = args.max_retract
+        self.environment = None  # Will be set by environment when task starts
+
+        # Memory tracking variables
+        self.code_generation_start_time = None
+        self.pending_memory_record_index = None
+        self.current_reuse_type = None
+        self.current_code_modifications = 0
+
+    def set_environment(self, environment):
+        """Set reference to environment for collaboration tracking"""
+        self.environment = environment
 
     def set_path_config(self, path_config: PathConfig):
         """Set up path configuration and related prompts for a new cohort."""
@@ -353,12 +366,48 @@ class MultiStepProgrammingAgent(BaseAgent):
 
         if message.type in [MessageType.CODE_WRITING_REQUEST, MessageType.CODE_REVISION_REQUEST,
                             MessageType.PLANNING_REQUEST]:
+            # Track generation start time for code writing/revision
+            if message.type in [MessageType.CODE_WRITING_REQUEST, MessageType.CODE_REVISION_REQUEST]:
+                self.code_generation_start_time = time.time()
+
             if message.type == MessageType.CODE_WRITING_REQUEST and self.current_action.code_snippet:
                 response = self.current_action.code_snippet
+                # Mark as direct reuse for tracking after execution
+                self.current_reuse_type = 'direct_reuse'
+                self.current_code_modifications = 0
             elif message.type == MessageType.PLANNING_REQUEST and not self.enable_planning:
                 response = self.get_default_planning_response()
             else:
-                response = await self.ask_llm(message.content)
+                # Use planning_client for planning requests if available
+                if message.type == MessageType.PLANNING_REQUEST and self.planning_client:
+                    response = await self.ask_llm(message.content, client=self.planning_client)
+                else:
+                    response = await self.ask_llm(message.content)
+
+                # Determine reuse type for code writing/revision
+                if message.type == MessageType.CODE_WRITING_REQUEST:
+                    # Check if this is adapted from existing snippet
+                    is_adapted = False
+                    modifications = 0
+                    if self.current_action.code_snippet:
+                        parsed_response = self.parse_code(response)
+                        parsed_snippet = self.parse_code(self.current_action.code_snippet)
+                        if self.environment and hasattr(self.environment,
+                                                        'memory_tracker') and self.environment.memory_tracker:
+                            similarity = self.environment.memory_tracker.calculate_code_similarity(parsed_response,
+                                                                                                   parsed_snippet)
+                            if similarity > 0.5:  # More than 50% similar
+                                is_adapted = True
+                                # Rough estimate of modifications
+                                modifications = int((1 - similarity) * len(parsed_response.splitlines()))
+
+                    self.current_reuse_type = 'adapted_reuse' if is_adapted else 'new_generation'
+                    self.current_code_modifications = modifications
+                elif message.type == MessageType.CODE_REVISION_REQUEST:
+                    # Revisions are always new generation
+                    self.current_reuse_type = 'new_generation'
+                    self.current_code_modifications = 0
+
             return Message(
                 role=self.role,
                 type=MessageType.get_response_type(message),
@@ -381,6 +430,11 @@ class MultiStepProgrammingAgent(BaseAgent):
                     # Continue with chosen action without retraction
 
             self.current_action = self.action_units[action_name]
+
+            # Update collaboration tracker with current action unit
+            if self.environment and self.environment.collab_tracker:
+                self.environment.collab_tracker.set_step_context(self.current_action.name)
+
             if self.current_action.name == "TASK COMPLETED":
                 self.task_completed = True
                 return None
@@ -410,6 +464,28 @@ class MultiStepProgrammingAgent(BaseAgent):
             if result.is_timeout:
                 return self.create_timeout_message("code processing")
 
+            # Track memory usage after execution
+            if (self.environment and hasattr(self.environment, 'memory_tracker') and
+                    self.environment.memory_tracker and self.code_generation_start_time is not None):
+                generation_time = time.time() - self.code_generation_start_time
+                success = not bool(result.error)
+
+                # Record the memory usage
+                self.environment.memory_tracker.record_memory_usage(
+                    agent_role=self.role,
+                    action_unit=self.current_action.name,
+                    reuse_type=self.current_reuse_type or 'new_generation',
+                    code=code,
+                    generation_time=generation_time,
+                    success=success,
+                    modifications=self.current_code_modifications
+                )
+
+                # Reset tracking variables
+                self.code_generation_start_time = None
+                self.current_reuse_type = None
+                self.current_code_modifications = 0
+
             # Add step to context
             step_type = StepType.DEBUG if message.type == MessageType.CODE_REVISION_RESPONSE else StepType.REGULAR
             self.task_context.add_step(
@@ -421,7 +497,7 @@ class MultiStepProgrammingAgent(BaseAgent):
                 error_trace=result.error_trace
             )
 
-            self.logger.debug(self.task_context.format_context(mode="last"))
+            self.logger.info(self.task_context.format_context(mode="last"))
             # Decide whether to send for review
             # do_review = self.review_round < self.max_rounds
             do_review = self.review_round < self.max_rounds and (

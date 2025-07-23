@@ -18,3 +18,7 @@ tqdm
 biopython
 psutil
 pynvml
+matplotlib
+seaborn
+networkx
+

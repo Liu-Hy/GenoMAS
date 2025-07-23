@@ -200,13 +200,14 @@ class StatisticianPathConfig(PathConfig):
 
     def get_setup_code(self) -> str:
         """Generate Python code for setting up paths in the CodeExecutor namespace."""
+        condition_str = "None" if self.condition is None else f'"{self.condition}"'
         return f"""# Path Configuration
 from tools.statistics import *
 from sklearn.linear_model import LogisticRegression, LinearRegression
 
 # Processing context
 trait = "{self.trait}"
-condition = "{self.condition}"
+condition = {condition_str}
 
 # Input paths
 in_data_root = "{self.in_data_root}"
@@ -218,6 +219,7 @@ output_root = "{self.output_root}"
 
     def get_setup_prompt(self) -> str:
         """Generate the path setup section for the prompt."""
+        condition_str = "None" if self.condition is None else f'"{self.condition}"'
         return f"""
 1. Path Configuration
 The following variables have been pre-configured in your execution environment,
@@ -228,7 +230,7 @@ Context Variables:
   The trait in the current question being addressed.
   Use this instead of hardcoding the trait name in your code.
 
-- condition: "{self.condition}"
+- condition: {condition_str}
   The condition in the current question being addressed.
   Use this instead of hardcoding the condition name.
 

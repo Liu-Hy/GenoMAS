@@ -12,7 +12,7 @@ from typing import Dict, Optional
 project_root = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 sys.path.append(project_root)
 
-from utils.config import GLOBAL_MAX_TIME
+from utils.config import GLOBAL_MAX_TIME, MAX_STDOUT_LENGTH
 
 
 @dataclass
@@ -72,13 +72,26 @@ class CodeExecutor:
 
             await asyncio.wait_for(exec_with_timeout(), timeout)
 
+            # Truncate stdout if too long
+            stdout_content = stdout.getvalue()
+            if len(stdout_content) > MAX_STDOUT_LENGTH:
+                truncation_msg = f"\n[Max character {MAX_STDOUT_LENGTH} reached, truncated]"
+                stdout_content = stdout_content[:MAX_STDOUT_LENGTH] + truncation_msg
+
             return ExecutionResult(
-                stdout=stdout.getvalue()
+                stdout=stdout_content
             )
         except Exception as e:
             error_trace_str = traceback.format_exc()
+            
+            # Truncate stdout if too long
+            stdout_content = stdout.getvalue()
+            if len(stdout_content) > MAX_STDOUT_LENGTH:
+                truncation_msg = f"\n[Max character {MAX_STDOUT_LENGTH} reached, truncated]"
+                stdout_content = stdout_content[:MAX_STDOUT_LENGTH] + truncation_msg
+            
             return ExecutionResult(
-                stdout=stdout.getvalue(),
+                stdout=stdout_content,
                 error_trace=error_trace_str,
                 error=e,
                 is_timeout=isinstance(e, asyncio.TimeoutError)

@@ -418,7 +418,7 @@ if __name__ == '__main__':
                 logger.info(f"\nProcessing trait ({idx + 1}/{total_traits}): {keyword}")
 
                 try:
-                    data_info = get_GEO_series_access(search_term=keyword, max_results=200)
+                    data_info = get_GEO_series_access(search_term=keyword, max_results=400)
 
                     if not data_info[1]:  # Series_FTP_Links
                         logger.warning(f"No valid datasets found for trait: {keyword}")

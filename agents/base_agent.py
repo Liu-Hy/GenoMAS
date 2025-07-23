@@ -14,9 +14,11 @@ from utils.logger import Logger
 class BaseAgent:
     def __init__(self, role: Role, client: LLMClient, logger: Logger, role_prompt: Optional[str] = None,
                  guidelines: Optional[str] = None, tools: Optional[Dict[str, str]] = None, setups: Optional[str] = None,
-                 action_units: Optional[List[ActionUnit]] = None, args: Optional[argparse.Namespace] = None):
+                 action_units: Optional[List[ActionUnit]] = None, args: Optional[argparse.Namespace] = None,
+                 planning_client: Optional[LLMClient] = None):
         self.role = role
         self.client = client
+        self.planning_client = planning_client  # Optional separate client for planning
         self.logger = logger
         if not role_prompt:
             role_prompt = f"You are a {role.value} in this biomedical research project."
@@ -41,7 +43,10 @@ class BaseAgent:
         """Execute action based on received message"""
         raise NotImplementedError
 
-    async def ask_llm(self, prompt: str, system_prompt: Optional[str] = None) -> str:
+    async def ask_llm(self, prompt: str, system_prompt: Optional[str] = None, client: Optional[LLMClient] = None) -> str:
+        """Ask LLM with optional custom client override"""
+        if client is None:
+            client = self.client
         if system_prompt is None:
             system_prompt = self.role_prompt
         messages = [
@@ -51,7 +56,7 @@ class BaseAgent:
 
         start_time = time.time()
         try:
-            response = await self.client.generate_completion(messages)
+            response = await client.generate_completion(messages)
             if self.logger:
                 input_tokens = response["usage"].get("input_tokens", 0)
                 output_tokens = response["usage"].get("output_tokens", 0)

@@ -1,21 +1,25 @@
 import argparse
+import copy
 import os
 import re
 import traceback
 from abc import ABC, abstractmethod
 from dataclasses import dataclass
-from typing import Optional, Any, Dict, List
+from typing import Optional, Any, Dict, List, TYPE_CHECKING
 
 import backoff
 import google.generativeai as genai
 from anthropic import AsyncAnthropic
 from dotenv import load_dotenv
 from google.api_core import retry as g_retry
-from google.generativeai.types import RequestOptions, HarmCategory, HarmBlockThreshold
+from google.generativeai.types import RequestOptions as GoogleRequestOptions, HarmCategory, HarmBlockThreshold
 from ollama import AsyncClient as AsyncOllama
-from openai import AsyncOpenAI, RequestOptions
+from openai import AsyncOpenAI, RequestOptions as OpenAIRequestOptions
 
 from .utils import check_slow_inference, check_recent_openai_model
+
+if TYPE_CHECKING:
+    from .logger import Logger
 
 DEFAULT_MAX_RETRIES = 3
 DEFAULT_TIMEOUT_PER_RETRY = 30  # seconds
@@ -25,24 +29,33 @@ DEFAULT_TIMEOUT_PER_MESSAGE = DEFAULT_MAX_RETRIES * DEFAULT_TIMEOUT_PER_RETRY
 
 Important:
     - The cost printed in the log is only for reference. Please track actual costs in your LLM provider platform.
-    - For inference models (e.g., 'o1'), cost estimation is typically much lower than actual cost since hidden thinking 
-      tokens are charged at output token rates.
+    - For inference models (e.g., 'o1'), cost estimation can be much lower than actual cost since hidden thinking tokens
+      are charged at output token rates.
     - Pricing information is accurate as of 2025-02-15 but subject to change. Please update monthly.
 """
 
 MODEL_INFO = {
     'openai': {
-        'o1-2024-12-17': {'input_price': 15.0, 'output_price': 60.0},
+        'o4-mini-2025-04-16': {'input_price': 1.1, 'output_price': 4.4},
+        'o3-2025-04-16': {'input_price': 2.0, 'output_price': 8.0},
         'o3-mini-2025-01-31': {'input_price': 1.1, 'output_price': 4.4},
+        'o1-2024-12-17': {'input_price': 15.0, 'output_price': 60.0},
         'o1-mini-2024-09-12': {'input_price': 1.1, 'output_price': 4.4},
+        'gpt-4.1-2025-04-14': {'input_price': 2.0, 'output_price': 8.0},
+        'gpt-4.1-mini-2025-04-14': {'input_price': 0.4, 'output_price': 1.6},
         'gpt-4o-2024-11-20': {'input_price': 2.5, 'output_price': 10.0},
         'gpt-4o-mini-2024-07-18': {'input_price': 0.15, 'output_price': 0.60}
     },
     'anthropic': {
+        'claude-opus-4-20250514': {'input_price': 15.0, 'output_price': 75.0},
+        'claude-sonnet-4-20250514': {'input_price': 3.0, 'output_price': 15.0},
+        'claude-3-7-sonnet-20250219': {'input_price': 3.0, 'output_price': 15.0},
         'claude-3-5-sonnet-20241022': {'input_price': 3.0, 'output_price': 15.0},
         'claude-3-5-haiku-20241022': {'input_price': 0.8, 'output_price': 4.0}
     },
     'google': {
+        'gemini-2.5-pro': {'input_price': 1.25, 'output_price': 10.0},
+        'gemini-2.5-flash': {'input_price': 0.15, 'output_price': 3.5},
         'gemini-2.0-flash-001': {'input_price': 0.1, 'output_price': 0.4},
         'gemini-1.5-pro-002': {'input_price': 1.25, 'output_price': 5.0},
         'gemini-1.5-flash-002': {'input_price': 0.075, 'output_price': 0.30}
@@ -50,7 +63,12 @@ MODEL_INFO = {
     'ollama': {
         'deepseek-r1:671b': {'input_price': 0.0, 'output_price': 0.0, 'size': '671B'},
         'deepseek-r1:70b': {'input_price': 0.0, 'output_price': 0.0, 'size': '70B'},
+        'deepseek-r1:32b': {'input_price': 0.0, 'output_price': 0.0, 'size': '32B'},
         'deepseek-v3': {'input_price': 0.0, 'output_price': 0.0, 'size': '671B'},
+        'qwen3:235b': {'input_price': 0.0, 'output_price': 0.0, 'size': '235B'},
+        'qwen3:32b': {'input_price': 0.0, 'output_price': 0.0, 'size': '32B'},
+        'llama4:128x17b': {'input_price': 0.0, 'output_price': 0.0, 'size': '400B'},
+        'llama4:16x17b': {'input_price': 0.0, 'output_price': 0.0, 'size': '109B'},
         'llama3.3': {'input_price': 0.0, 'output_price': 0.0, 'size': '70B'},
         'llama3.1': {'input_price': 0.0, 'output_price': 0.0, 'size': '8B'},
         'llama3.2': {'input_price': 0.0, 'output_price': 0.0, 'size': '3B'},
@@ -58,10 +76,10 @@ MODEL_INFO = {
     },
     'novita': {
         'deepseek-r1:671b': {
-            'input_price': 4.00,
-            'output_price': 4.00,
+            'input_price': 0.70,
+            'output_price': 2.50,
             'size': '671B',
-            'api_name': 'deepseek/deepseek-r1'
+            'api_name': 'deepseek/deepseek-r1-0528'
         },
         'deepseek-r1:70b': {
             'input_price': 0.80,
@@ -69,20 +87,50 @@ MODEL_INFO = {
             'size': '70B',
             'api_name': 'deepseek/deepseek-r1-distill-llama-70b'
         },
+        'deepseek-r1:32b': {
+            'input_price': 0.30,
+            'output_price': 0.30,
+            'size': '32B',
+            'api_name': 'deepseek/deepseek-r1-distill-qwen-32b'
+        },
         'deepseek-v3': {
-            'input_price': 0.89,
-            'output_price': 0.89,
+            'input_price': 0.33,
+            'output_price': 1.30,
             'size': '671B',
-            'api_name': 'deepseek/deepseek_v3'
+            'api_name': 'deepseek/deepseek-v3-0324'
+        },
+        'qwen3:235b': {
+            'input_price': 0.20,
+            'output_price': 0.80,
+            'size': '235B',
+            'api_name': 'qwen/qwen3-235b-a22b-fp8'
+        },
+        'qwen3:32b': {
+            'input_price': 0.10,
+            'output_price': 0.45,
+            'size': '32B',
+            'api_name': 'qwen/qwen3-32b-fp8'
+        },
+        'llama4:128x17b': {
+            'input_price': 0.17,
+            'output_price': 0.85,
+            'size': '400B',
+            'api_name': 'meta-llama/llama-4-maverick-17b-128e-instruct-fp8'
+        },
+        'llama4:16x17b': {
+            'input_price': 0.10,
+            'output_price': 0.50,
+            'size': '109B',
+            'api_name': 'meta-llama/llama-4-scout-17b-16e-instruct'
         },
         'llama3.3': {
-            'input_price': 0.39,
+            'input_price': 0.13,
             'output_price': 0.39,
             'size': '70B',
             'api_name': 'meta-llama/llama-3.3-70b-instruct'
         },
         'llama3.1': {
-            'input_price': 0.05,
+            'input_price': 0.02,
             'output_price': 0.05,
             'size': '8B',
             'api_name': 'meta-llama/llama-3.1-8b-instruct'
@@ -103,13 +151,13 @@ MODEL_INFO = {
     # Warning: DeepSeek official API has experienced frequent latency issues and internal errors since January 2025.
     'deepseek': {
         'deepseek-v3': {
-            'input_price': 0.07,
-            'output_price': 0.27,
+            'input_price': 0.27,
+            'output_price': 1.10,
             'api_name': 'deepseek-chat'
         },
         'deepseek-r1:671b': {
-            'input_price': 0.14,
-            'output_price': 0.55,
+            'input_price': 0.55,
+            'output_price': 2.19,
             'api_name': 'deepseek-reasoner'
         }
     }
@@ -179,7 +227,7 @@ class ModelConfig:
     extra_message_params: Optional[Dict[str, Any]] = None
 
     @classmethod
-    def create(cls, provider: str, model: str, api_index: Optional[str] = None) -> 'ModelConfig':
+    def create(cls, provider: str, model: str, api_index: Optional[str] = None, args: Optional[Any] = None) -> 'ModelConfig':
         """Factory method to create and validate a ModelConfig instance."""
         load_dotenv()
 
@@ -188,10 +236,19 @@ class ModelConfig:
 
         # Allow more time for reasoning models or models with busy APIs
         scaler = 1.0
-        if check_slow_inference(model):
-            scaler = 5.0 if ('deepseek' in model.lower() and '671b' in model.lower()) else 2.0
+        thinking = getattr(args, 'thinking', False) if args else False
+        if check_slow_inference(model, thinking):
+            if ('deepseek' in model.lower() and '671b' in model.lower()):
+                scaler = 5.0
+            elif ('gemini' in model.lower() and 'pro' in model.lower()):
+                scaler = 4.0
+            elif ('qwen' in model.lower() and '235b' in model.lower()):
+                scaler = 4.0
+            else:
+                scaler = 2.0
         elif ('deepseek' in model.lower() and 'v3' in model.lower()):
             scaler = 2.0
+        print(f'Timeout limit x {scaler} for {model}.')
 
         # Provider-specific configurations
         provider_configs = {
@@ -262,13 +319,56 @@ class ModelConfig:
         )
 
 
+def get_role_specific_args(args: argparse.Namespace, role: str) -> argparse.Namespace:
+    """Create a namespace with role-specific arguments, falling back to defaults.
+    
+    Args:
+        args: Original argument namespace
+        role: Role name (e.g., 'pi', 'statistician', 'data-engineer', etc.)
+    
+    Returns:
+        A new namespace with appropriate model/provider/api/use_api values
+    """
+    role_args = copy.deepcopy(args)
+    
+    # Check each configuration parameter
+    for param in ['model', 'provider', 'api', 'use_api']:
+        role_param = f"{role}_{param}".replace('-', '_')
+        
+        # Get role-specific value if it exists and is not None/False
+        role_value = getattr(args, role_param, None)
+        
+        # For use_api, check if the role-specific flag was actually set
+        if param == 'use_api':
+            # Only override if the role-specific flag was explicitly set
+            if role_param in args.__dict__ and getattr(args, role_param, False):
+                setattr(role_args, param, True)
+            # Otherwise keep the default use_api value
+        else:
+            # For other parameters, override if role-specific value is provided
+            if role_value is not None:
+                setattr(role_args, param, role_value)
+    
+    return role_args
+
+
 def get_llm_client(args: argparse.Namespace, logger: Optional['Logger'] = None) -> 'LLMClient':
     """Get LLM client based on provider and model."""
     # Validate model and determine provider if not specified
     provider = validate_model(args.provider, args.model, getattr(args, 'use_api', False))
 
     # Create and validate configuration
-    config = ModelConfig.create(provider, args.model, args.api)
+    config = ModelConfig.create(provider, args.model, args.api, args)
+
+    # Inject extended thinking parameters for Claude (Anthropic) models when requested
+    if provider == 'anthropic' and getattr(args, 'thinking', False):
+        # Ensure a dict exists
+        config.extra_message_params = config.extra_message_params or {}
+        # Add thinking configuration if not already provided
+        config.extra_message_params.setdefault('thinking', {
+            'type': 'enabled',
+            'budget_tokens': 1024  # Minimum budget per Anthropic docs
+        })
 
     # Map providers to client classes
     clients = {
@@ -395,15 +495,32 @@ class AnthropicClient(LLMClient):
             # Input messages format:
             # [{"role": "system", "content": system_prompt},
             # {"role": "user", "content": prompt}]
+
+            extra_params = self.config.extra_message_params or {}
+
+            # Determine max_tokens: default 2048, but 3072 when extended thinking is enabled
+            max_tokens = 3072 if "thinking" in extra_params else 2048
+
             response = await self.client.messages.create(
                 model=self.model_name,
-                max_tokens=2048,
+                max_tokens=max_tokens,
                 system=messages[0]["content"],
                 messages=messages[1:],
-                **(self.config.extra_message_params or {})
+                **extra_params
             )
+            # Extract assistant text: in thinking mode, the first block may be "thinking".
+            extracted_text = None
+            for block in response.content:
+                # Anthropic SDK returns StructuredText objects with .type attr
+                if getattr(block, 'type', None) == 'text':
+                    extracted_text = block.text
+                    break
+            if extracted_text is None and len(response.content) > 0 and hasattr(response.content[0], 'text'):
+                # Fallback to original behavior
+                extracted_text = response.content[0].text
+
             return self._format_response(
-                content=response.content[0].text,
+                content=extracted_text or "",
                 input_tokens=response.usage.input_tokens,
                 output_tokens=response.usage.output_tokens,
                 raw_response=response
@@ -442,7 +559,7 @@ class GoogleClient(LLMClient):
                     **(self.config.extra_client_params or {})
                 )
 
-            request_options = RequestOptions(
+            request_options = GoogleRequestOptions(
                 retry=g_retry.AsyncRetry(
                     initial=8.0,  # Start with a small value
                     multiplier=2.0,  # Double the backoff each time

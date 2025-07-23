@@ -322,12 +322,15 @@ def tcga_convert_age(cell: str) -> Optional[int]:
 
 
 def get_unique_values_by_row(dataframe: pd.DataFrame, max_len: int = 30) -> Dict[str, List[Any]]:
-    """Organize the unique values in each row of the given dataframe, to get a dictionary."""
+    """Organize the unique values in each row of the given dataframe, sorted by frequency of occurrence, to get a dictionary."""
     if '!Sample_geo_accession' in dataframe.columns:
         dataframe = dataframe.drop(columns=['!Sample_geo_accession'])
     unique_values_dict = {}
     for index, row in dataframe.iterrows():
-        unique_values = list(row.unique())[:max_len]
+        # Get value counts sorted by frequency (descending by default)
+        value_counts = row.value_counts()
+        # Take the first max_len most frequent values
+        unique_values = list(value_counts.head(max_len).index)
         unique_values_dict[index] = unique_values
     return unique_values_dict
 
@@ -506,7 +509,8 @@ def validate_and_save_cohort_info(is_final: bool, cohort: str, info_path: str, i
     The below parameters are only used when 'is_final' is True:
     is_biased (bool, optional): Indicates whether the dataset is too biased to be usable.
     df (pandas.DataFrame, optional): The preprocessed dataset.
-    note (str, optional): Additional notes about the dataset.
+    note (str, optional): Additional notes about the dataset. Must be prefixed with one of these level indicators:
+                          "INFO: ", "WARNING: ", "ERROR: ", or "DEBUG: ".
 
     Returns:
     bool: True if the dataset was completely preprocessed and saved, ready for future statistical analysis. 
