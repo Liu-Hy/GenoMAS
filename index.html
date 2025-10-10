@@ -1,0 +1,356 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="GenoMAS: A Multi-Agent Framework for Scientific Discovery via Code-Driven Gene Expression Analysis">
+    <meta name="keywords" content="LLM, Multi-Agent, Gene Expression, Genomics, AI for Science, Bioinformatics">
+    <meta name="author" content="Haoyang Liu, Yijiang Li, Haohan Wang">
+    <title>GenoMAS: Multi-Agent Framework for Gene Expression Analysis</title>
+    <link rel="stylesheet" href="styles.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+</head>
+<body>
+    <!-- Navigation -->
+    <nav id="navbar">
+        <div class="container nav-container">
+            <div class="nav-logo">
+                <img src="imgs/logo.png" alt="GenoMAS Logo" height="35">
+                <span>GenoMAS</span>
+            </div>
+            <ul class="nav-links">
+                <li><a href="#home">Home</a></li>
+                <li><a href="#abstract">Abstract</a></li>
+                <li><a href="#method">Method</a></li>
+                <li><a href="#results">Results</a></li>
+                <li><a href="#paper">Paper</a></li>
+                <li><a href="#team">Team</a></li>
+            </ul>
+        </div>
+    </nav>
+
+    <!-- Hero Section -->
+    <section id="home" class="hero">
+        <div class="container">
+            <div class="hero-content">
+                <img src="imgs/logo.png" alt="GenoMAS Logo" class="hero-logo">
+                <h1 class="hero-title">GenoMAS</h1>
+                <h2 class="hero-subtitle">A Multi-Agent Framework for Scientific Discovery via<br>Code-Driven Gene Expression Analysis</h2>
+                <div class="hero-authors">
+                    <p>
+                        <a href="#team">Haoyang Liu</a><sup>1</sup>, 
+                        <a href="#team">Yijiang Li</a><sup>2</sup>, 
+                        <a href="#team">Haohan Wang</a><sup>1</sup>
+                    </p>
+                    <p class="affiliations">
+                        <sup>1</sup>University of Illinois at Urbana-Champaign &nbsp;&nbsp;
+                        <sup>2</sup>University of California, San Diego
+                    </p>
+                </div>
+                <div class="hero-buttons">
+                    <a href="https://arxiv.org/abs/2507.21035" class="btn btn-primary" target="_blank">
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
+                            <polyline points="14 2 14 8 20 8"></polyline>
+                            <line x1="16" y1="13" x2="8" y2="13"></line>
+                            <line x1="16" y1="17" x2="8" y2="17"></line>
+                            <polyline points="10 9 9 9 8 9"></polyline>
+                        </svg>
+                        Paper (arXiv)
+                    </a>
+                    <a href="https://github.com/Liu-Hy/GenoMAS" class="btn btn-secondary" target="_blank">
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
+                            <path d="M12 0c-6.626 0-12 5.373-12 12 0 5.302 3.438 9.8 8.207 11.387.599.111.793-.261.793-.577v-2.234c-3.338.726-4.033-1.416-4.033-1.416-.546-1.387-1.333-1.756-1.333-1.756-1.089-.745.083-.729.083-.729 1.205.084 1.839 1.237 1.839 1.237 1.07 1.834 2.807 1.304 3.492.997.107-.775.418-1.305.762-1.604-2.665-.305-5.467-1.334-5.467-5.931 0-1.311.469-2.381 1.236-3.221-.124-.303-.535-1.524.117-3.176 0 0 1.008-.322 3.301 1.23.957-.266 1.983-.399 3.003-.404 1.02.005 2.047.138 3.006.404 2.291-1.552 3.297-1.23 3.297-1.23.653 1.653.242 2.874.118 3.176.77.84 1.235 1.911 1.235 3.221 0 4.609-2.807 5.624-5.479 5.921.43.372.823 1.102.823 2.222v3.293c0 .319.192.694.801.576 4.765-1.589 8.199-6.086 8.199-11.386 0-6.627-5.373-12-12-12z"/>
+                        </svg>
+                        Code (GitHub)
+                    </a>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Abstract Section -->
+    <section id="abstract" class="section abstract-section">
+        <div class="container">
+            <h2 class="section-title">Abstract</h2>
+            <div class="abstract-content">
+                <p>
+                    Gene expression analysis holds the key to many biomedical discoveries, yet extracting insights from raw transcriptomic data remains formidable due to the complexity of multiple large, semi-structured files and the need for extensive domain expertise. Current automation approaches are often limited by either inflexible workflows that break down in edge cases or by fully autonomous agents that lack the necessary precision for rigorous scientific inquiry.
+                </p>
+                <p>
+                    <strong>GenoMAS</strong> charts a different course by presenting a team of LLM-based scientists that integrates the reliability of structured workflows with the adaptability of autonomous agents. GenoMAS orchestrates six specialized LLM agents through typed message-passing protocols, each contributing complementary strengths to a shared analytic canvas.
+                </p>
+                <p>
+                    At the heart of GenoMAS lies a <strong>guided-planning framework</strong>: programming agents unfold high-level task guidelines into Action Units and, at each juncture, elect to advance, revise, bypass, or backtrack, thereby maintaining logical coherence while bending gracefully to the idiosyncrasies of genomic data.
+                </p>
+                <div class="abstract-highlight">
+                    <div class="metric">
+                        <div class="metric-value">89.13%</div>
+                        <div class="metric-label">Composite Similarity Correlation<br>(Data Preprocessing)</div>
+                    </div>
+                    <div class="metric">
+                        <div class="metric-value">60.48%</div>
+                        <div class="metric-label">F₁ Score<br>(Gene Identification)</div>
+                    </div>
+                    <div class="metric">
+                        <div class="metric-improvement">+10.61%</div>
+                        <div class="metric-label">Improvement over<br>prior art (CSC)</div>
+                    </div>
+                    <div class="metric">
+                        <div class="metric-improvement">+16.85%</div>
+                        <div class="metric-label">Improvement over<br>prior art (F₁)</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Key Contributions -->
+    <section id="contributions" class="section contributions-section">
+        <div class="container">
+            <h2 class="section-title">Key Contributions</h2>
+            <div class="contributions-grid">
+                <div class="contribution-card">
+                    <div class="contribution-icon">🤖</div>
+                    <h3>Multi-Agent Collaboration</h3>
+                    <p>Six specialized LLM agents working as collaborative programmers, not just tool orchestrators, enabling end-to-end code generation for complex genomic analysis tasks.</p>
+                </div>
+                <div class="contribution-card">
+                    <div class="contribution-icon">🧭</div>
+                    <h3>Guided Planning Framework</h3>
+                    <p>Context-aware planning mechanism that encodes workflows as editable action units, balancing precise control with autonomous error handling and adaptive decision-making.</p>
+                </div>
+                <div class="contribution-card">
+                    <div class="contribution-icon">🎭</div>
+                    <h3>Heterogeneous LLM Architecture</h3>
+                    <p>Diverse ensemble of state-of-the-art LLMs (Claude Sonnet 4, OpenAI o3, Gemini 2.5 Pro) with complementary strengths in coding, reasoning, and scientific knowledge.</p>
+                </div>
+                <div class="contribution-card">
+                    <div class="contribution-icon">🔬</div>
+                    <h3>Scientific Rigor</h3>
+                    <p>Validated on the GenoTEX benchmark with real genomic datasets, demonstrating biologically plausible gene-phenotype associations corroborated by literature.</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Method Overview -->
+    <section id="method" class="section method-section">
+        <div class="container">
+            <h2 class="section-title">Method Overview</h2>
+            <div class="method-content">
+                <div class="method-diagram">
+                    <img src="imgs/system_diagram.png" alt="GenoMAS System Architecture" class="diagram-img">
+                    <p class="diagram-caption">Multi-agent collaboration in GenoMAS. Six specialized agents coordinate through typed message-passing protocols.</p>
+                </div>
+                
+                <div class="method-description">
+                    <h3>Agent Architecture</h3>
+                    <div class="agent-roles">
+                        <div class="agent-role">
+                            <h4>🎯 Orchestration Agent</h4>
+                            <p><strong>PI Agent:</strong> Coordinates the entire workflow, assigns tasks dynamically, and manages dependencies.</p>
+                        </div>
+                        <div class="agent-role">
+                            <h4>💻 Programming Agents</h4>
+                            <p><strong>Data Engineers (GEO & TCGA):</strong> Handle platform-specific data preprocessing with specialized knowledge.</p>
+                            <p><strong>Statistician Agent:</strong> Conducts statistical analysis, regression modeling, and identifies trait-associated genes.</p>
+                        </div>
+                        <div class="agent-role">
+                            <h4>👥 Advisory Agents</h4>
+                            <p><strong>Code Reviewer:</strong> Validates generated code for functionality and conformance.</p>
+                            <p><strong>Domain Expert:</strong> Provides biomedical insights for biological decisions.</p>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="method-features">
+                    <h3>Programming Agent Workflow</h3>
+                    <img src="imgs/Programming_agent.png" alt="Programming Agent Architecture" class="workflow-img">
+                    <p class="workflow-caption">Planning, memory, and self-correction mechanisms of programming agents.</p>
+                    
+                    <div class="features-list">
+                        <div class="feature-item">
+                            <h4>📋 Action Units</h4>
+                            <p>Workflows decomposed into semantically coherent operations that can be executed atomically, revised, or reordered based on context.</p>
+                        </div>
+                        <div class="feature-item">
+                            <h4>🔄 Iterative Refinement</h4>
+                            <p>Three-stage code generation process: writing, review, and revision, with isolated context for independent assessment.</p>
+                        </div>
+                        <div class="feature-item">
+                            <h4>💾 Dynamic Memory</h4>
+                            <p>Validated code snippets stored for reuse, achieving ~65% reuse rate and substantial efficiency gains.</p>
+                        </div>
+                        <div class="feature-item">
+                            <h4>🧬 Domain Expertise</h4>
+                            <p>Consultation with Domain Expert for biomedical reasoning, gene identifier mapping, and clinical feature extraction.</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Results Section -->
+    <section id="results" class="section results-section">
+        <div class="container">
+            <h2 class="section-title">Experimental Results</h2>
+            
+            <div class="results-content">
+                <div class="results-table">
+                    <h3>End-to-End Performance Comparison</h3>
+                    <img src="imgs/Main_result_table.jpg" alt="Main Results Table" class="table-img">
+                    <p class="table-caption">GenoMAS achieves state-of-the-art performance across all metrics, with substantial improvements in F₁ score (60.48%) and AUROC (0.81) while reducing API costs by 44.7%.</p>
+                </div>
+
+                <div class="results-breakdown">
+                    <h3>Component-wise Performance</h3>
+                    <img src="imgs/Individual_task_bar_plot.jpg" alt="Individual Task Performance" class="chart-img">
+                    <p class="chart-caption">Performance breakdown across dataset filtering, selection, and preprocessing tasks, demonstrating consistent superiority over baselines.</p>
+                </div>
+
+                <div class="results-highlights">
+                    <div class="highlight-box">
+                        <h4>Key Findings</h4>
+                        <ul>
+                            <li><strong>98.78% success rate</strong> in generating executable analysis pipelines</li>
+                            <li><strong>89.13% CSC</strong> for data preprocessing, excelling in gene expression data handling (91.15%)</li>
+                            <li><strong>Heterogeneous LLMs</strong> provide +7.5% F₁ improvement over homogeneous configurations</li>
+                            <li><strong>Guided planning</strong> enables dynamic adaptation and efficient error recovery</li>
+                            <li><strong>Memory reuse</strong> stabilizes at ~65% rate, saving significant computational resources</li>
+                        </ul>
+                    </div>
+
+                    <div class="highlight-box">
+                        <h4>Ablation Study Insights</h4>
+                        <ul>
+                            <li>Removing planning mechanism: -9.21% F₁</li>
+                            <li>Excluding Domain Expert: -12.91% F₁</li>
+                            <li>Single review round: -13.87% F₁</li>
+                            <li>No reviewer: -35.50% F₁</li>
+                        </ul>
+                        <p class="insight">Each component contributes significantly to overall system performance and scientific rigor.</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Collaboration Patterns -->
+    <section id="collaboration" class="section collaboration-section">
+        <div class="container">
+            <h2 class="section-title">Agent Collaboration Patterns</h2>
+            <div class="collaboration-content">
+                <img src="imgs/Agent_collaboration_patterns.jpg" alt="Agent Collaboration Patterns" class="collaboration-img">
+                <div class="collaboration-insights">
+                    <h3>Communication Analysis</h3>
+                    <p>Analysis of 2,500+ agent interactions reveals efficient task coordination:</p>
+                    <ul>
+                        <li><strong>56.9% Data Engineer activity</strong> reflects central role in processing gene expression data</li>
+                        <li><strong>2.3% PI messaging</strong> demonstrates high system autonomy (97.7% self-coordinated)</li>
+                        <li><strong>634 Planning Requests</strong> validate the guided planning framework's importance</li>
+                        <li><strong>Low error messages</strong> (36 revisions) indicate effective error prevention</li>
+                    </ul>
+                    <p class="insight-text">These patterns highlight the benefits of role specialization, cognitive diversity through heterogeneous LLMs, and distributed expertise in multi-agent systems.</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Paper & Citation -->
+    <section id="paper" class="section paper-section">
+        <div class="container">
+            <h2 class="section-title">Paper & Citation</h2>
+            <div class="paper-content">
+                <div class="paper-links">
+                    <a href="https://arxiv.org/abs/2507.21035" class="paper-link" target="_blank">
+                        <div class="link-icon">📄</div>
+                        <div class="link-content">
+                            <h3>Read the Paper</h3>
+                            <p>Full paper on arXiv</p>
+                        </div>
+                    </a>
+                    <a href="https://github.com/Liu-Hy/GenoMAS" class="paper-link" target="_blank">
+                        <div class="link-icon">💻</div>
+                        <div class="link-content">
+                            <h3>View the Code</h3>
+                            <p>Official implementation on GitHub</p>
+                        </div>
+                    </a>
+                </div>
+                
+                <div class="citation-box">
+                    <h3>Citation</h3>
+                    <pre><code>@misc{liu2025genomasmultiagentframeworkscientific,
+      title={GenoMAS: A Multi-Agent Framework for Scientific Discovery via Code-Driven Gene Expression Analysis}, 
+      author={Haoyang Liu and Yijiang Li and Haohan Wang},
+      year={2025},
+      eprint={2507.21035},
+      archivePrefix={arXiv},
+      primaryClass={cs.AI},
+      url={https://arxiv.org/abs/2507.21035}, 
+}</code></pre>
+                    <button class="copy-btn" onclick="copyCitation()">
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect>
+                            <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path>
+                        </svg>
+                        Copy
+                    </button>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Team Section -->
+    <section id="team" class="section team-section">
+        <div class="container">
+            <h2 class="section-title">Team</h2>
+            <div class="team-grid">
+                <div class="team-member">
+                    <div class="member-info">
+                        <h3>Haoyang Liu</h3>
+                        <p class="member-affiliation">University of Illinois at Urbana-Champaign</p>
+                        <p class="member-email">hl57@illinois.edu</p>
+                    </div>
+                </div>
+                <div class="team-member">
+                    <div class="member-info">
+                        <h3>Yijiang Li</h3>
+                        <p class="member-affiliation">University of California, San Diego</p>
+                        <p class="member-email">yijiangli@ucsd.edu</p>
+                    </div>
+                </div>
+                <div class="team-member">
+                    <div class="member-info">
+                        <h3>Haohan Wang</h3>
+                        <p class="member-affiliation">University of Illinois at Urbana-Champaign</p>
+                        <p class="member-email">haohanw@illinois.edu</p>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="acknowledgments">
+                <h3>Acknowledgments</h3>
+                <p>This research was supported by the National AI Research Resource (NAIRR) under grant number 240283.</p>
+            </div>
+        </div>
+    </section>
+
+    <!-- Footer -->
+    <footer class="footer">
+        <div class="container">
+            <p>&copy; 2025 GenoMAS Team. All rights reserved.</p>
+            <p>
+                <a href="https://github.com/Liu-Hy/GenoMAS" target="_blank">GitHub</a> • 
+                <a href="https://arxiv.org/abs/2507.21035" target="_blank">arXiv</a>
+            </p>
+        </div>
+    </footer>
+
+    <script src="script.js"></script>
+</body>
+</html>
