@@ -1,0 +1,40 @@
+{
+  "agent_id": "tcga",
+  "version": "1.0",
+  "is_generated": false,
+  "generated_at": null,
+  "action_units": [
+    {
+      "name": "Initial Data Loading",
+      "instruction": "\n1. Review the subdirectories under the TCGA Xena dataset root directory (`tcga_root_dir`). You will be provided\n   a list of available subdirectories below; select the subdirectory whose name contains either synonymous or\n   highly overlapping phenotypic terms to our target trait, as this subdirectory likely contains relevant trait data.\n   If multiple options exist, choose the most specific match. If no suitable directory is found, skip this trait\n   and mark the task as completed.\n\n2. For the selected directory, identify the paths to two key files: a clinical data file, which contains\n   'clinicalMatrix' in filename, and a genetic data file, which contains 'PANCAN' in filename. \n\n3. Load both files as Pandas dataframes. Use index_col=0, sep='\\t', and be careful with the file format.\n\n4. Print the column names of the clinical data for further analysis.\n",
+      "metadata": {
+        "requires_domain_knowledge": true,
+        "no_history": true
+      }
+    },
+    {
+      "name": "Find Candidate Demographic Features",
+      "instruction": "\n1. In a previous step, we obtained a list of column names from a biomedical dataset. Please examine the list and \n   identify all the columns that are likely to contain information about patients' age. Similarly, please also identify \n   all columns that may hold data on patients' gender. Please provide your answer by strictly following this format, \n   without redundant words:\n   candidate_age_cols = [col_name1, col_name2, ...]\n   candidate_gender_cols = [col_name1, col_name2, ...]\n\n   If no columns match a criterion, please provide an empty list for the corresponding variable.\n\n2. For both age and gender, if applicable, please extract the candidate columns from the clinical data, and preview the\n   extracted data by displaying the column names and their first 5 values as a Python dictionary.\n   \n[Output of a previous step]\n",
+      "metadata": {
+        "requires_domain_knowledge": true,
+        "no_history": true
+      }
+    },
+    {
+      "name": "Select Demographic Features",
+      "instruction": "\n1. In a previous step, we identified candidate columns for demographic information. We then created two separate Python \n   dictionaries: one for age values and one for gender values, each storing the first 5 values from their respective \n   candidate columns. Please select a single column from the candidate columns that most accurately record age and \n   gender information, respectively. It should contain meaningful values and have no large proportion of missing values. \n   Assign the chosen column name for age information to the variable `age_col`, and for gender information to the \n   variable `gender_col`. In case the input dictionary for either age or gender is empty, or if no suitable column is \n   found for the demographic attribute after thorough inspection, set the corresponding variable to None.\n\n2. Explicitly print out the information for the chosen `age_col` and chosen `gender_col`.\n\n[Output of a previous step]\n",
+      "metadata": {
+        "requires_domain_knowledge": true,
+        "no_history": true
+      }
+    },
+    {
+      "name": "Feature Engineering and Validation",
+      "instruction": "\n1. Extract and standardize the clinical features to get a dataframe with the trait and optional age and gender \n   information.\n\n2. Normalize gene symbols in the obtained gene expression data using synonym information from the NCBI Gene database. \n   Remove data of unrecognized gene symbols, and average the expression values of gene symbols that are mapped to the \n   same standard symbol. Save the normalized data as a CSV file to `out_gene_data_file`\n\n3. Link the clinical and genetic data on sample IDs, and assign the linked data to a variable `linked_data`.\n\n4. Handle missing values in the linked data systematically. We remove samples with missing trait values, remove genes \n   features with >20% missing values, remove samples with >5% missing genes, and then impute remaining missing values. \n   We impute gender with the mode, and impute other features with the mean.\n\n5. Determine whether the trait and some demographic features in the dataset are severely biased. We determine whether \n   the trait is severely biased to validate the usability of the dataset later. Biased demographic features are \n   tolerable, and we simply remove them.\n\n6. Conduct final quality validation and save relevant information about the linked cohort data using the\n   `validate_and_save_cohort_info` function from the library. You may optionally take notes about anything that is \n   worthy of attention about the dataset.\n\n7. If the linked data is usable, save it as a CSV file to `out_data_file`. Otherwise, you must not save it.\n",
+      "metadata": {
+        "requires_domain_knowledge": false,
+        "no_history": false
+      }
+    }
+  ]
+}

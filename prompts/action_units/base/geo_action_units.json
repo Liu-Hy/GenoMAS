@@ -1,0 +1,64 @@
+{
+  "agent_id": "geo",
+  "version": "1.0",
+  "is_generated": false,
+  "generated_at": null,
+  "action_units": [
+    {
+      "name": "Initial Data Loading",
+      "instruction": "\n1. Identify the paths to the SOFT file and the matrix file inside the cohort directory by string matching.\n2. Obtain dataset background information and the clinical dataframe `clinical_data` from the matrix file. Extract \n   relevant text lines by prefix matching. For background information, use prefixes '!Series_title', '!Series_summary', \n   and '!Series_overall_design'; for clinical data, use prefixes '!Sample_geo_accession' and \n   '!Sample_characteristics_ch1'.\n3. To have a quick overview of the clinical features and their values, create a Python dictionary storing the unique \n   values of each row (feature) of `clinical_data`. To prevent overwhelming output, limit the number of unique values \n   shown per feature to a reasonable threshold.\n4. Explicitly print out all the background information and the sample characteristics dictionary.\n",
+      "metadata": {
+        "requires_domain_knowledge": false,
+        "no_history": false
+      }
+    },
+    {
+      "name": "Dataset Analysis and Clinical Feature Extraction",
+      "instruction": "\nAs a biomedical research team, we are analyzing datasets to study the association between the human trait and genetic \nfactors, considering the possible influence of age and gender. (The trait is defined above in Setups and assigned to the\nPython variable `trait`.) After searching the GEO database and parsing the matrix file of a series, we have obtained\nbackground information and sample characteristics data. Please review the output from a previous step and answer the \nfollowing questions regarding this dataset:\n\n1. Gene Expression Data Availability\n   - Is this dataset likely to contain gene expression data? (Note: Pure miRNA data or methylation data are not \n     suitable.)\n     - If YES, set `is_gene_available` to `True`. Otherwise set it to `False`.\n\n2. Variable Availability and Data Type Conversion\n   For each of the variables `trait`, 'age', and 'gender', address the following points:\n\n   **2.1 Data Availability**\n     - If human data for this variable is available, identify the key in the sample characteristics dictionary where \n       unique values of this variable are recorded. The key is an integer. The variable data might be explicitly \n       recorded or can be inferred from the field with biomedical knowledge or understanding of the dataset background. \n       If you can't find such a key, this means the data is not available. \n     - Constant features are useless in our associative studies. Therefore, if there is only one unique value under the\n       key in the sample characteristics dictionary, or if the background information suggests that \"everyone has the \n       same value for some variable\", consider it as not available.\n     - Name the keys `trait_row`, `age_row`, and `gender_row`, respectively. Use None to indicate the corresponding data\n       is not available.\n\n   **2.2 Data Type Conversion**\n     - Choose an appropriate data type for each variable ('continuous' or 'binary').\n     - If the data type is binary, convert values to 0 and 1. For gender data, convert female to 0 and male to 1.\n     - Write a Python function to convert any given value of the variable to this data type. Typically, a colon (':') \n       separates the header and the value in each cell, so ensure to extract the value after the colon in the function. \n       Unknown values should be converted to None.\n     - When data is not explicitly given but can be inferred, carefully observe the unique values in the sample \n       characteristics dictionary, think about what they mean in this dataset, and design a heuristic rule to convert \n       those values into the chosen type. If you are 90% sure that some cases should be mapped to a known value, please \n       do that instead of giving `None`. \n     - Name the functions `convert_trait`, `convert_age`, and `convert_gender`, respectively.\n\n3. Save Metadata\n   Please conduct initial filtering on the usability of the dataset and save relevant information using the \n   `validate_and_save_cohort_info` function from the library. Trait data availability can be determined by whether \n   `trait_row` is None.\n\n4. Clinical Feature Extraction\n   If trait_row is not None, it means clinical data is available, then you MUST DO this substep. Otherwise, you should \n   skip this substep.\n   Use the `geo_select_clinical_features` function to extract clinical features from the input dataframe `clinical_data`\n   that we previously obtained, observe the output dataframe with the `preview_df` function, and save it as a CSV file \n   to `out_clinical_data_file`. \n\n[Output of a previous step]\n",
+      "metadata": {
+        "requires_domain_knowledge": true,
+        "no_history": true
+      }
+    },
+    {
+      "name": "Gene Data Extraction",
+      "instruction": "\n1. Extract the gene expression data from the matrix file previously defined, and read it into a DataFrame. The data \n   begins after the line containing \"!series_matrix_table_begin\".\n2. Print the first 20 row IDs (gene or probe identifiers) to verify the data structure.\n",
+      "metadata": {
+        "requires_domain_knowledge": false,
+        "no_history": false
+      }
+    },
+    {
+      "name": "Gene Identifier Review",
+      "instruction": "\nObserve the gene identifiers in the gene expression data given in a previous step. Based on your biomedical knowledge,\nare they human gene symbols, or are they some other identifiers that need to be mapped to gene symbols? Your answer \nshould be concluded by starting a new line and strictly following this format:\nrequires_gene_mapping = (True or False)\n\n[Output of a previous step]\n",
+      "metadata": {
+        "requires_domain_knowledge": true,
+        "no_history": true
+      }
+    },
+    {
+      "name": "Gene Annotation",
+      "instruction": "\n1. Extract gene annotation data from the SOFT file by filtering out lines with certain prefixes, e.g., '^', '!', '#', \n   and read it into a dataframe.\n2. Preview the gene annotation dataframe by displaying the column names and their first few values as a Python \n   dictionary. This will help identify which columns contain the gene identifiers and gene symbols for mapping.\n",
+      "metadata": {
+        "requires_domain_knowledge": false,
+        "no_history": false
+      }
+    },
+    {
+      "name": "Gene Identifier Mapping",
+      "instruction": "\n1. When analyzing a gene expression dataset, we need to map some identifiers of genes to actual gene symbols. Please \n   observe the gene identifiers in the gene expression data given in a previous step, and also the dictionary preview \n   of the gene annotation data given in another step. \n   Please decide which key in the gene annotation dictionary stores the same kind of gene identifiers as in the gene \n   expression data, and which key stores the gene symbols. \n2. Get a gene mapping dataframe by extracting the two columns from the gene annotation dataframe, corresponding to the \n   gene identifier and the gene symbol respectively. \n3. Convert probe-level measurements to gene expression data by applying the gene mapping, and name the resulting gene \n   expression dataframe as `gene_data`. We handle the many-to-many relation between probes and genes in this way: for \n   each probe that maps to multiple genes, we divide its expression value equally among those genes, then sum up all \n   probe values for each gene.\n",
+      "metadata": {
+        "requires_domain_knowledge": true,
+        "no_history": false
+      }
+    },
+    {
+      "name": "Data Normalization and Linking",
+      "instruction": "\n1. Normalize gene symbols in the obtained gene expression data using synonym information from the NCBI Gene database. \n   Remove data of unrecognized gene symbols, and average the expression values of gene symbols that are mapped to the \n   same standard symbol. Save the normalized data as a CSV file to `out_gene_data_file`\n2. Link the clinical and genetic data on sample IDs, and assign the linked data to a variable `linked_data`.\n3. Handle missing values in the linked data systematically. We remove samples with missing trait values, remove genes \n   features with >20% missing values, remove samples with >5% missing genes, and then impute remaining missing values. \n   We impute gender with the mode, and impute other features with the mean.\n4. Determine whether the trait and some demographic features in the dataset are severely biased. We determine whether \n   the trait is severely biased to validate the usability of the dataset later. Biased demographic features are \n   tolerable, and we simply remove them.\n5. Conduct final quality validation and save relevant information about the linked cohort data using the\n   `validate_and_save_cohort_info` function from the library. You may optionally take notes about anything that is \n   worthy of attention about the dataset.\n6. If the linked data is usable, save it as a CSV file to `out_data_file`. Otherwise, you must not save it.\n",
+      "metadata": {
+        "requires_domain_knowledge": false,
+        "no_history": false
+      }
+    }
+  ]
+}
