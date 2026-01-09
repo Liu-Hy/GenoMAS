@@ -3,6 +3,8 @@ import os
 import re
 import time
 import threading
+import sys
+import io
 from typing import Optional
 from contextvars import ContextVar
 
@@ -17,11 +19,12 @@ class Logger(logging.Logger):
     Enhanced logger with persistent cumulative statistics across process restarts.
     Also supports lightweight contextual metadata (task/cohort) via contextvars, which
     propagate across asyncio tasks and avoid cross-talk in parallel execution.
-    
+
     Note: This implementation is designed for single-process use. For multi-process
     scenarios, additional synchronization mechanisms would be needed to prevent
     concurrent write conflicts.
     """
+
     def __init__(self, log_file: Optional[str] = None, name: Optional[str] = "Script", max_msg_length: int = 5000):
         super().__init__(name=name)
         self.setLevel(logging.INFO)  # Ensure info() messages are logged
@@ -32,46 +35,62 @@ class Logger(logging.Logger):
 
         # Protect cumulative state in potential multi-thread scenarios
         self._state_lock = threading.Lock()
-        
+
         # Initialize cumulative statistics
         self.cumulative_duration = 0.0
         self.cumulative_api_duration = 0.0
         self.cumulative_input_tokens = 0
         self.cumulative_output_tokens = 0
         self.cumulative_cost = 0.0
-        
+
         # Don't add timestamp to log file name
         self.log_file = log_file
 
         # Parse existing log file if it exists
         if self.log_file and os.path.exists(self.log_file):
             self._parse_existing_log()
-        
-        # Set up handler based on whether log_file is provided
+
+        # =========================
+        # Handlers: file + stdout
+        # =========================
         formatter = logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s')
+
+        # 1) File handler (optional)
         if self.log_file:
             log_dir = os.path.dirname(self.log_file)
             if log_dir:
                 os.makedirs(log_dir, exist_ok=True)
-            # Use append mode with delayed opening for thread safety
-            handler = ThreadSafeFileHandler(self.log_file, mode='a', delay=True)
-            handler.baseFilename = os.path.abspath(self.log_file)  # Store absolute path for comparison
-        else:
-            handler = logging.StreamHandler()
-        handler.setFormatter(formatter)
-        
-        # Guard against duplicate handlers
-        if self.log_file:
-            # Check if a handler for this file already exists
-            existing_handler = any(
-                (isinstance(h, logging.FileHandler) or isinstance(h, ThreadSafeFileHandler)) and 
+
+            file_handler = ThreadSafeFileHandler(self.log_file, mode='a', delay=True, encoding='utf-8')
+            file_handler.baseFilename = os.path.abspath(self.log_file)  # Store absolute path for comparison
+            file_handler.setFormatter(formatter)
+
+            # Guard against duplicate file handlers
+            existing_file_handler = any(
+                (isinstance(h, logging.FileHandler) or isinstance(h, ThreadSafeFileHandler)) and
                 getattr(h, 'baseFilename', None) == os.path.abspath(self.log_file)
                 for h in self.handlers
             )
-            if not existing_handler:
-                self.addHandler(handler)
-        else:
-            self.addHandler(handler)
+            if not existing_file_handler:
+                self.addHandler(file_handler)
+
+        # 2) Stdout handler (always on)
+        # Force UTF-8 where possible to avoid UnicodeEncodeError on Windows terminals.
+        try:
+            stream = io.TextIOWrapper(sys.stdout.buffer, encoding='utf-8', errors='replace')
+        except Exception:
+            stream = sys.stdout
+
+        stdout_handler = logging.StreamHandler(stream)
+        stdout_handler.setFormatter(formatter)
+
+        # Avoid duplicate stdout handlers
+        existing_stdout_handler = any(
+            isinstance(h, logging.StreamHandler) and getattr(h, 'stream', None) is not None
+            for h in self.handlers
+        )
+        if not existing_stdout_handler:
+            self.addHandler(stdout_handler)
 
         # Initialize the log with a header if it's a new log file
         if not (self.log_file and os.path.exists(self.log_file) and os.path.getsize(self.log_file) > 0):
@@ -80,11 +99,13 @@ class Logger(logging.Logger):
             self.info("=== Log resumed ===")
             # Log the loaded cumulative statistics
             if self.cumulative_api_duration > 0:
-                self.info(f"Loaded cumulative statistics - Duration: {self.cumulative_duration:.2f}s, "
-                         f"API Duration: {self.cumulative_api_duration:.2f}s, "
-                         f"Input Tokens: {self.cumulative_input_tokens}, "
-                         f"Output Tokens: {self.cumulative_output_tokens}, "
-                         f"Cost: ${self.cumulative_cost:.2f}")
+                self.info(
+                    f"Loaded cumulative statistics - Duration: {self.cumulative_duration:.2f}s, "
+                    f"API Duration: {self.cumulative_api_duration:.2f}s, "
+                    f"Input Tokens: {self.cumulative_input_tokens}, "
+                    f"Output Tokens: {self.cumulative_output_tokens}, "
+                    f"Cost: ${self.cumulative_cost:.2f}"
+                )
 
     def bind(self, task: Optional[str] = None, cohort: Optional[str] = None):
         """Bind lightweight context to this logical execution flow.
@@ -129,7 +150,7 @@ class Logger(logging.Logger):
 
     def critical(self, msg, *args, **kwargs):
         super().critical(self._truncate_message(msg), *args, **kwargs)
-    
+
     def _parse_existing_log(self):
         """
         Parse existing log file to extract cumulative statistics.
@@ -149,45 +170,45 @@ class Logger(logging.Logger):
                 r'(?:Total API Cost: \$([\d.]+))?',
                 re.DOTALL
             )
-            
+
             # Read file backwards to find the last cumulative stats
             cumulative_match = None
             summary_match = None
-            
+
             with open(self.log_file, 'rb') as f:
                 # Start from end of file
                 f.seek(0, 2)
                 file_size = f.tell()
-                
+
                 # Read in chunks from the end
                 chunk_size = 8192
                 overlap = 1024  # To handle patterns split across chunks
                 buffer = ''
-                
+
                 pos = file_size
                 while pos > 0 and not cumulative_match:
                     # Calculate how much to read
                     read_size = min(chunk_size, pos)
                     pos -= read_size
                     f.seek(pos)
-                    
+
                     # Read chunk and decode
                     chunk = f.read(read_size).decode('utf-8', errors='ignore')
                     buffer = chunk + buffer[:overlap]
-                    
+
                     # Search for cumulative stats pattern
                     for match in cumulative_pattern.finditer(buffer):
                         cumulative_match = match
-                    
+
                     # If no cumulative match, search for summary pattern
                     if not cumulative_match:
                         for match in summary_pattern.finditer(buffer):
                             summary_match = match
-                    
+
                     # Keep only the overlap for next iteration
                     if len(buffer) > overlap:
                         buffer = buffer[-overlap:]
-            
+
             # Process the match
             if cumulative_match:
                 self.cumulative_duration = float(cumulative_match.group(1))
@@ -204,11 +225,11 @@ class Logger(logging.Logger):
                 self.cumulative_output_tokens = int(summary_match.group(4))
                 cost_str = summary_match.group(5)
                 self.cumulative_cost = float(cost_str) if cost_str else 0.0
-                    
+
             # Update start time to account for the elapsed time
             if self.cumulative_duration > 0:
                 self.start_time = time.time() - self.cumulative_duration
-                
+
         except Exception as e:
             # If parsing fails, just start fresh
             self.warning(f"Failed to parse existing log file: {e}")
@@ -224,12 +245,12 @@ class Logger(logging.Logger):
         # Update internal state atomically
         with self._state_lock:
             self.api_calls.append(call_data)
-            
+
             # Update cumulative statistics
             self.cumulative_api_duration += duration
             self.cumulative_input_tokens += input_tokens
             self.cumulative_output_tokens += output_tokens
-            
+
             # Update total elapsed time
             self.cumulative_duration = time.time() - self.start_time
 
@@ -249,23 +270,27 @@ class Logger(logging.Logger):
             cumulative_cost_value = self.cumulative_cost
 
         # Log API call with cumulative statistics
-        base_log = f"API Call - Duration: {call_data['duration']:.2f}s, " \
-                   f"Input Tokens: {call_data['input_tokens']}, Output Tokens: {call_data['output_tokens']}"
+        base_log = (
+            f"API Call - Duration: {call_data['duration']:.2f}s, "
+            f"Input Tokens: {call_data['input_tokens']}, Output Tokens: {call_data['output_tokens']}"
+        )
 
         if cumulative_cost_enabled:
             base_log += f", Cost: ${cost:.2f}"
 
         self.info(base_log)
-        
+
         # Log cumulative statistics (using snapshot)
-        cumulative_log = f"Cumulative Stats - Duration: {cumulative_duration:.2f}s, " \
-                        f"API Duration: {cumulative_api_duration:.2f}s, " \
-                        f"Input Tokens: {cumulative_input_tokens}, " \
-                        f"Output Tokens: {cumulative_output_tokens}"
-        
+        cumulative_log = (
+            f"Cumulative Stats - Duration: {cumulative_duration:.2f}s, "
+            f"API Duration: {cumulative_api_duration:.2f}s, "
+            f"Input Tokens: {cumulative_input_tokens}, "
+            f"Output Tokens: {cumulative_output_tokens}"
+        )
+
         if cumulative_cost_enabled:
             cumulative_log += f", Cost: ${cumulative_cost_value:.2f}"
-            
+
         self.info(cumulative_log)
 
     def summarize(self):
@@ -279,7 +304,7 @@ class Logger(logging.Logger):
             cumulative_output_tokens = self.cumulative_output_tokens
             cumulative_cost_enabled = self.cost_tracking_enabled
             cumulative_cost_value = self.cumulative_cost
-        
+
         self.info("\n=== Summary Statistics ===")
         self.info(f"Total Duration: {cumulative_duration:.2f} seconds")
         self.info(f"Total API Call Duration: {cumulative_api_duration:.2f} seconds")
@@ -294,10 +319,11 @@ class ThreadSafeFileHandler(logging.FileHandler):
     """
     Thread-safe file handler that uses file locking to prevent concurrent write conflicts.
     """
+
     def __init__(self, filename, mode='a', encoding=None, delay=True):
         super().__init__(filename, mode, encoding, delay)
         self._lock = threading.Lock()
-    
+
     def emit(self, record):
         """
         Emit a record with thread-safe file locking.

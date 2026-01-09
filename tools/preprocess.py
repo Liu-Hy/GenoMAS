@@ -8,31 +8,84 @@ from typing import Callable, Optional, List, Tuple, Dict, Union, Any
 
 import pandas as pd
 
+from utils.data_access import (
+    get_geo_cohort_dir,
+    find_series_matrix,
+    find_soft_file,
+)
 
-def geo_get_relevant_filepaths(cohort_dir: str) -> Tuple[str, str]:
-    """Find the file paths of a SOFT file and a matrix file from the given data directory of a cohort.
-    If there are multiple SOFT files or matrix files, simply choose the first one. Used for the GEO dataset.
-    """
+
+def geo_get_relevant_filepaths(trait: str, cohort: str) -> Tuple[str, str]:
+    cohort_dir = get_geo_cohort_dir(trait, cohort)
+
+    matrix_path = find_series_matrix(cohort_dir)
+    soft_path = find_soft_file(cohort_dir)
+
+    if matrix_path and soft_path:
+        return str(soft_path), str(matrix_path)
+
+    # Deterministic fallback (never let LLM guess paths)
     files = os.listdir(cohort_dir)
-    soft_files = [f for f in files if 'soft' in f.lower()]
-    matrix_files = [f for f in files if 'matrix' in f.lower()]
-    assert len(soft_files) > 0 and len(matrix_files) > 0
-    soft_file_path = os.path.join(cohort_dir, soft_files[0])
-    matrix_file_path = os.path.join(cohort_dir, matrix_files[0])
 
-    return soft_file_path, matrix_file_path
+    matrix_candidates = [f for f in files if 'series_matrix' in f.lower() and f.endswith('.gz')]
+    soft_candidates = [f for f in files if 'soft' in f.lower() and f.endswith('.gz')]
+
+    if matrix_candidates and soft_candidates:
+        matrix_candidates.sort()
+        soft_candidates.sort()
+        return (
+            os.path.join(cohort_dir, soft_candidates[0]),
+            os.path.join(cohort_dir, matrix_candidates[0])
+        )
+
+    raise FileNotFoundError(
+        f"[GEO] Required files not found in {cohort_dir}\n"
+        f"Found: {files}"
+    )
+
 
 
 def tcga_get_relevant_filepaths(cohort_dir: str) -> Tuple[str, str]:
-    """Find the file paths of a clinical file and a genetic file from the given data directory of a cohort.
-    If there are multiple clinical or genetic data files, simply choose the first one. Used for the TCGA Xena dataset.
+    """Find clinical/genetic files inside a TCGA cohort dir.
+    If files are not directly under cohort_dir, but cohort_dir contains a single subdir,
+    search that subdir (common layout).
     """
-    files = os.listdir(cohort_dir)
-    clinical_files = [f for f in files if 'clinicalmatrix' in f.lower()]
-    genetic_files = [f for f in files if 'pancan' in f.lower()]
-    clinical_file_path = os.path.join(cohort_dir, clinical_files[0])
-    genetic_file_path = os.path.join(cohort_dir, genetic_files[0])
-    return clinical_file_path, genetic_file_path
+    def _find(dir_path: str) -> Tuple[str, str]:
+        files = os.listdir(dir_path)
+        clinical_files = [f for f in files if 'clinicalmatrix' in f.lower()]
+        genetic_files = [f for f in files if 'pancan' in f.lower()]
+        if not clinical_files or not genetic_files:
+            raise FileNotFoundError(
+                f"Cannot find clinicalmatrix/pancan files under: {dir_path}\n"
+                f"Found files: {files[:20]}"
+            )
+        return os.path.join(dir_path, clinical_files[0]), os.path.join(dir_path, genetic_files[0])
+
+    # 1) try direct
+    try:
+        return _find(cohort_dir)
+    except Exception:
+        pass
+
+    # 2) if has exactly one subdir, search it
+    subdirs = [d for d in os.listdir(cohort_dir) if os.path.isdir(os.path.join(cohort_dir, d))]
+    if len(subdirs) == 1:
+        return _find(os.path.join(cohort_dir, subdirs[0]))
+    if os.path.exists(cohort_dir):
+        raise FileNotFoundError(
+            f"[TCGA] Cannot locate required files in {cohort_dir}\n"
+            f"Subdirs: {subdirs}\n"
+            f"Tip: expected files containing 'clinicalMatrix' and 'pancan'."
+        )
+
+
+    # 3) otherwise, re-raise with hints
+    raise FileNotFoundError(
+        f"TCGA cohort_dir layout not recognized: {cohort_dir}\n"
+        f"Subdirs: {subdirs}\n"
+        f"Tip: ensure the folder contains files with 'clinicalMatrix' and 'pancan' in filename."
+    )
+
 
 
 def line_generator(source: str, source_type: str) -> str:

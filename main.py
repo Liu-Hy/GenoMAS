@@ -25,6 +25,8 @@ async def main():
     args.max_time = args.max_time * scaler
     task_info_file = './metadata/task_info.json'
     all_pairs = get_question_pairs(task_info_file)
+    TARGET_TRAIT = "Head_and_Neck_Cancer"
+    all_pairs = [(t, c) for (t, c) in all_pairs if t == TARGET_TRAIT and c is None]
     in_data_root = args.data_root
     tcga_root = os.path.join(in_data_root, 'TCGA')
     output_root = './output/'
