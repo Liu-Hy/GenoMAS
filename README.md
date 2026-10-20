@@ -66,7 +66,7 @@ A specialized system for automated gene expression data analysis:
 
 - **Data Sources**: Analyzes transcriptomic datasets from GEO and TCGA
 - **Goal**: Identify significant genes related to traits while accounting for confounders
-- **State-of-the-Art Performance**: 60.38% F1 score on the [GenoTEX benchmark](https://github.com/Liu-Hy/GenoTEX), substantially outperforming both open-domain agents and generic biomedical agents
+- **State-of-the-Art Performance**: 60.48% F1 score on the [GenoTEX benchmark](https://github.com/Liu-Hy/GenoTEX), substantially outperforming both open-domain agents and generic biomedical agents
 - **Scientific Discovery**: Identifies biologically meaningful gene-trait associations, with high-confidence associations corroborated by literature and novel findings worthy of further investigation
 
 ---
