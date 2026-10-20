@@ -147,6 +147,30 @@ body {
     line-height: 1.5;
 }
 
+.hero-venue {
+    margin-bottom: 2rem;
+}
+
+.venue-badge {
+    display: inline-block;
+    padding: 0.45rem 1.25rem;
+    border-radius: 50px;
+    background: rgba(255, 255, 255, 0.15);
+    border: 1px solid rgba(255, 255, 255, 0.5);
+    color: white;
+    font-size: 0.95rem;
+    font-weight: 600;
+    letter-spacing: 0.02em;
+    text-decoration: none;
+    backdrop-filter: blur(10px);
+    transition: var(--transition);
+}
+
+.venue-badge:hover {
+    background: rgba(255, 255, 255, 0.28);
+    border-color: white;
+}
+
 .hero-authors {
     margin-bottom: 2.5rem;
     font-size: 1.1rem;

@@ -60,14 +60,14 @@ window.addEventListener('load', updateNavbar);
 
 // ===== Copy Citation Function =====
 function copyCitation() {
-    const citation = `@misc{liu2025genomasmultiagentframeworkscientific,
-      title={GenoMAS: A Multi-Agent Framework for Scientific Discovery via Code-Driven Gene Expression Analysis}, 
-      author={Haoyang Liu and Yijiang Li and Haohan Wang},
-      year={2025},
-      eprint={2507.21035},
-      archivePrefix={arXiv},
-      primaryClass={cs.AI},
-      url={https://arxiv.org/abs/2507.21035}, 
+    const citation = `@inproceedings{liu2026genomas,
+  title     = {GenoMAS: Guided Multi-Agent Programming for Scientific Discovery from Genomic Data},
+  author    = {Liu, Haoyang and Li, Yijiang and Wang, Haohan},
+  booktitle = {Findings of the Association for Computational Linguistics: EMNLP 2026},
+  year      = {2026},
+  address   = {Budapest, Hungary},
+  publisher = {Association for Computational Linguistics},
+  url       = {https://arxiv.org/abs/2507.21035}
 }`;
     
     navigator.clipboard.writeText(citation).then(() => {

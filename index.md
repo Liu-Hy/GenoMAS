@@ -1,6 +1,6 @@
 # GenoMAS Project Page
 
-This directory contains the project website for the GenoMAS paper: "A Multi-Agent Framework for Scientific Discovery via Code-Driven Gene Expression Analysis"
+This directory contains the project website for the GenoMAS paper "Guided Multi-Agent Programming for Scientific Discovery from Genomic Data" (Findings of EMNLP 2026)
 
 ## 🌐 Website Structure
 
