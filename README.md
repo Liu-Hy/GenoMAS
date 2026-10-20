@@ -4,11 +4,11 @@
   <img src="./imgs/logo.png" alt="GenoMAS Logo" width="300px"/>
   <br>
   <br>
-  <a href="https://2026.emnlp.org/">
-    <img src="https://img.shields.io/badge/EMNLP%202026-Findings-1f4e79.svg" alt="Findings of EMNLP 2026">
-  </a>
   <a href="https://arxiv.org/abs/2507.21035">
     <img src="https://img.shields.io/badge/arXiv-2507.21035-b31b1b.svg" alt="arXiv">
+  </a>
+  <a href="https://2026.emnlp.org/">
+    <img src="https://img.shields.io/badge/EMNLP%202026-Findings-1f4e79.svg" alt="Findings of EMNLP 2026">
   </a>
   <a href="https://opensource.org/licenses/MIT">
     <img src="https://img.shields.io/badge/License-MIT-yellow.svg" alt="License: MIT">
