@@ -1,9 +1,12 @@
-# A Multi-Agent Framework for Scientific Discovery via Code-Driven Gene Expression Analysis
+# Guided Multi-Agent Programming for Scientific Discovery from Genomic Data
 
 <div align="center">
   <img src="./imgs/logo.png" alt="GenoMAS Logo" width="300px"/>
   <br>
   <br>
+  <a href="https://2026.emnlp.org/">
+    <img src="https://img.shields.io/badge/EMNLP%202026-Findings-1f4e79.svg" alt="Findings of EMNLP 2026">
+  </a>
   <a href="https://arxiv.org/abs/2507.21035">
     <img src="https://img.shields.io/badge/arXiv-2507.21035-b31b1b.svg" alt="arXiv">
   </a>
@@ -27,9 +30,10 @@
 <br>
 
 Official implementation of the paper:
->[__"GenoMAS: A Multi-Agent Framework for Scientific Discovery via Code-Driven Gene Expression Analysis"__](https://arxiv.org/abs/2507.21035)<br>
+>[__"GenoMAS: Guided Multi-Agent Programming for Scientific Discovery from Genomic Data"__](https://arxiv.org/abs/2507.21035)<br>
 >Haoyang Liu, Yijiang Li, Haohan Wang<br>
->*UIUC, UC San Diego*
+>*UIUC, UC San Diego*<br>
+>**Findings of EMNLP 2026**
 
 🌐 **[Website](https://liu-hy.github.io/GenoMAS/)** | 📄 **[Paper](https://arxiv.org/abs/2507.21035)** | 💻 **[Code](https://github.com/Liu-Hy/GenoMAS)**
 
@@ -311,14 +315,14 @@ We welcome your feedback and contributions! Feel free to:
 If you find our work useful for your research, please consider citing our paper and starring ⭐ our repository:
 
 ```bibtex
-@misc{liu2025genomas,
-      title={GenoMAS: A Multi-Agent Framework for Scientific Discovery via Code-Driven Gene Expression Analysis}, 
-      author={Haoyang Liu and Yijiang Li and Haohan Wang},
-      year={2025},
-      eprint={2507.21035},
-      archivePrefix={arXiv},
-      primaryClass={cs.AI},
-      url={https://arxiv.org/abs/2507.21035}, 
+@inproceedings{liu2026genomas,
+  title     = {GenoMAS: Guided Multi-Agent Programming for Scientific Discovery from Genomic Data},
+  author    = {Liu, Haoyang and Li, Yijiang and Wang, Haohan},
+  booktitle = {Findings of the Association for Computational Linguistics: EMNLP 2026},
+  year      = {2026},
+  address   = {Budapest, Hungary},
+  publisher = {Association for Computational Linguistics},
+  url       = {https://arxiv.org/abs/2507.21035}
 }
 ```
 
