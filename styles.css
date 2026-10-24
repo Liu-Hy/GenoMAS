@@ -133,18 +133,12 @@ body {
 }
 
 .hero-title {
-    font-size: 4rem;
-    font-weight: 800;
-    margin-bottom: 1rem;
-    letter-spacing: -0.02em;
-}
-
-.hero-subtitle {
     font-size: 1.5rem;
     font-weight: 400;
     margin-bottom: 2rem;
     opacity: 0.95;
     line-height: 1.5;
+    text-wrap: balance;
 }
 
 .hero-venue {
@@ -812,10 +806,6 @@ body {
 /* ===== Responsive Design ===== */
 @media (max-width: 768px) {
     .hero-title {
-        font-size: 2.5rem;
-    }
-    
-    .hero-subtitle {
         font-size: 1.2rem;
     }
     
